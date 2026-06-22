@@ -199,7 +199,9 @@ Each sub-project gets its own spec → plan → implementation cycle.
 |---|------------|--------|
 | 1 | Foundation (monorepo setup, auth, DB schema, design system) | ✅ Complete — 15 commits, 55 files, all packages + apps wired |
 | 1.5 | Layout scaffold (Nav, Footer, RTLProvider) | ✅ Complete — commit cc3d367 |
-| 2 | Customer Storefront (browse, search, product detail, AI stylist) | 🔲 Not started |
+| 2a | Browse pages (/browse, /browse/[category]) | ✅ Complete — commit d6f8f23 |
+| 2b.1 | Vendor Boutique page (/vendors/[id]) | ✅ Complete — commit 0dbe3db |
+| 2b | Customer Storefront (product detail, AI stylist, wishlist) | 🔲 Not started |
 | note | Phase 2 Vendor OS includes a minimal `/sellers/approvals` admin route to unblock KYC before full Admin Console (Phase 4) | — |
 | 3 | Cart & Checkout (cart, checkout flow, Luna Pay) | 🔲 Not started |
 | 4 | Vendor OS (dashboard, product management, inventory, orders) | 🔲 Not started |
@@ -223,6 +225,7 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 2026-06-22 | Cloudinary for media (AI-generated + vendor uploads) | Transformations, storage, CDN |
 | 2026-06-22 | Tabby + Tamara for BNPL | Gulf-native BNPL providers |
 | 2026-06-22 | Nav, Footer, and Layout for customer app | Sticky nav with auth state + cart count; dark footer with shop categories; RTLProvider wrapper |
+| 2026-06-22 | Browse pages (/browse, /browse/[category]) | Dynamic filtering, pagination, size profile integration. 4 valid categories: occasion/everyday/travel/sport |
 
 ---
 
