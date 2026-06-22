@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Hanken_Grotesk, IBM_Plex_Sans_Arabic } from "next/font/google";
+import dynamic from "next/dynamic";
 import { RTLProvider, LunaChatWidget } from "@e-luna/ui";
 import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
@@ -32,13 +33,14 @@ export const metadata: Metadata = {
   description: "Discover abayas styled for you by AI",
 };
 
-// ClerkProvider is only imported when keys are present
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const ClerkProvider = hasClerkKeys ? require("@clerk/nextjs").ClerkProvider : null;
+// Only bundle Clerk when keys are configured — prevents client crash when keys are absent
+const ClerkProviderWrapper = hasClerkKeys
+  ? dynamic(() => import("./components/ClerkProviderWrapper").then((m) => m.ClerkProviderWrapper))
+  : null;
 
 function MaybeClerkProvider({ children }: { children: React.ReactNode }) {
-  if (!ClerkProvider) return <>{children}</>;
-  return <ClerkProvider>{children}</ClerkProvider>;
+  if (!ClerkProviderWrapper) return <>{children}</>;
+  return <ClerkProviderWrapper>{children}</ClerkProviderWrapper>;
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
