@@ -15,6 +15,16 @@ export default async function OrderConfirmPage({ searchParams }: Props) {
   if (!orderId) notFound();
 
   const user = await safeCurrentUser();
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-24 text-center">
+        <p className="font-display text-display-md text-ink mb-4">Sign in to view your order</p>
+        <a href="/sign-in" className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory">
+          Sign in
+        </a>
+      </div>
+    );
+  }
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -37,13 +47,12 @@ export default async function OrderConfirmPage({ searchParams }: Props) {
 
   if (!order) notFound();
 
-  if (user) {
-    const profile = await prisma.customerProfile.findUnique({
-      where: { userId: user.id },
-      select: { id: true },
-    }).catch(() => null);
-    if (profile && order.customerId !== profile.id) notFound();
-  }
+  // Fail closed: always verify ownership; DB error surfaces as 500 (correct)
+  const profile = await prisma.customerProfile.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  });
+  if (!profile || order.customerId !== profile.id) notFound();
 
   const paymentTx = order.paymentTransactions[0];
 
