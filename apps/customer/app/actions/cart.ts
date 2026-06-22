@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 
 const CART_COOKIE = "luna_cart";
 const MAX_ITEMS = 20;
@@ -11,7 +12,7 @@ export type CartItem = {
   addedAt: string;
 };
 
-function parseCart(raw: string | undefined): CartItem[] {
+export function parseCart(raw: string | undefined): CartItem[] {
   if (!raw) return [];
   try {
     const parsed: unknown = JSON.parse(raw);
@@ -69,5 +70,51 @@ export async function addToCart(
     return { success: true, message: "Added to bag" };
   } catch {
     return { success: false, message: "Could not add to bag. Please try again." };
+  }
+}
+
+export async function removeFromCart(
+  variantId: string
+): Promise<{ success: boolean }> {
+  try {
+    const jar = await cookies();
+    const cart = parseCart(jar.get(CART_COOKIE)?.value);
+    const updated = cart.filter((item) => item.variantId !== variantId);
+    jar.set(CART_COOKIE, JSON.stringify(updated), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: "lax",
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+    });
+    revalidatePath("/cart");
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
+}
+
+export async function updateCartQty(
+  variantId: string,
+  qty: number
+): Promise<{ success: boolean }> {
+  try {
+    if (qty < 1 || qty > 99) return { success: false };
+    const jar = await cookies();
+    const cart = parseCart(jar.get(CART_COOKIE)?.value);
+    const updated = cart.map((item) =>
+      item.variantId === variantId ? { ...item, qty } : item
+    );
+    jar.set(CART_COOKIE, JSON.stringify(updated), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: "lax",
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+    });
+    revalidatePath("/cart");
+    return { success: true };
+  } catch {
+    return { success: false };
   }
 }
