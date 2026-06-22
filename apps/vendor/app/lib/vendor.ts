@@ -1,11 +1,12 @@
 import { prisma } from "@e-luna/db";
+import type { VendorStatus } from "@e-luna/db";
 
 export type VendorWithStatus = {
   id: string;
   userId: string;
   storeName: string;
   storeSlug: string;
-  status: string;
+  status: VendorStatus;
   description: string | null;
   logoUrl: string | null;
   ibanNumber: string | null;
