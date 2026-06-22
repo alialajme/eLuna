@@ -1,9 +1,11 @@
+import type { ReactNode } from "react";
+
 type StatCardProps = {
   label: string;
   value: string | number;
   delta?: string;
   deltaPositive?: boolean;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 };
 
 export function StatCard({ label, value, delta, deltaPositive, icon }: StatCardProps) {
