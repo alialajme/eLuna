@@ -203,7 +203,7 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 2b | Customer Storefront Phase 2 (UI components, ProductGrid, Home, Browse, ProductDetail, VendorBoutique, AI Stylist, cart action, chat route) | ✅ Complete — 17 tasks, commits e1e298f–85999f0 |
 | note | Wishlist (/wishlist) deferred to Phase 3 (Cart & Checkout) | — |
 | note | Phase 2 Vendor OS includes a minimal `/sellers/approvals` admin route to unblock KYC before full Admin Console (Phase 4) | — |
-| 3 | Cart & Checkout (cart UI, checkout flow, wishlist, Luna Pay) | 🔲 Not started |
+| 3 | Cart & Checkout (cart UI, checkout flow, wishlist, Luna Pay) | ✅ Complete — payment gateway abstraction (SimulatedGateway + Tabby/Tamara stubs), cart page, checkout + confirmation, wishlist, profile, size profile, orders |
 | 4 | Vendor OS (dashboard, product management, inventory, orders) | 🔲 Not started |
 | 5 | Luna Studio AI (photo upload → campaign generation) | 🔲 Not started |
 | 6 | Admin Console (GMV, seller approvals, fraud, payouts) | 🔲 Not started |
