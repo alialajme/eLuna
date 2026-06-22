@@ -200,10 +200,10 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 1 | Foundation (monorepo setup, auth, DB schema, design system) | ✅ Complete — 15 commits, 55 files, all packages + apps wired |
 | 1.5 | Layout scaffold (Nav, Footer, RTLProvider) | ✅ Complete — commit cc3d367 |
 | 2a | Browse pages (/browse, /browse/[category]) | ✅ Complete — commit d6f8f23 |
-| 2b.1 | Vendor Boutique page (/vendors/[id]) | ✅ Complete — commit 0dbe3db |
-| 2b | Customer Storefront (product detail, AI stylist, wishlist) | 🔲 Not started |
+| 2b | Customer Storefront Phase 2 (UI components, ProductGrid, Home, Browse, ProductDetail, VendorBoutique, AI Stylist, cart action, chat route) | ✅ Complete — 17 tasks, commits e1e298f–85999f0 |
+| note | Wishlist (/wishlist) deferred to Phase 3 (Cart & Checkout) | — |
 | note | Phase 2 Vendor OS includes a minimal `/sellers/approvals` admin route to unblock KYC before full Admin Console (Phase 4) | — |
-| 3 | Cart & Checkout (cart, checkout flow, Luna Pay) | 🔲 Not started |
+| 3 | Cart & Checkout (cart UI, checkout flow, wishlist, Luna Pay) | 🔲 Not started |
 | 4 | Vendor OS (dashboard, product management, inventory, orders) | 🔲 Not started |
 | 5 | Luna Studio AI (photo upload → campaign generation) | 🔲 Not started |
 | 6 | Admin Console (GMV, seller approvals, fraud, payouts) | 🔲 Not started |
@@ -226,6 +226,11 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 2026-06-22 | Tabby + Tamara for BNPL | Gulf-native BNPL providers |
 | 2026-06-22 | Nav, Footer, and Layout for customer app | Sticky nav with auth state + cart count; dark footer with shop categories; RTLProvider wrapper |
 | 2026-06-22 | Browse pages (/browse, /browse/[category]) | Dynamic filtering, pagination, size profile integration. 4 valid categories: occasion/everyday/travel/sport |
+| 2026-06-22 | Product Detail page (/p/[slug]) | Client island (ProductDetail.tsx) + RSC page; Zod-validated sizeGuide; Luna Fit strip; cart Server Action |
+| 2026-06-22 | Vendor Boutique page (/vendors/[id]) | Dark header with avg rating, fabric filter, filteredCount vs totalCount split, PAGE_SIZE exported from ProductGrid |
+| 2026-06-22 | AI chat route (/api/chat) | POST handler wires Clerk auth + sizeProfile into runShoppingAgent, returns toDataStreamResponse() |
+| 2026-06-22 | AI Stylist full page (/chat) + LunaChatWidget wired into layout | LunaChatWidget hides itself on /chat to avoid double widget; apiPath injected as prop |
+| 2026-06-22 | Cart cookie (luna_cart) — HttpOnly: false | Nav badge reads it client-side; secure flag set in production; immutable updates; qty bounded 1-99 |
 
 ---
 
