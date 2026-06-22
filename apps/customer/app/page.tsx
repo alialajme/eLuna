@@ -20,15 +20,12 @@ const HERO_CAMPAIGN = {
 export default async function HomePage() {
   const user = await currentUser();
 
-  const [categoryCounts, newArrivals, featuredBoutiques, sizeProfileStatus] = await Promise.all([
-    Promise.all(
-      CATEGORIES.map(async (cat) => ({
-        ...cat,
-        count: await prisma.product.count({
-          where: { status: "ACTIVE", category: { equals: cat.slug, mode: "insensitive" } },
-        }),
-      }))
-    ),
+  const [categoryStats, newArrivals, featuredBoutiques, sizeProfileStatus] = await Promise.all([
+    prisma.product.groupBy({
+      by: ["category"],
+      where: { status: "ACTIVE" },
+      _count: { _all: true },
+    }),
 
     prisma.product.findMany({
       where: { status: "ACTIVE" },
@@ -50,6 +47,9 @@ export default async function HomePage() {
         })
       : Promise.resolve(null),
   ]);
+
+  const countMap = Object.fromEntries(categoryStats.map((c) => [c.category, c._count._all]));
+  const categoryCounts = CATEGORIES.map((cat) => ({ ...cat, count: countMap[cat.slug] ?? 0 }));
 
   const hasSizeProfile = !!sizeProfileStatus;
 
@@ -92,58 +92,64 @@ export default async function HomePage() {
       </section>
 
       {/* ── New Arrivals ───────────────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 py-8 md:px-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="font-display text-display-md text-ink">New Arrivals</h2>
-          <Link href="/browse?sort=newest" className="text-body-md text-gold hover:underline">
-            View all
-          </Link>
-        </div>
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none">
-          {newArrivals.map((product) => {
-            const firstImage = (product.aiImages as string[])[0] ?? null;
-            return (
-              <Link
-                key={product.id}
-                href={`/p/${product.slug}`}
-                className="shrink-0 w-48 md:w-56"
-              >
-                <ProductCard
-                  id={product.id}
-                  title={product.title}
-                  price={Number(product.price)}
-                  imageUrl={firstImage}
-                  vendorName={product.vendor.storeName}
-                />
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+      {newArrivals.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-8 md:px-6">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-display text-display-md text-ink">New Arrivals</h2>
+            <Link href="/browse?sort=newest" className="text-body-md text-gold hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none">
+            {newArrivals.map((product) => {
+              const firstImage = Array.isArray(product.aiImages) && typeof product.aiImages[0] === "string"
+                ? product.aiImages[0]
+                : null;
+              return (
+                <Link
+                  key={product.id}
+                  href={`/p/${product.slug}`}
+                  className="shrink-0 w-48 md:w-56"
+                >
+                  <ProductCard
+                    id={product.id}
+                    title={product.title}
+                    price={Number(product.price)}
+                    imageUrl={firstImage}
+                    vendorName={product.vendor.storeName}
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ── Featured Boutiques ─────────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 py-8 md:px-6">
-        <h2 className="font-display text-display-md text-ink mb-6">Featured Boutiques</h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {featuredBoutiques.map((vendor) => (
-            <Link
-              key={vendor.id}
-              href={`/vendors/${vendor.id}`}
-              className="group flex items-center gap-4 rounded-2xl border border-sand bg-ivory p-5 hover:border-gold transition-colors"
-            >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-sand text-display-md font-bold text-ink group-hover:bg-gold/20 transition-colors">
-                {vendor.storeName[0]}
-              </div>
-              <div>
-                <p className="font-sans text-body-lg font-semibold text-ink">{vendor.storeName}</p>
-                <p className="text-body-sm text-mist">
-                  {vendor._count.products} abayas
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {featuredBoutiques.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-8 md:px-6">
+          <h2 className="font-display text-display-md text-ink mb-6">Featured Boutiques</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {featuredBoutiques.map((vendor) => (
+              <Link
+                key={vendor.id}
+                href={`/vendors/${vendor.id}`}
+                className="group flex items-center gap-4 rounded-2xl border border-sand bg-ivory p-5 hover:border-gold transition-colors"
+              >
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-sand text-display-md font-bold text-ink group-hover:bg-gold/20 transition-colors">
+                  {vendor.storeName?.[0] ?? "○"}
+                </div>
+                <div>
+                  <p className="font-sans text-body-lg font-semibold text-ink">{vendor.storeName}</p>
+                  <p className="text-body-sm text-mist">
+                    {vendor._count.products} abayas
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── AI Stylist Banner ──────────────────────────────────── */}
       {user && (
