@@ -305,20 +305,25 @@ async function main() {
               sizeSystem: "INTL",
             },
           },
-          addresses: {
-            create: {
-              label: "Home",
-              fullName: "Sara Al Mansoori",
-              phone: "+971501234567",
-              addressLine1: "Villa 12, Al Wasl Road",
-              city: "Dubai",
-              emirate: "Dubai",
-              country: "AE",
-              isDefault: true,
-            },
-          },
         },
       },
+    },
+  });
+
+  await prisma.address.upsert({
+    where: { id: "addr_seed_sara" },
+    update: {},
+    create: {
+      id: "addr_seed_sara",
+      userId: customer1User.id,
+      label: "Home",
+      fullName: "Sara Al Mansoori",
+      phone: "+971501234567",
+      addressLine1: "Villa 12, Al Wasl Road",
+      city: "Dubai",
+      emirate: "Dubai",
+      country: "AE",
+      isDefault: true,
     },
   });
 
@@ -345,20 +350,25 @@ async function main() {
               sizeSystem: "INTL",
             },
           },
-          addresses: {
-            create: {
-              label: "Home",
-              fullName: "Layla Al Hashemi",
-              phone: "+971502345678",
-              addressLine1: "Apartment 7B, Corniche Tower",
-              city: "Abu Dhabi",
-              emirate: "Abu Dhabi",
-              country: "AE",
-              isDefault: true,
-            },
-          },
         },
       },
+    },
+  });
+
+  await prisma.address.upsert({
+    where: { id: "addr_seed_layla" },
+    update: {},
+    create: {
+      id: "addr_seed_layla",
+      userId: customer2User.id,
+      label: "Home",
+      fullName: "Layla Al Hashemi",
+      phone: "+971502345678",
+      addressLine1: "Apartment 7B, Corniche Tower",
+      city: "Abu Dhabi",
+      emirate: "Abu Dhabi",
+      country: "AE",
+      isDefault: true,
     },
   });
 
