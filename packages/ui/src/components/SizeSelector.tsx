@@ -47,7 +47,9 @@ export function SizeSelector({
                 disabled={isOutOfStock}
                 aria-label={`Size ${size}${isOutOfStock ? " — out of stock" : ""}${isRecommended ? " — recommended for you" : ""}`}
                 className={`relative h-11 min-w-[3rem] rounded-lg px-3 text-body-md font-medium transition-all ${
-                  isSelected
+                  isSelected && isRecommended
+                    ? "bg-ink text-ivory border-2 border-gold"
+                    : isSelected
                     ? "bg-ink text-ivory"
                     : isOutOfStock
                     ? "cursor-not-allowed border border-sand text-mist line-through opacity-50"
@@ -57,7 +59,7 @@ export function SizeSelector({
                 }`}
               >
                 {size}
-                {isRecommended && !isSelected && (
+                {isRecommended && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-gold" />
                 )}
               </button>
