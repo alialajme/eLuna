@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Hanken_Grotesk, IBM_Plex_Sans_Arabic } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { RTLProvider } from "@e-luna/ui";
+import { RTLProvider, LunaChatWidget } from "@e-luna/ui";
 import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
 import "./globals.css";
@@ -40,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Nav />
             <main>{children}</main>
             <Footer />
+            <LunaChatWidget apiPath="/api/chat" />
           </RTLProvider>
         </body>
       </html>
