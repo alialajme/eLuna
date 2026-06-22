@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Hanken_Grotesk, IBM_Plex_Sans_Arabic } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { RTLProvider } from "@e-luna/ui";
+import { Nav } from "./components/Nav";
+import { Footer } from "./components/Footer";
 import "./globals.css";
 
 const bodoni = Bodoni_Moda({
@@ -33,7 +36,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html lang="en" dir="ltr" className={`${bodoni.variable} ${hanken.variable} ${ibmArabic.variable}`}>
         <body className="bg-ivory font-sans text-ink antialiased">
-          {children}
+          <RTLProvider>
+            <Nav />
+            <main>{children}</main>
+            <Footer />
+          </RTLProvider>
         </body>
       </html>
     </ClerkProvider>
