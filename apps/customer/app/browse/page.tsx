@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { prisma } from "@e-luna/db";
+import { Decimal } from "@prisma/client/runtime/library";
 import { FilterBar } from "@e-luna/ui";
 import { currentUser } from "@clerk/nextjs/server";
 import { ProductGrid } from "../components/ProductGrid";
@@ -34,7 +35,25 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
     page: getString(searchParams.page),
   };
 
-  const [categories, fabrics, sizeProfile, totalCount] = await Promise.all([
+  // Build filters for filtered count query
+  const filterWhere = {
+    status: "ACTIVE" as const,
+    ...(filters.category && { category: { equals: filters.category, mode: "insensitive" as const } }),
+    ...(filters.fabric && { fabric: { equals: filters.fabric, mode: "insensitive" as const } }),
+    ...(filters.size && { variants: { some: { size: { equals: filters.size }, stock: { gt: 0 } } } }),
+    ...(filters.minPrice && { price: { gte: new Decimal(filters.minPrice) } }),
+    ...(filters.maxPrice && { price: { lte: new Decimal(filters.maxPrice) } }),
+    ...(filters.q && {
+      OR: [
+        { title: { contains: filters.q, mode: "insensitive" as const } },
+        { fabric: { contains: filters.q, mode: "insensitive" as const } },
+        { description: { contains: filters.q, mode: "insensitive" as const } },
+        { vendor: { storeName: { contains: filters.q, mode: "insensitive" as const } } },
+      ],
+    }),
+  };
+
+  const [categories, fabrics, sizeProfile, filteredCount, allActiveCount] = await Promise.all([
     prisma.product.findMany({
       where: { status: "ACTIVE" },
       select: { category: true },
@@ -54,11 +73,13 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
         })
       : null,
 
+    prisma.product.count({ where: filterWhere }),
+
     prisma.product.count({ where: { status: "ACTIVE" } }),
   ]);
 
   const page = Math.max(1, parseInt(filters.page ?? "1", 10) || 1);
-  const loadedCount = Math.min(page * 12, totalCount);
+  const loadedCount = Math.min(page * 12, filteredCount);
 
   return (
     <div>
@@ -71,7 +92,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
       <FilterBar
         categories={categories}
         fabrics={fabrics}
-        totalCount={totalCount}
+        totalCount={allActiveCount}
       />
 
       <div className="mx-auto max-w-7xl">
@@ -86,7 +107,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
           <Suspense fallback={null}>
             <LoadMoreButton
               currentPage={page}
-              totalCount={totalCount}
+              totalCount={filteredCount}
               loadedCount={loadedCount}
             />
           </Suspense>
