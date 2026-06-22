@@ -56,14 +56,16 @@ export function ChatMessage({ role, content, products = [] }: ChatMessageProps) 
           })}
         </div>
 
-        {/* Inline product cards for any [PRODUCT:slug] tokens */}
+        {/* Even indices = plain text; odd indices = product slug tokens.
+            Found products: card renders below bubble, token invisible in text.
+            Not found: slug renders as gold fallback text in bubble. */}
         {parts
           .filter((_, i) => i % 2 === 1)
-          .map((slug) => {
+          .map((slug, cardIndex) => {
             const product = products.find((p) => p.slug === slug);
             if (!product) return null;
             return (
-              <div key={slug} className="w-48">
+              <div key={cardIndex} className="w-48">
                 <a href={`/p/${product.slug}`} className="block">
                   <ProductCard
                     id={product.slug}
