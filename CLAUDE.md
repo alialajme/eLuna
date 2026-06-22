@@ -160,15 +160,15 @@ All agents: Vercel AI SDK + Claude claude-sonnet-4-6. Shared context: size profi
 
 ## Design System (packages/ui)
 
-**Theme:** "Moonlit Luxury"
+**Theme:** "Warm Oud" (approved 2026-06-22)
 
 ### Colours
 | Token | Hex | Use |
 |-------|-----|-----|
-| Ink | `#1a1a2e` | Primary background, dark surfaces |
-| Ivory | `#fdf9f4` | Light background |
-| Gold | `#c9a96e` | Accent, CTAs, highlights |
-| Sand | `#e8d9c4` | Borders, dividers |
+| Ink | `#1a0a00` | Primary background, dark surfaces (espresso-brown) |
+| Ivory | `#fff8ee` | Light background (warm cream) |
+| Gold | `#d4a855` | Accent, CTAs, highlights (warm gold) |
+| Sand | `#f0e8d8` | Borders, dividers (light sand) |
 | Lilac | `#c4a0f0` | AI features, Studio agent |
 | Sage | `#6dbf8e` | Success states, Admin app |
 | Coral | `#e57373` | Error, fraud alerts |
