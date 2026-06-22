@@ -18,7 +18,12 @@ type Props = {
 
 export function TopBar({ storeName }: Props) {
   const pathname = usePathname();
-  const title = PAGE_TITLES[pathname] ?? "Vendor OS";
+  const title =
+    PAGE_TITLES[pathname] ??
+    Object.entries(PAGE_TITLES).find(
+      ([path]) => path !== "/" && pathname.startsWith(path)
+    )?.[1] ??
+    "Vendor OS";
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-sand bg-ivory px-6">

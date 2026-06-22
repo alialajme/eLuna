@@ -37,6 +37,8 @@ export default async function DashboardLayout({
     redirect("/pending?reason=" + vendor.status.toLowerCase());
   }
 
+  if (vendor.status !== "ACTIVE") redirect("/pending");
+
   return (
     <div className="flex min-h-screen bg-ivory">
       <Sidebar storeName={vendor.storeName} />
