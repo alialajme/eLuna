@@ -1,8 +1,13 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 
-export const anthropic = createAnthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const apiKey = process.env.ANTHROPIC_API_KEY;
+if (!apiKey) {
+  throw new Error(
+    "ANTHROPIC_API_KEY is not set. Add it to your .env file before running Luna agents."
+  );
+}
+
+export const anthropic = createAnthropic({ apiKey });
 
 export const LUNA_MODEL = "claude-sonnet-4-6";
 

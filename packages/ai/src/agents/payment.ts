@@ -27,8 +27,8 @@ export const paymentTools = {
       orderId: z.string(),
       splits: z.array(z.object({
         method: z.enum(["CARD", "LUNA_WALLET", "TABBY", "TAMARA"]),
-        amount: z.number(),
-      })),
+        amount: z.number().min(0.01, "Split amount must be greater than 0"),
+      })).min(1, "At least one payment method is required"),
     }),
     execute: async ({ orderId, splits }) => {
       return { transactionIds: [], status: "PENDING" };
@@ -39,7 +39,7 @@ export const paymentTools = {
     description: "Process a refund to the original payment method or Luna wallet",
     parameters: z.object({
       orderId: z.string(),
-      amount: z.number(),
+      amount: z.number().min(0.01, "Refund amount must be greater than 0"),
       refundToWallet: z.boolean().default(false),
     }),
     execute: async ({ orderId, amount, refundToWallet }) => {
@@ -50,8 +50,8 @@ export const paymentTools = {
   payout_vendor: tool({
     description: "Initiate a payout to a vendor's IBAN",
     parameters: z.object({
-      vendorId: z.string(),
-      amount: z.number(),
+      vendorId: z.string().uuid("Invalid vendor ID format"),
+      amount: z.number().min(0.01).max(999999.99, "Payout exceeds maximum allowed amount"),
     }),
     execute: async ({ vendorId, amount }) => {
       return { payoutId: "", status: "PENDING", estimatedDate: "" };
