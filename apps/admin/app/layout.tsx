@@ -5,6 +5,7 @@ import "./globals.css";
 
 const bodoni = Bodoni_Moda({
   subsets: ["latin"],
+  weight: ["400", "700"],
   variable: "--font-bodoni",
   display: "swap",
 });
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${bodoni.variable} ${hanken.variable} ${ibmArabic.variable}`}>
+      <html lang="en" dir="ltr" className={`${bodoni.variable} ${hanken.variable} ${ibmArabic.variable}`}>
         <body className="bg-ivory font-sans text-ink antialiased">
           {children}
         </body>
