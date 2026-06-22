@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { prisma } from "@e-luna/db";
 import { FilterBar } from "@e-luna/ui";
 import { currentUser } from "@clerk/nextjs/server";
-import { ProductGrid } from "../../components/ProductGrid";
+import { ProductGrid, PAGE_SIZE } from "../../components/ProductGrid";
 import { ProductGridSkeleton } from "../../components/ProductGridSkeleton";
 import { LoadMoreButton } from "../../components/LoadMoreButton";
 import type { Metadata } from "next";
@@ -18,8 +18,21 @@ function getString(val: string | string[] | undefined): string | undefined {
   return Array.isArray(val) ? val[0] : val;
 }
 
+async function getVendor(id: string) {
+  return prisma.vendor.findUnique({
+    where: { id },
+    include: {
+      _count: {
+        select: {
+          products: { where: { status: "ACTIVE" } },
+        },
+      },
+    },
+  });
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const vendor = await prisma.vendor.findUnique({ where: { id: params.id } });
+  const vendor = await getVendor(params.id);
   if (!vendor) return { title: "Not Found" };
   return {
     title: `${vendor.storeName} — Luna`,
@@ -30,20 +43,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function VendorBoutiquePage({ params, searchParams }: Props) {
   const user = await currentUser();
 
-  const vendor = await prisma.vendor.findUnique({
-    where: { id: params.id },
-    include: {
-      _count: {
-        select: {
-          products: { where: { status: "ACTIVE" } },
-        },
-      },
-    },
-  });
+  const vendor = await getVendor(params.id);
 
   if (!vendor || vendor.status !== "ACTIVE") notFound();
 
-  const [avgRating, fabrics, sizeProfile, totalCount] = await Promise.all([
+  const filters: ProductGridFilters = {
+    size: getString(searchParams.size),
+    fabric: getString(searchParams.fabric),
+    minPrice: getString(searchParams.minPrice),
+    maxPrice: getString(searchParams.maxPrice),
+    sort: getString(searchParams.sort),
+    page: getString(searchParams.page),
+    vendorId: vendor.id,
+  };
+
+  const page = Math.max(1, Math.min(100, parseInt(filters.page ?? "1", 10) || 1));
+
+  const [avgRating, fabrics, sizeProfile, totalCount, filteredCount] = await Promise.all([
     prisma.review.aggregate({
       where: { product: { vendorId: vendor.id } },
       _avg: { rating: true },
@@ -66,19 +82,18 @@ export default async function VendorBoutiquePage({ params, searchParams }: Props
     prisma.product.count({
       where: { vendorId: vendor.id, status: "ACTIVE" },
     }),
+
+    prisma.product.count({
+      where: {
+        vendorId: params.id,
+        status: "ACTIVE",
+        ...(filters.size ? { variants: { some: { size: filters.size, stock: { gt: 0 } } } } : {}),
+        ...(filters.fabric ? { fabric: filters.fabric } : {}),
+        ...(filters.minPrice ? { price: { gte: parseFloat(filters.minPrice) } } : {}),
+        ...(filters.maxPrice ? { price: { lte: parseFloat(filters.maxPrice) } } : {}),
+      },
+    }),
   ]);
-
-  const filters: ProductGridFilters = {
-    size: getString(searchParams.size),
-    fabric: getString(searchParams.fabric),
-    minPrice: getString(searchParams.minPrice),
-    maxPrice: getString(searchParams.maxPrice),
-    sort: getString(searchParams.sort),
-    page: getString(searchParams.page),
-    vendorId: vendor.id,
-  };
-
-  const page = Math.max(1, Math.min(100, parseInt(filters.page ?? "1", 10) || 1));
 
   const joinedYear = vendor.createdAt.getFullYear();
 
@@ -130,8 +145,8 @@ export default async function VendorBoutiquePage({ params, searchParams }: Props
           <Suspense fallback={null}>
             <LoadMoreButton
               currentPage={page}
-              totalCount={totalCount}
-              loadedCount={Math.min(page * 12, totalCount)}
+              totalCount={filteredCount}
+              loadedCount={Math.min(page * PAGE_SIZE, filteredCount)}
             />
           </Suspense>
         </div>

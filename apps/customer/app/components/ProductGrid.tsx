@@ -20,7 +20,7 @@ type Props = {
   customerSizeProfileUsualSize?: string | null;
 };
 
-const PAGE_SIZE = 12;
+export const PAGE_SIZE = 12;
 
 const SORT_MAP = {
   newest: { createdAt: "desc" as const },
