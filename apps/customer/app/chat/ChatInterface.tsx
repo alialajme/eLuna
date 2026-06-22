@@ -33,13 +33,15 @@ export function ChatInterface({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8">
         <div className="mx-auto max-w-2xl space-y-4">
-          {messages.map((msg) => (
-            <ChatMessage
-              key={msg.id}
-              role={msg.role as "user" | "assistant"}
-              content={msg.content}
-            />
-          ))}
+          {messages
+            .filter((msg) => msg.role === "user" || msg.role === "assistant")
+            .map((msg) => (
+              <ChatMessage
+                key={msg.id}
+                role={msg.role as "user" | "assistant"}
+                content={msg.content}
+              />
+            ))}
           {isLoading && (
             <div className="flex items-center gap-2 text-mist text-body-sm">
               <span className="animate-pulse text-gold">●</span>

@@ -11,20 +11,18 @@ export const metadata: Metadata = {
 export default async function ChatPage() {
   const user = await currentUser();
 
-  const [sizeProfile] = await Promise.all([
-    user
-      ? prisma.sizeProfile.findFirst({
-          where: { customerProfile: { userId: user.id } },
-          select: { usualSize: true },
-        })
-      : Promise.resolve(null),
-  ]);
+  const sizeProfile = user
+    ? await prisma.sizeProfile.findFirst({
+        where: { customerProfile: { userId: user.id } },
+        select: { usualSize: true },
+      })
+    : null;
 
   const sessionId = user ? `luna-stylist-${user.id}` : `luna-stylist-guest-${Date.now()}`;
   const userName = user?.firstName ?? null;
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col">
+    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Header */}
       <div className="border-b border-sand bg-ivory px-4 py-4 md:px-8">
         <div className="mx-auto max-w-2xl">
