@@ -9,6 +9,9 @@ type Props = {
   userEmail: string;
 };
 
+// Fix 5: STEPS array moved outside component to avoid re-creation on every render
+const STEPS = ["Store identity", "About your boutique", "Payout details", "Secure your account"];
+
 export function OnboardingWizard({ userEmail }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -45,7 +48,9 @@ export function OnboardingWizard({ userEmail }: Props) {
     });
   }
 
+  // Fix 4: clear error on skip
   function handleStep2Skip() {
+    setError(null);
     setStep(3);
   }
 
@@ -61,7 +66,9 @@ export function OnboardingWizard({ userEmail }: Props) {
     });
   }
 
+  // Fix 4: clear error on skip
   function handleStep3Skip() {
+    setError(null);
     setStep(4);
   }
 
@@ -80,8 +87,6 @@ export function OnboardingWizard({ userEmail }: Props) {
   function handleFinish() {
     router.push("/pending");
   }
-
-  const STEPS = ["Store identity", "About your boutique", "Payout details", "Secure your account"];
 
   return (
     <div className="mx-auto max-w-lg px-4 py-12">
@@ -112,9 +117,11 @@ export function OnboardingWizard({ userEmail }: Props) {
             <p className="text-body-md text-mist mt-1">This is what customers will see on Luna.</p>
           </div>
           <div className="space-y-4">
+            {/* Fix 2: htmlFor/id association */}
             <div>
-              <label className="text-label text-mist block mb-2">STORE NAME</label>
+              <label htmlFor="store-name" className="text-label text-mist block mb-2">STORE NAME</label>
               <input
+                id="store-name"
                 type="text"
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
@@ -124,12 +131,13 @@ export function OnboardingWizard({ userEmail }: Props) {
               />
             </div>
             <div>
-              <label className="text-label text-mist block mb-2">STORE URL</label>
+              <label htmlFor="store-slug" className="text-label text-mist block mb-2">STORE URL</label>
               <div className="flex items-center rounded-xl border border-sand overflow-hidden">
                 <span className="px-3 py-3 text-body-sm text-mist bg-sand/50 border-r border-sand">
                   luna.ae/vendors/
                 </span>
                 <input
+                  id="store-slug"
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
@@ -165,9 +173,11 @@ export function OnboardingWizard({ userEmail }: Props) {
             <p className="text-body-md text-mist mt-1">Optional — you can add this later in Settings.</p>
           </div>
           <div className="space-y-4">
+            {/* Fix 2: htmlFor/id association */}
             <div>
-              <label className="text-label text-mist block mb-2">DESCRIPTION</label>
+              <label htmlFor="store-description" className="text-label text-mist block mb-2">DESCRIPTION</label>
               <textarea
+                id="store-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Share your story, your style, what makes your abayas unique…"
@@ -178,8 +188,9 @@ export function OnboardingWizard({ userEmail }: Props) {
               <p className="text-body-xs text-mist mt-1">{description.length}/400</p>
             </div>
             <div>
-              <label className="text-label text-mist block mb-2">LOGO URL</label>
+              <label htmlFor="logo-url" className="text-label text-mist block mb-2">LOGO URL</label>
               <input
+                id="logo-url"
                 type="url"
                 value={logoUrl}
                 onChange={(e) => setLogoUrl(e.target.value)}
@@ -221,9 +232,11 @@ export function OnboardingWizard({ userEmail }: Props) {
             <h1 className="font-display text-display-md text-ink">Set up payouts</h1>
             <p className="text-body-md text-mist mt-1">Required before your first payout. You can update this in Settings anytime.</p>
           </div>
+          {/* Fix 2: htmlFor/id association */}
           <div>
-            <label className="text-label text-mist block mb-2">IBAN</label>
+            <label htmlFor="iban" className="text-label text-mist block mb-2">IBAN</label>
             <input
+              id="iban"
               type="text"
               value={iban}
               onChange={(e) => setIban(e.target.value)}
@@ -268,20 +281,20 @@ export function OnboardingWizard({ userEmail }: Props) {
           </div>
           <div className="rounded-2xl border border-sand bg-sand/30 p-5 space-y-3">
             <p className="text-body-md text-ink font-medium">How to enable MFA:</p>
+            {/* Fix 3: updated copy to match new /settings link */}
             <ol className="list-decimal list-inside space-y-2 text-body-md text-mist">
-              <li>Click &quot;Enable MFA&quot; below — your account settings will open in a new tab</li>
+              <li>Click &quot;Go to Account Settings&quot; below</li>
               <li>Choose Authenticator app or SMS</li>
               <li>Follow the steps to set it up</li>
               <li>Return here and click &quot;Finish setup&quot;</li>
             </ol>
           </div>
+          {/* Fix 3: replaced broken Clerk staff URL with /settings internal link */}
           <a
-            href="https://accounts.clerk.dev/user"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/settings"
             className="flex w-full items-center justify-center gap-2 rounded-full border border-ink px-6 py-3 text-body-md font-medium text-ink hover:bg-ink hover:text-ivory transition-colors"
           >
-            Enable MFA ↗
+            Go to Account Settings →
           </a>
           <button
             type="button"
@@ -290,8 +303,9 @@ export function OnboardingWizard({ userEmail }: Props) {
           >
             Finish setup ✦
           </button>
+          {/* Fix 6: better userEmail fallback */}
           <p className="text-body-xs text-mist text-center">
-            Submitted as {userEmail}
+            Submitted as {userEmail || "your account"}
           </p>
         </div>
       )}
