@@ -8,13 +8,16 @@
   "scripts": {
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0"
   },
   "devDependencies": {
     "prisma": "^5.22.0",
+    "tsx": "^4.7.0",
+    "@types/node": "^20.0.0",
     "typescript": "^5.4.0"
   }
 }
