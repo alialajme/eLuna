@@ -6,9 +6,10 @@ import Image from "next/image";
 type ProductGalleryProps = {
   images: string[];
   title: string;
+  priority?: boolean;
 };
 
-export function ProductGallery({ images, title }: ProductGalleryProps) {
+export function ProductGallery({ images, title, priority = false }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeImage = images[activeIndex];
 
@@ -21,9 +22,9 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
             src={activeImage}
             alt={title}
             fill
-            className="object-cover transition-opacity duration-200"
+            className="object-cover"
             sizes="(max-width: 768px) 100vw, 50vw"
-            priority
+            priority={priority}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-mist text-body-sm">
@@ -37,7 +38,7 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           {images.map((src, i) => (
             <button
-              key={src}
+              key={i}
               onClick={() => setActiveIndex(i)}
               className={`relative h-16 w-12 shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
                 i === activeIndex ? "border-gold" : "border-transparent"
