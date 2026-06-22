@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Hanken_Grotesk, IBM_Plex_Sans_Arabic } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
 import { RTLProvider, LunaChatWidget } from "@e-luna/ui";
 import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
 import "./globals.css";
+
+const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 const bodoni = Bodoni_Moda({
   subsets: ["latin"],
@@ -31,9 +32,16 @@ export const metadata: Metadata = {
   description: "Discover abayas styled for you by AI",
 };
 
+function MaybeClerkProvider({ children }: { children: React.ReactNode }) {
+  if (!hasClerkKeys) return <>{children}</>;
+  // Dynamic import only when key is present to avoid build-time throw
+  const { ClerkProvider } = require("@clerk/nextjs");
+  return <ClerkProvider>{children}</ClerkProvider>;
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
+    <MaybeClerkProvider>
       <html lang="en" dir="ltr" className={`${bodoni.variable} ${hanken.variable} ${ibmArabic.variable}`}>
         <body className="bg-ivory font-sans text-ink antialiased">
           <RTLProvider>
@@ -44,6 +52,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </RTLProvider>
         </body>
       </html>
-    </ClerkProvider>
+    </MaybeClerkProvider>
   );
 }
