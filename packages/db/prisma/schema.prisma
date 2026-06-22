@@ -1,0 +1,441 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  CUSTOMER
+  VENDOR
+  ADMIN
+}
+
+enum MfaMethod {
+  SMS
+  TOTP
+  WEBAUTHN
+}
+
+enum VendorStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum FulfillmentStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  RETURNED
+}
+
+enum ShipmentStatus {
+  CREATED
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
+enum PaymentMethod {
+  CARD
+  LUNA_WALLET
+  TABBY
+  TAMARA
+  CASH_ON_DELIVERY
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  RECEIVED
+  REFUNDED
+}
+
+enum AIAgentType {
+  SHOPPING
+  SELLER
+  STUDIO
+  LOGISTICS
+  PAYMENT
+  POS
+}
+
+enum NotificationType {
+  ORDER_UPDATE
+  PAYMENT_UPDATE
+  PROMOTION
+  AI_SUGGESTION
+  SYSTEM
+}
+
+// ─────────────────────────────────────────────
+// USER & AUTH
+// ─────────────────────────────────────────────
+
+model User {
+  id          String    @id                         // Clerk user ID
+  email       String    @unique
+  role        UserRole
+  mfaEnabled  Boolean   @default(false)
+  mfaMethod   MfaMethod?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  customerProfile   CustomerProfile?
+  vendor            Vendor?
+  addresses         Address[]
+  aiSessions        AISession[]
+  notifications     Notification[]
+}
+
+// ─────────────────────────────────────────────
+// CUSTOMER
+// ─────────────────────────────────────────────
+
+model CustomerProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  loyaltyPoints   Int      @default(0)
+  walletBalance   Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sizeProfile SizeProfile?
+  orders      Order[]
+  wishlists   Wishlist[]
+  reviews     Review[]
+}
+
+model SizeProfile {
+  id                    String   @id @default(cuid())
+  customerProfileId     String   @unique
+  // Body measurements (cm)
+  height                Float?
+  weight                Float?
+  bust                  Float?
+  waist                 Float?
+  hip                   Float?
+  shoulder              Float?
+  // Garment preferences
+  sleeveLength          String?  // SHORT | THREE_QUARTER | FULL
+  preferredAbayaLength  String?  // MIDI | MAXI | FLOOR
+  fitPreference         String?  // FITTED | REGULAR | LOOSE | OVERSIZED
+  usualSize             String?  // XS | S | M | L | XL | XXL | 3XL
+  sizeSystem            String?  @default("INTL") // INTL | US | UK | EU | GCC
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  customerProfile CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────
+// VENDOR
+// ─────────────────────────────────────────────
+
+model Vendor {
+  id               String       @id @default(cuid())
+  userId           String       @unique
+  storeName        String
+  storeSlug        String       @unique
+  description      String?
+  logoUrl          String?
+  bannerUrl        String?
+  status           VendorStatus @default(PENDING)
+  commissionRate   Decimal      @default(0.15) @db.Decimal(4, 2)
+  ibanNumber       String?
+  mfaVerifiedAt    DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    Product[]
+  orderItems  OrderItem[]
+  payouts     Payout[]
+  studioUploads StudioUpload[]
+}
+
+// ─────────────────────────────────────────────
+// PRODUCTS
+// ─────────────────────────────────────────────
+
+model Product {
+  id          String        @id @default(cuid())
+  vendorId    String
+  title       String
+  slug        String        @unique
+  description String?
+  price       Decimal       @db.Decimal(10, 2)
+  compareAt   Decimal?      @db.Decimal(10, 2)
+  category    String
+  fabric      String?
+  careGuide   String?
+  aiImages    Json          @default("[]")
+  sizeGuide   Json          @default("{}")
+  status      ProductStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  vendor    Vendor           @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  variants  ProductVariant[]
+  wishlists Wishlist[]
+  reviews   Review[]
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  size      String
+  color     String
+  sku       String   @unique
+  stock     Int      @default(0)
+  price     Decimal? @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+}
+
+// ─────────────────────────────────────────────
+// ORDERS
+// ─────────────────────────────────────────────
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  label        String?  // Home | Work | etc.
+  fullName     String
+  phone        String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  emirate      String?  // UAE-specific
+  country      String   @default("AE")
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders  Order[]
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  customerId      String
+  addressId       String
+  status          OrderStatus   @default(PENDING)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  discount        Decimal       @default(0) @db.Decimal(10, 2)
+  shippingFee     Decimal       @default(0) @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  paymentMethod   PaymentMethod
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  customer            CustomerProfile      @relation(fields: [customerId], references: [id])
+  address             Address              @relation(fields: [addressId], references: [id])
+  items               OrderItem[]
+  shipments           Shipment[]
+  paymentTransactions PaymentTransaction[]
+}
+
+model OrderItem {
+  id                String            @id @default(cuid())
+  orderId           String
+  variantId         String
+  vendorId          String
+  quantity          Int
+  unitPrice         Decimal           @db.Decimal(10, 2)
+  fulfillmentStatus FulfillmentStatus @default(PENDING)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+  vendor  Vendor         @relation(fields: [vendorId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// LOGISTICS
+// ─────────────────────────────────────────────
+
+model Shipment {
+  id                String         @id @default(cuid())
+  orderId           String
+  courier           String
+  trackingNumber    String?
+  status            ShipmentStatus @default(CREATED)
+  estimatedDelivery DateTime?
+  deliveredAt       DateTime?
+  cost              Decimal        @default(0) @db.Decimal(10, 2)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────────────
+
+model PaymentTransaction {
+  id               String        @id @default(cuid())
+  orderId          String
+  method           PaymentMethod
+  status           PaymentStatus @default(PENDING)
+  amount           Decimal       @db.Decimal(10, 2)
+  currency         String        @default("AED")
+  externalRef      String?       // Stripe/Tabby/Tamara payment ID
+  metadata         Json          @default("{}")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Payout {
+  id          String       @id @default(cuid())
+  vendorId    String
+  amount      Decimal      @db.Decimal(10, 2)
+  currency    String       @default("AED")
+  status      PayoutStatus @default(PENDING)
+  ibanNumber  String
+  reference   String?
+  processedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────
+// SOCIAL & ENGAGEMENT
+// ─────────────────────────────────────────────
+
+model Review {
+  id                String   @id @default(cuid())
+  productId         String
+  customerProfileId String
+  rating            Int      // 1–5
+  body              String?
+  isVerified        Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerProfile CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+}
+
+model Wishlist {
+  id                String   @id @default(cuid())
+  customerProfileId String
+  productId         String
+  createdAt         DateTime @default(now())
+
+  customerProfile CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([customerProfileId, productId])
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  isRead    Boolean          @default(false)
+  data      Json             @default("{}")
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────
+// AI
+// ─────────────────────────────────────────────
+
+model AISession {
+  id        String      @id @default(cuid())
+  userId    String
+  agentType AIAgentType
+  messages  Json        @default("[]")
+  context   Json        @default("{}")
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────
+// STUDIO
+// ─────────────────────────────────────────────
+
+model StudioUpload {
+  id              String   @id @default(cuid())
+  vendorId        String
+  sourceImages    Json     @default("[]")   // URLs of 3 uploaded photos
+  generatedAssets Json     @default("{}")   // AI-generated images, video, copy
+  status          String   @default("PENDING") // PENDING | PROCESSING | COMPLETE | FAILED
+  productId       String?                  // Linked product if created
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+}
