@@ -2,34 +2,14 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { parseCart } from "../lib/cart-utils";
+
+export type { CartItem } from "../lib/cart-utils";
 
 const CART_COOKIE = "luna_cart";
 const MAX_ITEMS = 20;
 
-export type CartItem = {
-  variantId: string;
-  qty: number;
-  addedAt: string;
-};
-
-export function parseCart(raw: string | undefined): CartItem[] {
-  if (!raw) return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (item): item is CartItem =>
-        typeof item === "object" &&
-        item !== null &&
-        typeof (item as CartItem).variantId === "string" &&
-        typeof (item as CartItem).qty === "number"
-    );
-  } catch {
-    return [];
-  }
-}
-
-export async function getCart(): Promise<CartItem[]> {
+export async function getCart() {
   const jar = await cookies();
   return parseCart(jar.get(CART_COOKIE)?.value);
 }
@@ -47,7 +27,7 @@ export async function addToCart(
     const cart = parseCart(jar.get(CART_COOKIE)?.value);
     const existingIndex = cart.findIndex((item) => item.variantId === variantId);
 
-    let updatedCart: CartItem[];
+    let updatedCart;
     if (existingIndex >= 0) {
       updatedCart = cart.map((item, i) =>
         i === existingIndex ? { ...item, qty: Math.min(item.qty + qty, 99) } : item
