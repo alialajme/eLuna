@@ -3,7 +3,7 @@ import Link from "next/link";
 import { z } from "zod";
 import { prisma } from "@e-luna/db";
 import { ProductCard } from "@e-luna/ui";
-import { currentUser } from "@clerk/nextjs/server";
+import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { ProductDetail } from "./ProductDetail";
 import type { Metadata } from "next";
 

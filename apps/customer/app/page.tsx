@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@e-luna/db";
 import { ProductCard } from "@e-luna/ui";
-import { currentUser } from "@clerk/nextjs/server";
+import { safeCurrentUser as currentUser } from "./lib/auth";
 
 const CATEGORIES = [
   { label: "Occasion", slug: "Occasion", emoji: "✦" },

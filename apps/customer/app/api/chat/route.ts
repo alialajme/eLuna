@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { prisma } from "@e-luna/db";
 import { runShoppingAgent } from "@e-luna/ai";
 import type { CoreMessage } from "ai";

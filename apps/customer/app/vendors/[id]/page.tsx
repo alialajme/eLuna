@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { prisma } from "@e-luna/db";
 import { FilterBar } from "@e-luna/ui";
-import { currentUser } from "@clerk/nextjs/server";
+import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { ProductGrid, PAGE_SIZE } from "../../components/ProductGrid";
 import { ProductGridSkeleton } from "../../components/ProductGridSkeleton";
 import { LoadMoreButton } from "../../components/LoadMoreButton";

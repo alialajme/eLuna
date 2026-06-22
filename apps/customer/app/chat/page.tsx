@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { safeCurrentUser as currentUser } from "../lib/auth";
 import { prisma } from "@e-luna/db";
 import { ChatInterface } from "./ChatInterface";
 import type { Metadata } from "next";

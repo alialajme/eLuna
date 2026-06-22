@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { prisma } from "@e-luna/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { FilterBar } from "@e-luna/ui";
-import { currentUser } from "@clerk/nextjs/server";
+import { safeCurrentUser as currentUser } from "../lib/auth";
 import { ProductGrid } from "../components/ProductGrid";
 import { ProductGridSkeleton } from "../components/ProductGridSkeleton";
 import { LoadMoreButton } from "../components/LoadMoreButton";
