@@ -5,10 +5,10 @@ import type { FilterState } from "./FilterBar";
 
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 const PRICE_PRESETS = [
-  { label: "Under AED 400", min: "", max: "400" },
+  { label: "Under AED 400", min: undefined, max: "400" },
   { label: "AED 400–800", min: "400", max: "800" },
   { label: "AED 800–1,500", min: "800", max: "1500" },
-  { label: "Over AED 1,500", min: "1500", max: "" },
+  { label: "Over AED 1,500", min: "1500", max: undefined },
 ];
 
 type FilterDrawerProps = {
@@ -31,12 +31,21 @@ export function FilterDrawer({
   const [draft, setDraft] = useState<FilterState>(current);
 
   useEffect(() => {
-    setDraft(current);
+    if (open) setDraft(current);
   }, [open, current]);
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+  }, [open]);
 
   if (!open) return null;
 
-  function toggle<K extends keyof FilterState>(key: K, val: string) {
+  function toggle<K extends keyof FilterState>(key: K, val: FilterState[K]) {
     setDraft((prev) => ({ ...prev, [key]: prev[key] === val ? undefined : val }));
   }
 
@@ -46,7 +55,7 @@ export function FilterDrawer({
       <div
         className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-sm"
         onClick={onClose}
-        aria-hidden
+        aria-hidden="true"
       />
 
       {/* Drawer */}
@@ -135,7 +144,7 @@ export function FilterDrawer({
                     onClick={() =>
                       isActive
                         ? setDraft((prev) => ({ ...prev, minPrice: undefined, maxPrice: undefined }))
-                        : setDraft((prev) => ({ ...prev, minPrice: preset.min || undefined, maxPrice: preset.max || undefined }))
+                        : setDraft((prev) => ({ ...prev, minPrice: preset.min, maxPrice: preset.max }))
                     }
                     className={`rounded-lg px-3 py-2.5 text-body-sm transition-colors ${
                       isActive ? "bg-ink text-ivory" : "border border-sand text-ink hover:bg-sand"
