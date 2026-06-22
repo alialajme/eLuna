@@ -197,7 +197,7 @@ Each sub-project gets its own spec → plan → implementation cycle.
 
 | # | Sub-project | Status |
 |---|------------|--------|
-| 1 | Foundation (monorepo setup, auth, DB schema, design system) | 📋 Plan written — `docs/superpowers/plans/2026-06-22-phase-1-foundation.md` |
+| 1 | Foundation (monorepo setup, auth, DB schema, design system) | ✅ Complete — 15 commits, 55 files, all packages + apps wired |
 | 2 | Customer Storefront (browse, search, product detail, AI stylist) | 🔲 Not started |
 | note | Phase 2 Vendor OS includes a minimal `/sellers/approvals` admin route to unblock KYC before full Admin Console (Phase 4) | — |
 | 3 | Cart & Checkout (cart, checkout flow, Luna Pay) | 🔲 Not started |
