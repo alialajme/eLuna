@@ -1,0 +1,23 @@
+{
+  "name": "@e-luna/ai",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./shopping": "./src/agents/shopping.ts",
+    "./seller": "./src/agents/seller.ts",
+    "./studio": "./src/agents/studio.ts",
+    "./logistics": "./src/agents/logistics.ts",
+    "./payment": "./src/agents/payment.ts",
+    "./pos": "./src/agents/pos.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.12",
+    "ai": "^4.3.19",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@e-luna/config": "workspace:*",
+    "typescript": "^5.4.0"
+  }
+}
