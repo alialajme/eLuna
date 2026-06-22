@@ -1,17 +1,17 @@
 import type { Config } from "tailwindcss";
 
-// Luna "Moonlit Luxury" design tokens
+// Luna "Warm Oud" design tokens — approved 2026-06-22
 export const lunaPreset: Partial<Config> = {
   theme: {
     extend: {
       colors: {
-        ink: "#1a1a2e",
-        ivory: "#fdf9f4",
+        ink: "#1a0a00",
+        ivory: "#fff8ee",
         gold: {
-          DEFAULT: "#c9a96e",
-          light: "#e8d9c4",
+          DEFAULT: "#d4a855",
+          light: "#f0e8d8",
         },
-        sand: "#e8d9c4",
+        sand: "#f0e8d8",
         lilac: "#c4a0f0",
         sage: "#6dbf8e",
         coral: "#e57373",
