@@ -64,8 +64,8 @@ export async function ProductGrid({ filters, customerSizeProfileUsualSize }: Pro
         variants: { select: { size: true, stock: true } },
         _count: { select: { reviews: true } },
       },
-    }),
-    prisma.product.count({ where }),
+    }).catch(() => []),
+    prisma.product.count({ where }).catch(() => 0),
   ]);
 
   if (products.length === 0) {

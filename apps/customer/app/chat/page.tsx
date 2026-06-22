@@ -15,7 +15,7 @@ export default async function ChatPage() {
     ? await prisma.sizeProfile.findFirst({
         where: { customerProfile: { userId: user.id } },
         select: { usualSize: true },
-      })
+      }).catch(() => null)
     : null;
 
   const sessionId = user ? `luna-stylist-${user.id}` : `luna-stylist-guest-${Date.now()}`;

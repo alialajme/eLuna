@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const sizeProfile = user
       ? await prisma.sizeProfile.findFirst({
           where: { customerProfile: { userId: user.id } },
-        })
+        }).catch(() => null)
       : null;
 
     const result = await runShoppingAgent(messages, {
