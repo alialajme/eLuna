@@ -6,6 +6,18 @@ import { useState, useRef, useEffect } from "react";
 import type { Message } from "ai";
 import { ChatMessage } from "./ChatMessage";
 
+function getOrCreateSessionId(): string {
+  try {
+    const stored = localStorage.getItem("luna_chat_session_id");
+    if (stored) return stored;
+    const id = `luna-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    localStorage.setItem("luna_chat_session_id", id);
+    return id;
+  } catch {
+    return `luna-${Date.now()}`;
+  }
+}
+
 type LunaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in customer app
 };
@@ -14,14 +26,26 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const sessionIdRef = useRef<string | null>(null);
+  if (typeof window !== "undefined" && sessionIdRef.current === null) {
+    sessionIdRef.current = getOrCreateSessionId();
+  }
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
     api: apiPath,
+    id: sessionIdRef.current ?? undefined,
   });
 
-  // Scroll to bottom on new messages
+  // Smart scroll: only scroll to bottom if user is already near the bottom
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+    if (isNearBottom) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   // Hide on the full chat page — after all hooks
@@ -48,7 +72,7 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 space-y-4 overflow-y-auto p-4">
+          <div ref={messagesContainerRef} className="flex-1 space-y-4 overflow-y-auto p-4">
             {messages.length === 0 && (
               <div className="text-center text-body-sm text-mist pt-8">
                 <p className="text-gold text-2xl mb-2">◑</p>
@@ -63,6 +87,13 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
               <div className="flex justify-start">
                 <div className="rounded-2xl rounded-bl-sm bg-sand px-4 py-3 text-body-sm text-mist">
                   Luna is thinking…
+                </div>
+              </div>
+            )}
+            {error && (
+              <div className="flex justify-start">
+                <div className="rounded-2xl rounded-bl-sm bg-coral/10 px-4 py-3 text-body-sm text-coral">
+                  Something went wrong. Please try again.
                 </div>
               </div>
             )}
