@@ -4,9 +4,9 @@ import Link from "next/link";
 
 type CartItem = { variantId: string; qty: number };
 
-function getCartCount(): number {
+async function getCartCount(): Promise<number> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const raw = cookieStore.get("luna_cart")?.value;
     if (!raw) return 0;
     const items: CartItem[] = JSON.parse(raw);
@@ -16,8 +16,8 @@ function getCartCount(): number {
   }
 }
 
-export function Nav() {
-  const cartCount = getCartCount();
+export async function Nav() {
+  const cartCount = await getCartCount();
 
   return (
     <header className="sticky top-0 z-30 border-b border-sand bg-ivory/95 backdrop-blur-sm">

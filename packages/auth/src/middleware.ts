@@ -16,16 +16,37 @@ function parseClaims(sessionClaims: unknown): LunaClaims {
   return {};
 }
 
+const CUSTOMER_PUBLIC_ROUTES = [
+  "/",
+  "/browse(.*)",
+  "/p/(.*)",
+  "/vendors/(.*)",
+  "/chat(.*)",
+  "/api/chat(.*)",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/webhooks(.*)",
+  "/api/health",
+];
+
 export function createLunaMiddleware(appRole: UserRole) {
-  const isPublicRoute = createRouteMatcher([
-    "/sign-in(.*)",
-    "/sign-up(.*)",
-    "/api/webhooks(.*)",
-    "/api/health",
-  ]);
+  const isPublicRoute =
+    appRole === "CUSTOMER"
+      ? createRouteMatcher(CUSTOMER_PUBLIC_ROUTES)
+      : createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/api/webhooks(.*)", "/api/health"]);
+
+  const isProtectedRoute =
+    appRole === "CUSTOMER"
+      ? createRouteMatcher(["/cart(.*)", "/checkout(.*)", "/orders(.*)", "/profile(.*)", "/wishlist(.*)", "/wallet(.*)"])
+      : null;
 
   return clerkMiddleware(async (auth, req) => {
     if (isPublicRoute(req)) return NextResponse.next();
+
+    // For customer app: only protected routes need auth
+    if (appRole === "CUSTOMER" && isProtectedRoute && !isProtectedRoute(req)) {
+      return NextResponse.next();
+    }
 
     const { userId, sessionClaims } = await auth();
 
