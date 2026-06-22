@@ -11,10 +11,9 @@ export type CartItem = {
   addedAt: string;
 };
 
-export function getCart(): CartItem[] {
+function parseCart(raw: string | undefined): CartItem[] {
+  if (!raw) return [];
   try {
-    const raw = cookies().get(CART_COOKIE)?.value;
-    if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(
@@ -29,6 +28,11 @@ export function getCart(): CartItem[] {
   }
 }
 
+export async function getCart(): Promise<CartItem[]> {
+  const jar = await cookies();
+  return parseCart(jar.get(CART_COOKIE)?.value);
+}
+
 export async function addToCart(
   variantId: string,
   qty: number = 1
@@ -38,13 +42,14 @@ export async function addToCart(
       return { success: false, message: "Invalid quantity" };
     }
 
-    const cart = getCart();
+    const jar = await cookies();
+    const cart = parseCart(jar.get(CART_COOKIE)?.value);
     const existingIndex = cart.findIndex((item) => item.variantId === variantId);
 
     let updatedCart: CartItem[];
     if (existingIndex >= 0) {
       updatedCart = cart.map((item, i) =>
-        i === existingIndex ? { ...item, qty: item.qty + qty } : item
+        i === existingIndex ? { ...item, qty: Math.min(item.qty + qty, 99) } : item
       );
     } else {
       if (cart.length >= MAX_ITEMS) {
@@ -53,11 +58,11 @@ export async function addToCart(
       updatedCart = [...cart, { variantId, qty, addedAt: new Date().toISOString() }];
     }
 
-    (await cookies()).set(CART_COOKIE, JSON.stringify(updatedCart), {
+    jar.set(CART_COOKIE, JSON.stringify(updatedCart), {
       path: "/",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
       sameSite: "lax",
-      httpOnly: false, // Nav needs client-side read for count badge
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
     });
 

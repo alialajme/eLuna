@@ -50,7 +50,7 @@ export default async function ProductDetailPage({ params }: Props) {
         },
         _count: { select: { reviews: true } },
       },
-    }),
+    }).catch(() => null),
     user
       ? prisma.sizeProfile.findFirst({
           where: { customerProfile: { userId: user.id } },
