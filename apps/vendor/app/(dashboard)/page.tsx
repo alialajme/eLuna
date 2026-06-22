@@ -142,7 +142,7 @@ export default async function DashboardPage() {
         <div className="rounded-2xl border border-sand bg-ivory p-5">
           <p className="text-body-sm text-mist">Revenue (30d)</p>
           <p className="font-display text-display-md text-gold mt-1">
-            AED {revenue30d.toLocaleString("en-AE", { minimumFractionDigits: 0 })}
+            AED {revenue30d.toLocaleString("en-AE", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </p>
         </div>
 
