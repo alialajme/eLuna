@@ -46,7 +46,7 @@ export function Notification({
           type="button"
           aria-label="Dismiss"
           onClick={onDismiss}
-          className="ml-auto text-body-md opacity-60 transition-opacity hover:opacity-100"
+          className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-body-md transition-opacity hover:opacity-100"
         >
           ✕
         </button>

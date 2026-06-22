@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type ProductCardProps = {
   id: string;
@@ -10,7 +10,7 @@ type ProductCardProps = {
   imageUrl?: string;
   vendorName?: string;
   isWishlisted?: boolean;
-  onWishlistToggle?: (id: string, next: boolean) => void;
+  onWishlistToggle?: (id: string, next: boolean) => void | Promise<void>;
 };
 
 export function ProductCard({
@@ -24,11 +24,25 @@ export function ProductCard({
   onWishlistToggle,
 }: ProductCardProps) {
   const [wishlisted, setWishlisted] = useState(isWishlisted);
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleWishlist() {
+  // Sync with external prop changes (e.g., parent refetch)
+  useEffect(() => {
+    setWishlisted(isWishlisted);
+  }, [isWishlisted]);
+
+  async function handleWishlist() {
+    if (isLoading) return;
     const next = !wishlisted;
-    setWishlisted(next);
-    onWishlistToggle?.(id, next);
+    setWishlisted(next); // optimistic
+    setIsLoading(true);
+    try {
+      await onWishlistToggle?.(id, next);
+    } catch {
+      setWishlisted(!next); // rollback on error
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -38,6 +52,9 @@ export function ProductCard({
           <img
             src={imageUrl}
             alt={title}
+            width={300}
+            height={400}
+            loading="lazy"
             className="h-full w-full object-cover"
           />
         ) : (
@@ -45,13 +62,15 @@ export function ProductCard({
             No image
           </div>
         )}
+        {/* Always visible on mobile, hover-reveal on desktop */}
         <button
           type="button"
           aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+          disabled={isLoading}
           onClick={handleWishlist}
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-ivory/80 text-coral shadow-sm backdrop-blur-sm transition-opacity opacity-0 group-hover:opacity-100"
+          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-ivory/80 text-coral shadow-sm backdrop-blur-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100 disabled:cursor-not-allowed"
         >
-          {wishlisted ? "♥" : "♡"}
+          {isLoading ? "…" : wishlisted ? "♥" : "♡"}
         </button>
       </div>
       <div className="p-4">
