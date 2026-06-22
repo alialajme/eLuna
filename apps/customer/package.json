@@ -1,0 +1,27 @@
+{
+  "name": "@e-luna/customer",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^5.0.0",
+    "@e-luna/ui": "workspace:*",
+    "@e-luna/auth": "workspace:*",
+    "@e-luna/db": "workspace:*",
+    "next": "15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@e-luna/config": "workspace:*",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5.4.0"
+  }
+}
