@@ -2,6 +2,9 @@
   "name": "@e-luna/ai",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./shopping": "./src/agents/shopping.ts",
@@ -13,6 +16,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
+    "@e-luna/db": "workspace:*",
     "ai": "^4.3.19",
     "zod": "^3.25.76"
   },

@@ -1,5 +1,5 @@
 export { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "./config";
-export { runShoppingAgent, shoppingTools } from "./agents/shopping";
+export { runShoppingAgent } from "./agents/shopping";
 export { runSellerAgent, sellerTools } from "./agents/seller";
 export { runStudioAgent, studioTools } from "./agents/studio";
 export { runLogisticsAgent, logisticsTools } from "./agents/logistics";
