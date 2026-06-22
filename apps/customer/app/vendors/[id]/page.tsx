@@ -10,8 +10,8 @@ import type { Metadata } from "next";
 import type { ProductGridFilters } from "../../components/ProductGrid";
 
 type Props = {
-  params: { id: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 function getString(val: string | string[] | undefined): string | undefined {
@@ -28,11 +28,12 @@ async function getVendor(id: string) {
         },
       },
     },
-  });
+  }).catch(() => null);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const vendor = await getVendor(params.id);
+  const { id } = await params;
+  const vendor = await getVendor(id);
   if (!vendor) return { title: "Not Found" };
   return {
     title: `${vendor.storeName} — Luna`,
@@ -41,19 +42,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function VendorBoutiquePage({ params, searchParams }: Props) {
-  const user = await currentUser();
-
-  const vendor = await getVendor(params.id);
+  const [{ id: vendorId }, resolvedParams, user] = await Promise.all([
+    params,
+    searchParams,
+    currentUser(),
+  ]);
+  const vendor = await getVendor(vendorId);
 
   if (!vendor || vendor.status !== "ACTIVE") notFound();
 
   const filters: ProductGridFilters = {
-    size: getString(searchParams.size),
-    fabric: getString(searchParams.fabric),
-    minPrice: getString(searchParams.minPrice),
-    maxPrice: getString(searchParams.maxPrice),
-    sort: getString(searchParams.sort),
-    page: getString(searchParams.page),
+    size: getString(resolvedParams.size),
+    fabric: getString(resolvedParams.fabric),
+    minPrice: getString(resolvedParams.minPrice),
+    maxPrice: getString(resolvedParams.maxPrice),
+    sort: getString(resolvedParams.sort),
+    page: getString(resolvedParams.page),
     vendorId: vendor.id,
   };
 
@@ -64,35 +68,35 @@ export default async function VendorBoutiquePage({ params, searchParams }: Props
       where: { product: { vendorId: vendor.id } },
       _avg: { rating: true },
       _count: { rating: true },
-    }),
+    }).catch(() => ({ _avg: { rating: null }, _count: { rating: 0 } })),
 
     prisma.product.findMany({
       where: { vendorId: vendor.id, status: "ACTIVE", fabric: { not: null } },
       select: { fabric: true },
       distinct: ["fabric"],
-    }).then((rows) => rows.map((r) => r.fabric!).sort()),
+    }).then((rows) => rows.map((r) => r.fabric!).sort()).catch(() => [] as string[]),
 
     user
       ? prisma.sizeProfile.findFirst({
           where: { customerProfile: { userId: user.id } },
           select: { usualSize: true },
-        })
+        }).catch(() => null)
       : null,
 
     prisma.product.count({
       where: { vendorId: vendor.id, status: "ACTIVE" },
-    }),
+    }).catch(() => 0),
 
     prisma.product.count({
       where: {
-        vendorId: params.id,
+        vendorId: vendorId,
         status: "ACTIVE",
         ...(filters.size ? { variants: { some: { size: filters.size, stock: { gt: 0 } } } } : {}),
         ...(filters.fabric ? { fabric: filters.fabric } : {}),
         ...(filters.minPrice ? { price: { gte: parseFloat(filters.minPrice) } } : {}),
         ...(filters.maxPrice ? { price: { lte: parseFloat(filters.maxPrice) } } : {}),
       },
-    }),
+    }).catch(() => 0),
   ]);
 
   const joinedYear = vendor.createdAt.getFullYear();

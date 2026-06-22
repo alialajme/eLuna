@@ -9,7 +9,7 @@ import { LoadMoreButton } from "../components/LoadMoreButton";
 import type { ProductGridFilters } from "../components/ProductGrid";
 
 type BrowsePageProps = {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 function getString(val: string | string[] | undefined): string | undefined {
@@ -22,17 +22,17 @@ export const metadata = {
 };
 
 export default async function BrowsePage({ searchParams }: BrowsePageProps) {
-  const user = await currentUser();
+  const [user, resolvedParams] = await Promise.all([currentUser(), searchParams]);
 
   const filters: ProductGridFilters = {
-    category: getString(searchParams.category),
-    size: getString(searchParams.size),
-    fabric: getString(searchParams.fabric),
-    minPrice: getString(searchParams.minPrice),
-    maxPrice: getString(searchParams.maxPrice),
-    sort: getString(searchParams.sort),
-    q: getString(searchParams.q),
-    page: getString(searchParams.page),
+    category: getString(resolvedParams.category),
+    size: getString(resolvedParams.size),
+    fabric: getString(resolvedParams.fabric),
+    minPrice: getString(resolvedParams.minPrice),
+    maxPrice: getString(resolvedParams.maxPrice),
+    sort: getString(resolvedParams.sort),
+    q: getString(resolvedParams.q),
+    page: getString(resolvedParams.page),
   };
 
   // Build filters for filtered count query
@@ -58,24 +58,24 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
       where: { status: "ACTIVE" },
       select: { category: true },
       distinct: ["category"],
-    }).then((rows) => rows.map((r) => r.category).sort()),
+    }).then((rows) => rows.map((r) => r.category).sort()).catch(() => [] as string[]),
 
     prisma.product.findMany({
       where: { status: "ACTIVE", fabric: { not: null } },
       select: { fabric: true },
       distinct: ["fabric"],
-    }).then((rows) => rows.map((r) => r.fabric!).sort()),
+    }).then((rows) => rows.map((r) => r.fabric!).sort()).catch(() => [] as string[]),
 
     user
       ? prisma.sizeProfile.findFirst({
           where: { customerProfile: { userId: user.id } },
           select: { usualSize: true },
-        })
+        }).catch(() => null)
       : null,
 
-    prisma.product.count({ where: filterWhere }),
+    prisma.product.count({ where: filterWhere }).catch(() => 0),
 
-    prisma.product.count({ where: { status: "ACTIVE" } }),
+    prisma.product.count({ where: { status: "ACTIVE" } }).catch(() => 0),
   ]);
 
   const page = Math.max(1, parseInt(filters.page ?? "1", 10) || 1);

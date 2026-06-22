@@ -7,13 +7,14 @@ import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { ProductDetail } from "./ProductDetail";
 import type { Metadata } from "next";
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
   const product = await prisma.product.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: { vendor: { select: { storeName: true } } },
-  });
+  }).catch(() => null);
   if (!product) return { title: "Not Found" };
   return {
     title: `${product.title} — ${product.vendor.storeName} on Luna`,
@@ -34,11 +35,11 @@ const SizeGuideSchema = z.object({
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"];
 
 export default async function ProductDetailPage({ params }: Props) {
-  const user = await currentUser();
+  const [{ slug }, user] = await Promise.all([params, currentUser()]);
 
   const [product, sizeProfile] = await Promise.all([
     prisma.product.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         vendor: { select: { id: true, storeName: true } },
         variants: { select: { id: true, size: true, color: true, stock: true } },
@@ -54,7 +55,7 @@ export default async function ProductDetailPage({ params }: Props) {
       ? prisma.sizeProfile.findFirst({
           where: { customerProfile: { userId: user.id } },
           select: { bust: true, usualSize: true, fitPreference: true },
-        })
+        }).catch(() => null)
       : null,
   ]);
 
@@ -87,7 +88,7 @@ export default async function ProductDetailPage({ params }: Props) {
     take: 4,
     orderBy: { createdAt: "desc" },
     include: { vendor: { select: { storeName: true } } },
-  });
+  }).catch(() => []);
 
   const images = Array.isArray(product.aiImages)
     ? (product.aiImages as string[])
