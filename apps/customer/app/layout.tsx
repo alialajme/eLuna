@@ -32,10 +32,12 @@ export const metadata: Metadata = {
   description: "Discover abayas styled for you by AI",
 };
 
+// ClerkProvider is only imported when keys are present
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const ClerkProvider = hasClerkKeys ? require("@clerk/nextjs").ClerkProvider : null;
+
 function MaybeClerkProvider({ children }: { children: React.ReactNode }) {
-  if (!hasClerkKeys) return <>{children}</>;
-  // Dynamic import only when key is present to avoid build-time throw
-  const { ClerkProvider } = require("@clerk/nextjs");
+  if (!ClerkProvider) return <>{children}</>;
   return <ClerkProvider>{children}</ClerkProvider>;
 }
 

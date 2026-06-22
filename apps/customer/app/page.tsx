@@ -21,30 +21,11 @@ export default async function HomePage() {
   const user = await currentUser();
 
   const [categoryStats, newArrivals, featuredBoutiques, sizeProfileStatus] = await Promise.all([
-    prisma.product.groupBy({
-      by: ["category"],
-      where: { status: "ACTIVE" },
-      _count: { _all: true },
-    }),
-
-    prisma.product.findMany({
-      where: { status: "ACTIVE" },
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      include: { vendor: { select: { storeName: true } } },
-    }),
-
-    prisma.vendor.findMany({
-      where: { status: "ACTIVE" },
-      take: 3,
-      include: { _count: { select: { products: { where: { status: "ACTIVE" } } } } },
-    }),
-
+    prisma.product.groupBy({ by: ["category"], where: { status: "ACTIVE" }, _count: { _all: true } }).catch(() => []),
+    prisma.product.findMany({ where: { status: "ACTIVE" }, orderBy: { createdAt: "desc" }, take: 6, include: { vendor: { select: { storeName: true } } } }).catch(() => []),
+    prisma.vendor.findMany({ where: { status: "ACTIVE" }, take: 3, include: { _count: { select: { products: { where: { status: "ACTIVE" } } } } } }).catch(() => []),
     user
-      ? prisma.sizeProfile.findFirst({
-          where: { customerProfile: { userId: user.id } },
-          select: { id: true },
-        })
+      ? prisma.sizeProfile.findFirst({ where: { customerProfile: { userId: user.id } }, select: { id: true } }).catch(() => null)
       : Promise.resolve(null),
   ]);
 
