@@ -2,6 +2,7 @@ import { prisma } from "@e-luna/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { ProductCard } from "@e-luna/ui";
 import Link from "next/link";
+import { toggleWishlist } from "../actions/wishlist";
 
 export type ProductGridFilters = {
   category?: string;
@@ -18,6 +19,7 @@ export type ProductGridFilters = {
 type Props = {
   filters: ProductGridFilters;
   customerSizeProfileUsualSize?: string | null;
+  wishlistedIds?: string[];
 };
 
 export const PAGE_SIZE = 12;
@@ -29,7 +31,7 @@ const SORT_MAP = {
   rating: { reviews: { _count: "desc" as const } },
 } as const;
 
-export async function ProductGrid({ filters, customerSizeProfileUsualSize }: Props) {
+export async function ProductGrid({ filters, customerSizeProfileUsualSize, wishlistedIds = [] }: Props) {
   const page = Math.max(1, Math.min(100, parseInt(filters.page ?? "1", 10) || 1));
   const skip = (page - 1) * PAGE_SIZE;
 
@@ -107,6 +109,11 @@ export async function ProductGrid({ filters, customerSizeProfileUsualSize }: Pro
                   price={Number(product.price)}
                   imageUrl={firstImage}
                   vendorName={product.vendor.storeName}
+                  isWishlisted={wishlistedIds.includes(product.id)}
+                  onWishlistToggle={async (id: string) => {
+                    "use server";
+                    await toggleWishlist(id);
+                  }}
                 />
                 {lowStockInYourSize && (
                   <span className="absolute bottom-14 left-2 rounded bg-coral px-2 py-0.5 text-label text-ivory">
