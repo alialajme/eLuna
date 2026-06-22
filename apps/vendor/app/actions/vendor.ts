@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
-import { slugify } from "../lib/slugify";
 
 export async function createVendor(
   name: string,
@@ -54,6 +53,14 @@ export async function createVendor(
     return { success: true };
   } catch (err) {
     console.error("[createVendor]", err);
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code: string }).code === "P2002"
+    ) {
+      return { success: false, error: "That store URL is already taken" };
+    }
     return { success: false, error: "Could not create store. Please try again." };
   }
 }
@@ -90,8 +97,8 @@ export async function updateVendorIBAN(
     if (!user) return { success: false, error: "Not signed in" };
 
     const trimmed = iban.replace(/\s/g, "");
-    if (trimmed.length < 5) {
-      return { success: false, error: "Please enter a valid IBAN" };
+    if (!/^AE\d{21}$/.test(trimmed)) {
+      return { success: false, error: "Please enter a valid UAE IBAN (e.g. AE07 0331 2345 6789 0123 456)" };
     }
 
     await prisma.vendor.update({
@@ -105,7 +112,3 @@ export async function updateVendorIBAN(
     return { success: false, error: "Could not save IBAN" };
   }
 }
-
-// Note: slugify is intentionally NOT re-exported here.
-// "use server" files in Next.js 15 require all exports to be async functions.
-// Import slugify directly from "../lib/slugify" in client components.
