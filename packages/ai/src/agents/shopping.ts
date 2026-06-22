@@ -6,6 +6,8 @@ import type { SizeProfile } from "@e-luna/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
+export const CART_ACTION = "ADD_TO_CART" as const;
+
 const SHOPPING_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
 You are the Shopping Agent. Your role is to help customers find the perfect abaya or modest fashion item.
@@ -15,14 +17,15 @@ Be specific about fabrics, fits, and styling when making recommendations.
 When you find products, always mention the vendor name and price in AED.
 If a customer asks to add something to their bag, confirm the product and size first.`;
 
-type SizeGuideEntry = {
-  size: string;
-  bust: [number, number];
-  waist: [number, number];
-  hip: [number, number];
-  length: number;
-};
-type SizeGuideJson = { entries: SizeGuideEntry[] };
+const SizeGuideSchema = z.object({
+  entries: z.array(z.object({
+    size: z.string(),
+    bust: z.tuple([z.number(), z.number()]),
+    waist: z.tuple([z.number(), z.number()]).optional(),
+    hip: z.tuple([z.number(), z.number()]).optional(),
+    length: z.number().optional(),
+  })),
+});
 
 function createShoppingTools(sizeProfile: SizeProfile | null) {
   return {
@@ -38,44 +41,48 @@ function createShoppingTools(sizeProfile: SizeProfile | null) {
         limit: z.number().default(5),
       }),
       execute: async ({ query, category, fabric, size, minPrice, maxPrice, limit }) => {
-        const products = await prisma.product.findMany({
-          where: {
-            status: "ACTIVE",
-            ...(category && { category: { equals: category, mode: "insensitive" } }),
-            ...(fabric && { fabric: { equals: fabric, mode: "insensitive" } }),
-            ...(minPrice && { price: { gte: new Decimal(minPrice) } }),
-            ...(maxPrice && { price: { lte: new Decimal(maxPrice) } }),
-            ...(size && { variants: { some: { size: { equals: size }, stock: { gt: 0 } } } }),
-            ...(query && {
-              OR: [
-                { title: { contains: query, mode: "insensitive" } },
-                { fabric: { contains: query, mode: "insensitive" } },
-                { description: { contains: query, mode: "insensitive" } },
-                { vendor: { storeName: { contains: query, mode: "insensitive" } } },
-              ],
-            }),
-          },
-          include: {
-            vendor: { select: { storeName: true } },
-            variants: { select: { size: true, stock: true, color: true } },
-          },
-          take: limit,
-          orderBy: { createdAt: "desc" },
-        });
+        try {
+          const products = await prisma.product.findMany({
+            where: {
+              status: "ACTIVE",
+              ...(category && { category: { equals: category, mode: "insensitive" } }),
+              ...(fabric && { fabric: { equals: fabric, mode: "insensitive" } }),
+              ...(minPrice !== undefined && { price: { gte: new Decimal(minPrice) } }),
+              ...(maxPrice !== undefined && { price: { lte: new Decimal(maxPrice) } }),
+              ...(size && { variants: { some: { size: { equals: size }, stock: { gt: 0 } } } }),
+              ...(query && {
+                OR: [
+                  { title: { contains: query, mode: "insensitive" } },
+                  { fabric: { contains: query, mode: "insensitive" } },
+                  { description: { contains: query, mode: "insensitive" } },
+                  { vendor: { storeName: { contains: query, mode: "insensitive" } } },
+                ],
+              }),
+            },
+            include: {
+              vendor: { select: { storeName: true } },
+              variants: { select: { size: true, stock: true, color: true } },
+            },
+            take: limit,
+            orderBy: { createdAt: "desc" },
+          });
 
-        return {
-          products: products.map((p) => ({
-            slug: p.slug,
-            title: p.title,
-            price: Number(p.price),
-            fabric: p.fabric,
-            category: p.category,
-            vendorName: p.vendor.storeName,
-            availableSizes: [...new Set(p.variants.filter((v) => v.stock > 0).map((v) => v.size))],
-            embed: `[PRODUCT:${p.slug}]`,
-          })),
-          total: products.length,
-        };
+          return {
+            products: products.map((p) => ({
+              slug: p.slug,
+              title: p.title,
+              price: Number(p.price),
+              fabric: p.fabric,
+              category: p.category,
+              vendorName: p.vendor.storeName,
+              availableSizes: [...new Set(p.variants.filter((v) => v.stock > 0).map((v) => v.size))],
+              embed: `[PRODUCT:${p.slug}]`,
+            })),
+            returned: products.length,
+          };
+        } catch {
+          return { products: [], returned: 0, error: "Could not search products right now." };
+        }
       },
     }),
 
@@ -85,47 +92,52 @@ function createShoppingTools(sizeProfile: SizeProfile | null) {
         productSlug: z.string(),
       }),
       execute: async ({ productSlug }) => {
-        if (!sizeProfile) {
-          return {
-            recommendedSize: null,
-            confidence: 0,
-            note: "No size profile found. Ask the customer to set up their size profile at /profile/size for personalised recommendations.",
-          };
+        try {
+          if (!sizeProfile) {
+            return {
+              recommendedSize: null,
+              confidence: 0,
+              note: "No size profile found. Ask the customer to set up their size profile at /profile/size for personalised recommendations.",
+            };
+          }
+
+          const product = await prisma.product.findUnique({
+            where: { slug: productSlug },
+            select: { sizeGuide: true, title: true },
+          });
+
+          if (!product) {
+            return { recommendedSize: null, confidence: 0, note: "Product not found." };
+          }
+
+          const parsed = SizeGuideSchema.safeParse(product.sizeGuide);
+          if (!parsed.success || !parsed.data.entries.length) {
+            return { recommendedSize: sizeProfile.usualSize, confidence: 0.5, note: "Using your usual size — no detailed guide available." };
+          }
+          const guide = parsed.data;
+
+          const bust = sizeProfile.bust;
+          if (!bust) {
+            return { recommendedSize: sizeProfile.usualSize, confidence: 0.6, note: "Using your usual size. Add bust measurements for a more accurate fit." };
+          }
+
+          const match = guide.entries.find((e) => bust >= e.bust[0] && bust < e.bust[1]);
+
+          if (match) {
+            const fitAdjustment = sizeProfile.fitPreference === "LOOSE" || sizeProfile.fitPreference === "OVERSIZED"
+              ? ` Consider sizing up for a ${sizeProfile.fitPreference.toLowerCase()} fit.`
+              : "";
+            return {
+              recommendedSize: match.size,
+              confidence: 0.9,
+              note: `Based on your bust measurement (${bust}cm), ${match.size} should fit you well.${fitAdjustment}`,
+            };
+          }
+
+          return { recommendedSize: sizeProfile.usualSize, confidence: 0.7, note: `Your measurements are between sizes. Your usual size ${sizeProfile.usualSize} is a safe choice.` };
+        } catch {
+          return { recommendedSize: null, confidence: 0, note: "Could not retrieve size recommendation right now." };
         }
-
-        const product = await prisma.product.findUnique({
-          where: { slug: productSlug },
-          select: { sizeGuide: true, title: true },
-        });
-
-        if (!product) {
-          return { recommendedSize: null, confidence: 0, note: "Product not found." };
-        }
-
-        const guide = product.sizeGuide as SizeGuideJson;
-        if (!guide?.entries?.length) {
-          return { recommendedSize: sizeProfile.usualSize, confidence: 0.5, note: "Using your usual size — no detailed guide available." };
-        }
-
-        const bust = sizeProfile.bust;
-        if (!bust) {
-          return { recommendedSize: sizeProfile.usualSize, confidence: 0.6, note: "Using your usual size. Add bust measurements for a more accurate fit." };
-        }
-
-        const match = guide.entries.find((e) => bust >= e.bust[0] && bust < e.bust[1]);
-
-        if (match) {
-          const fitAdjustment = sizeProfile.fitPreference === "LOOSE" || sizeProfile.fitPreference === "OVERSIZED"
-            ? ` Consider sizing up for a ${sizeProfile.fitPreference.toLowerCase()} fit.`
-            : "";
-          return {
-            recommendedSize: match.size,
-            confidence: 0.9,
-            note: `Based on your bust measurement (${bust}cm), ${match.size} should fit you well.${fitAdjustment}`,
-          };
-        }
-
-        return { recommendedSize: sizeProfile.usualSize, confidence: 0.7, note: `Your measurements are between sizes. Your usual size ${sizeProfile.usualSize} is a safe choice.` };
       },
     }),
 
@@ -138,15 +150,20 @@ function createShoppingTools(sizeProfile: SizeProfile | null) {
         size: z.string(),
       }),
       execute: async ({ variantId, quantity, productTitle, size }) => {
-        // Cart cookie is written by the customer app's client-side handler.
-        // This tool returns the signal; useChat onToolCall handles the cookie.
-        return {
-          success: true,
-          variantId,
-          quantity,
-          message: `Added ${quantity}× ${productTitle} (${size}) to your bag.`,
-          action: "ADD_TO_CART",
-        };
+        try {
+          // Cart cookie is written by the customer app's client-side handler.
+          // This tool returns the signal; useChat onToolCall handles the cookie.
+          // TODO: requires onToolCall handler in apps/customer ChatInterface to write to luna_cart cookie
+          return {
+            success: true,
+            variantId,
+            quantity,
+            message: `Added ${quantity}× ${productTitle} (${size}) to your bag.`,
+            action: CART_ACTION,
+          };
+        } catch {
+          return { success: false, variantId, quantity, message: "Could not add to bag right now.", action: "ADD_TO_CART_ERROR" };
+        }
       },
     }),
 
@@ -157,36 +174,52 @@ function createShoppingTools(sizeProfile: SizeProfile | null) {
         occasion: z.string().optional().describe("e.g., wedding, casual, office, travel"),
       }),
       execute: async ({ productSlug, occasion }) => {
-        const product = await prisma.product.findUnique({
-          where: { slug: productSlug },
-          select: { fabric: true, category: true, vendorId: true },
-        });
+        try {
+          const product = await prisma.product.findUnique({
+            where: { slug: productSlug },
+            select: { fabric: true, category: true },
+          });
 
-        if (!product) return { look: [], styling_tips: "" };
+          if (!product) return { look: [], styling_tips: "" };
 
-        const complementary = await prisma.product.findMany({
-          where: {
-            status: "ACTIVE",
-            slug: { not: productSlug },
-            ...(occasion
-              ? { category: { equals: occasion === "casual" ? "Everyday" : occasion === "travel" ? "Travel" : product.category, mode: "insensitive" } }
-              : { fabric: { equals: product.fabric ?? undefined, mode: "insensitive" } }
-            ),
-          },
-          include: { vendor: { select: { storeName: true } } },
-          take: 2,
-        });
+          const OCCASION_CATEGORY: Record<string, string> = {
+            casual: "Everyday",
+            everyday: "Everyday",
+            travel: "Travel",
+            office: "Occasion",
+            wedding: "Occasion",
+            formal: "Occasion",
+            sport: "Sport",
+            activewear: "Sport",
+          };
+          const targetCategory = OCCASION_CATEGORY[occasion?.toLowerCase() ?? ""] ?? product.category;
 
-        return {
-          look: complementary.map((p) => ({
-            slug: p.slug,
-            title: p.title,
-            price: Number(p.price),
-            vendorName: p.vendor.storeName,
-            embed: `[PRODUCT:${p.slug}]`,
-          })),
-          styling_tips: `These pieces complement the ${product.fabric ?? "fabric"} and work well for a ${occasion ?? "polished"} look.`,
-        };
+          const complementary = await prisma.product.findMany({
+            where: {
+              status: "ACTIVE",
+              slug: { not: productSlug },
+              ...(occasion
+                ? { category: { equals: targetCategory, mode: "insensitive" } }
+                : { fabric: { equals: product.fabric ?? undefined, mode: "insensitive" } }
+              ),
+            },
+            include: { vendor: { select: { storeName: true } } },
+            take: 2,
+          });
+
+          return {
+            look: complementary.map((p) => ({
+              slug: p.slug,
+              title: p.title,
+              price: Number(p.price),
+              vendorName: p.vendor.storeName,
+              embed: `[PRODUCT:${p.slug}]`,
+            })),
+            styling_tips: `These pieces complement the ${product.fabric ?? "fabric"} and work well for a ${occasion ?? "polished"} look.`,
+          };
+        } catch {
+          return { look: [], styling_tips: "Could not load styling suggestions right now." };
+        }
       },
     }),
   };
