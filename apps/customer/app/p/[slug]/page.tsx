@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { z } from "zod";
 import { prisma } from "@e-luna/db";
 import { ProductCard } from "@e-luna/ui";
 import { currentUser } from "@clerk/nextjs/server";
@@ -20,9 +21,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-type SizeGuideJson = {
-  entries: { size: string; bust: [number, number]; waist: [number, number]; hip: [number, number]; length: number }[];
-};
+const SizeGuideSchema = z.object({
+  entries: z.array(z.object({
+    size: z.string(),
+    bust: z.tuple([z.number(), z.number()]),
+    waist: z.tuple([z.number(), z.number()]),
+    hip: z.tuple([z.number(), z.number()]),
+    length: z.number(),
+  })),
+});
 
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"];
 
@@ -58,9 +65,11 @@ export default async function ProductDetailPage({ params }: Props) {
       ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
       : null;
 
+  const guideParsed = SizeGuideSchema.safeParse(product.sizeGuide);
+  const guide = guideParsed.success ? guideParsed.data : null;
+
   let recommendedSize: string | null = null;
   if (sizeProfile?.bust) {
-    const guide = product.sizeGuide as SizeGuideJson | null;
     const match = guide?.entries?.find(
       (e) => sizeProfile.bust! >= e.bust[0] && sizeProfile.bust! < e.bust[1]
     );
@@ -107,12 +116,11 @@ export default async function ProductDetailPage({ params }: Props) {
 
       {/* Main product detail (client island) */}
       <ProductDetail
-        productSlug={product.slug}
         images={images}
         title={product.title}
         price={Number(product.price)}
         fabric={product.fabric}
-        sizeGuide={product.sizeGuide as SizeGuideJson | null}
+        sizeGuide={guide}
         variants={product.variants}
         sizeProfile={sizeProfile ?? null}
         recommendedSize={recommendedSize}
@@ -135,7 +143,7 @@ export default async function ProductDetailPage({ params }: Props) {
               <div key={review.id} className="border-b border-sand pb-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-body-sm font-medium text-ink">
-                    {review.customerProfile.user.email.split("@")[0]}
+                    {review.customerProfile.user.email.split("@")[0] || review.customerProfile.user.email}
                   </span>
                   <span className="text-body-sm text-gold">
                     {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}

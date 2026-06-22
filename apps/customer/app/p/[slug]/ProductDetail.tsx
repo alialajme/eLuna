@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ProductGallery, SizeSelector } from "@e-luna/ui";
 import type { SizeProfile } from "@e-luna/db";
 import { addToCart } from "../../actions/cart";
@@ -13,7 +13,6 @@ type Variant = {
 };
 
 type ProductDetailProps = {
-  productSlug: string;
   images: string[];
   title: string;
   price: number;
@@ -27,7 +26,6 @@ type ProductDetailProps = {
 };
 
 export function ProductDetail({
-  productSlug,
   images,
   title,
   price,
@@ -37,6 +35,8 @@ export function ProductDetail({
   sizeProfile,
   recommendedSize,
 }: ProductDetailProps) {
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [selectedSize, setSelectedSize] = useState<string | null>(recommendedSize ?? null);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -49,13 +49,25 @@ export function ProductDetail({
     variantId: v.id,
   }));
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   async function handleAddToBag() {
     if (!selectedVariantId || adding) return;
     setAdding(true);
-    const result = await addToCart(selectedVariantId, 1);
-    setAddedMessage(result.message);
-    setAdding(false);
-    setTimeout(() => setAddedMessage(null), 3000);
+    try {
+      const result = await addToCart(selectedVariantId, 1);
+      setAddedMessage(result.message);
+      timeoutRef.current = setTimeout(() => setAddedMessage(null), 3000);
+    } catch {
+      setAddedMessage("Could not add to bag. Please try again.");
+      timeoutRef.current = setTimeout(() => setAddedMessage(null), 3000);
+    } finally {
+      setAdding(false);
+    }
   }
 
   return (
