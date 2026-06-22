@@ -22,15 +22,15 @@ type Props = {
 
 const PAGE_SIZE = 12;
 
-const SORT_MAP: Record<string, object> = {
-  newest: { createdAt: "desc" },
-  "price-asc": { price: "asc" },
-  "price-desc": { price: "desc" },
-  rating: { reviews: { _count: "desc" } },
-};
+const SORT_MAP = {
+  newest: { createdAt: "desc" as const },
+  "price-asc": { price: "asc" as const },
+  "price-desc": { price: "desc" as const },
+  rating: { reviews: { _count: "desc" as const } },
+} as const;
 
 export async function ProductGrid({ filters, customerSizeProfileUsualSize }: Props) {
-  const page = Math.max(1, parseInt(filters.page ?? "1", 10));
+  const page = Math.max(1, Math.min(100, parseInt(filters.page ?? "1", 10) || 1));
   const skip = (page - 1) * PAGE_SIZE;
 
   const where = {
@@ -89,7 +89,9 @@ export async function ProductGrid({ filters, customerSizeProfileUsualSize }: Pro
     <div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 px-4 py-6">
         {products.map((product) => {
-          const firstImage = (product.aiImages as string[])[0] ?? null;
+          const firstImage = Array.isArray(product.aiImages) && typeof product.aiImages[0] === "string"
+  ? product.aiImages[0]
+  : null;
           const lowStockInYourSize =
             customerSizeProfileUsualSize &&
             product.variants.some(
