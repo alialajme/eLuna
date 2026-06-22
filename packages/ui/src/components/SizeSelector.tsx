@@ -13,14 +13,16 @@ type SizeSelectorProps = {
   onSelect: (size: string, variantId: string) => void;
 };
 
+const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
+const LOW_STOCK_THRESHOLD = 5;
+
 export function SizeSelector({
   variants,
   selectedSize,
   recommendedSize,
   onSelect,
 }: SizeSelectorProps) {
-  const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
-  const uniqueSizes = sizeOrder.filter((s) => variants.some((v) => v.size === s));
+  const uniqueSizes = SIZE_ORDER.filter((s) => variants.some((v) => v.size === s));
 
   return (
     <div>
@@ -38,12 +40,13 @@ export function SizeSelector({
           const isOutOfStock = stock === 0;
           const isSelected = selectedSize === size;
           const isRecommended = recommendedSize === size;
-          const isLowStock = stock > 0 && stock <= 5;
+          const isLowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD;
 
           return (
             <div key={size} className="relative">
               <button
-                onClick={() => !isOutOfStock && variant && onSelect(size, variant.variantId)}
+                type="button"
+                onClick={() => variant && onSelect(size, variant.variantId)}
                 disabled={isOutOfStock}
                 aria-label={`Size ${size}${isOutOfStock ? " — out of stock" : ""}${isRecommended ? " — recommended for you" : ""}`}
                 className={`relative h-11 min-w-[3rem] rounded-lg px-3 text-body-md font-medium transition-all ${
