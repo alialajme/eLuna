@@ -30,7 +30,7 @@ export type ProductData = {
 };
 
 async function generateSlug(title: string): Promise<string> {
-  const base = slugify(title);
+  const base = slugify(title) || `product-${Date.now()}`;
   let candidate = base;
   let n = 2;
   while (true) {
@@ -262,11 +262,14 @@ export async function updateVariantStock(
     return { success: false, error: "Variant not found" };
   }
 
-  await prisma.productVariant.update({
-    where: { id: variantId },
-    data: { stock },
-  });
-
-  revalidatePath("/inventory");
-  return { success: true };
+  try {
+    await prisma.productVariant.update({
+      where: { id: variantId },
+      data: { stock },
+    });
+    revalidatePath("/inventory");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to update stock" };
+  }
 }
