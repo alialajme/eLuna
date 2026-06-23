@@ -66,6 +66,7 @@ export async function createVendor(
 }
 
 export async function updateVendorProfile(data: {
+  storeName?: string;
   description?: string;
   logoUrl?: string;
 }): Promise<{ success: boolean; error?: string }> {
@@ -73,15 +74,22 @@ export async function updateVendorProfile(data: {
     const user = await safeCurrentUser();
     if (!user) return { success: false, error: "Not signed in" };
 
+    const trimmedName = data.storeName?.trim();
+    if (trimmedName !== undefined && (trimmedName.length < 2 || trimmedName.length > 60)) {
+      return { success: false, error: "Store name must be 2–60 characters" };
+    }
+
     await prisma.vendor.update({
       where: { userId: user.id },
       data: {
+        ...(trimmedName ? { storeName: trimmedName } : {}),
         description: data.description?.trim() || null,
         logoUrl: data.logoUrl?.trim() || null,
       },
     });
 
     revalidatePath("/");
+    revalidatePath("/settings");
     return { success: true };
   } catch (err) {
     console.error("[updateVendorProfile]", err);
