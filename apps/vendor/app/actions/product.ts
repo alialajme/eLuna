@@ -219,12 +219,12 @@ export async function updateProduct(
 export async function archiveProduct(
   id: string,
   _formData?: FormData
-): Promise<{ success: boolean }> {
+): Promise<void> {
   const user = await safeCurrentUser();
-  if (!user) return { success: false };
+  if (!user) return;
 
   const vendor = await getVendorByUserId(user.id);
-  if (!vendor) return { success: false };
+  if (!vendor) return;
 
   await prisma.product
     .update({
@@ -234,7 +234,6 @@ export async function archiveProduct(
     .catch(() => null);
 
   revalidatePath("/products");
-  return { success: true };
 }
 
 export async function updateVariantStock(
