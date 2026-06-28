@@ -147,7 +147,7 @@ export function VariantMatrix({ value, onChange }: Props) {
             <tbody>
               {value.map((row, i) => (
                 <tr
-                  key={`${row.size}-${row.color}`}
+                  key={`variant-${i}-${row.size}-${row.color}`}
                   className="border-b border-sand/50"
                 >
                   <td className="py-1 pr-2 text-ink">{row.size}</td>
