@@ -204,8 +204,9 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | note | Wishlist (/wishlist) deferred to Phase 3 (Cart & Checkout) | — |
 | note | Phase 2 Vendor OS includes a minimal `/sellers/approvals` admin route to unblock KYC before full Admin Console (Phase 4) | — |
 | 3 | Cart & Checkout (cart UI, checkout flow, wishlist, Luna Pay) | ✅ Complete — payment gateway abstraction (SimulatedGateway + Tabby/Tamara stubs), cart page, checkout + confirmation, wishlist, profile, size profile, orders |
-| 4 | Vendor OS (dashboard, product management, inventory, orders) | 🔲 Not started |
-| 5 | Luna Studio AI (photo upload → campaign generation) | 🔲 Not started |
+| 4 | Vendor OS (dashboard, product management, inventory, orders) | ✅ Complete — analytics, payouts, orders, fulfillment (commits up to c4ff4dd) |
+| 4b | Vendor Analytics & Payouts | ✅ Complete — KPI cards, top products, payout history (commits 04b9f48–c4ff4dd) |
+| 5 | Luna Studio AI (photo upload → campaign generation) | ✅ Complete — detectGarment + writeCopy, upload API, server actions, list/wizard/results pages (commits 60efcad–3e33fc1) |
 | 6 | Admin Console (GMV, seller approvals, fraud, payouts) | 🔲 Not started |
 | 7 | Logistics (courier routing, tracking, returns) | 🔲 Not started |
 | 8 | AI Agent Mesh (all 6 agents wired up end-to-end) | 🔲 Not started |
@@ -231,6 +232,9 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 2026-06-22 | AI chat route (/api/chat) | POST handler wires Clerk auth + sizeProfile into runShoppingAgent, returns toDataStreamResponse() |
 | 2026-06-22 | AI Stylist full page (/chat) + LunaChatWidget wired into layout | LunaChatWidget hides itself on /chat to avoid double widget; apiPath injected as prop |
 | 2026-06-22 | Cart cookie (luna_cart) — HttpOnly: false | Nav badge reads it client-side; secure flag set in production; immutable updates; qty bounded 1-99 |
+| 2026-06-30 | Luna Studio AI: fire-and-forget pipeline | `triggerStudioPipeline` is called without await from client; results page polls via `<meta http-equiv="refresh" content="3">`. **Vercel deployment note:** server actions have a 10s default timeout on hobby plans — configure `maxDuration` in `vercel.json` for the vendor app to at least 60s to handle two sequential Claude calls. |
+| 2026-06-30 | Luna Studio AI: base64 data URLs for images | Cloudinary not configured; `StudioUpload.sourceImages` stores base64 data URLs. Future Phase 5b will migrate to Cloudinary CDN URLs. |
+| 2026-06-30 | Luna Studio AI: image/video generation stubbed | `generate_images` and `generate_video` studioTools return empty values. Full implementation deferred to Phase 5b. |
 
 ---
 
