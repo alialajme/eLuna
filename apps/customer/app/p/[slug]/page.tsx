@@ -78,7 +78,7 @@ export default async function ProductDetailPage({ params }: Props) {
       recommendedSize = match.size;
       if (sizeProfile.fitPreference === "LOOSE" || sizeProfile.fitPreference === "OVERSIZED") {
         const idx = SIZE_ORDER.indexOf(match.size);
-        if (idx >= 0 && idx < SIZE_ORDER.length - 1) recommendedSize = SIZE_ORDER[idx + 1];
+        if (idx >= 0 && idx < SIZE_ORDER.length - 1) recommendedSize = SIZE_ORDER[idx + 1] ?? null;
       }
     }
   }
@@ -174,7 +174,7 @@ export default async function ProductDetailPage({ params }: Props) {
                     id={p.id}
                     title={p.title}
                     price={Number(p.price)}
-                    imageUrl={img}
+                    imageUrl={img ?? undefined}
                     vendorName={p.vendor.storeName}
                   />
                 </Link>

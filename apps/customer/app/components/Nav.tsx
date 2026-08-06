@@ -45,7 +45,7 @@ async function ClerkNavButtons({ cartCount }: { cartCount: number }) {
         <UserButton afterSignOutUrl="/" />
       </SignedIn>
       <SignedOut>
-        <SignInButton mode="modal" asChild>
+        <SignInButton mode="modal">
           <button type="button" className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors">
             Sign in
           </button>

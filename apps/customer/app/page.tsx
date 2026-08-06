@@ -96,7 +96,7 @@ export default async function HomePage() {
                     id={product.id}
                     title={product.title}
                     price={Number(product.price)}
-                    imageUrl={firstImage}
+                    imageUrl={firstImage ?? undefined}
                     vendorName={product.vendor.storeName}
                   />
                 </Link>

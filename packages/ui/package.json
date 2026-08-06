@@ -14,6 +14,7 @@
     "@e-luna/config": "workspace:*",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "next": "15.0.0",
     "typescript": "^5.4.0"
   },
   "peerDependencies": {

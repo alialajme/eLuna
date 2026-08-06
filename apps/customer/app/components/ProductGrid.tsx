@@ -53,7 +53,9 @@ export async function ProductGrid({ filters, customerSizeProfileUsualSize, wishl
     }),
   };
 
-  const orderBy = SORT_MAP[filters.sort ?? "newest"] ?? { createdAt: "desc" };
+  const rawSort = filters.sort ?? "newest";
+  const sortKey = (rawSort in SORT_MAP ? rawSort : "newest") as keyof typeof SORT_MAP;
+  const orderBy = SORT_MAP[sortKey] ?? { createdAt: "desc" };
 
   const [products, total] = await Promise.all([
     prisma.product.findMany({
@@ -107,7 +109,7 @@ export async function ProductGrid({ filters, customerSizeProfileUsualSize, wishl
                   id={product.id}
                   title={product.title}
                   price={Number(product.price)}
-                  imageUrl={firstImage}
+                  imageUrl={firstImage ?? undefined}
                   vendorName={product.vendor.storeName}
                   isWishlisted={wishlistedIds.includes(product.id)}
                   onWishlistToggle={async (id: string) => {
