@@ -207,7 +207,8 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 4 | Vendor OS (dashboard, product management, inventory, orders) | ✅ Complete — analytics, payouts, orders, fulfillment (commits up to c4ff4dd) |
 | 4b | Vendor Analytics & Payouts | ✅ Complete — KPI cards, top products, payout history (commits 04b9f48–c4ff4dd) |
 | 5 | Luna Studio AI (photo upload → campaign generation) | ✅ Complete — detectGarment + writeCopy, upload API, server actions, list/wizard/results pages (commits 60efcad–3e33fc1) |
-| 6 | Admin Console (GMV, seller approvals, fraud, payouts) | 🔲 Not started |
+| 6a | Admin Console — Core Dashboard + Seller Management | ✅ Complete — dashboard KPIs, /sellers list+filter, /sellers/approvals queue, /sellers/[id] detail, approve/reject/suspend/reactivate actions (commits 702546c–9bcabca). Three auth layers: middleware + (dashboard) layout role gate + per-action ADMIN check |
+| 6b–6d | Admin Console — orders/products (6b), payouts/commissions/analytics (6c), fraud/customers/settings (6d) | 🔲 Not started |
 | 7 | Logistics (courier routing, tracking, returns) | 🔲 Not started |
 | 8 | AI Agent Mesh (all 6 agents wired up end-to-end) | 🔲 Not started |
 
@@ -235,6 +236,8 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 2026-06-30 | Luna Studio AI: fire-and-forget pipeline | `triggerStudioPipeline` is called without await from client; results page polls via `<meta http-equiv="refresh" content="3">`. **Vercel deployment note:** server actions have a 10s default timeout on hobby plans — configure `maxDuration` in `vercel.json` for the vendor app to at least 60s to handle two sequential Claude calls. |
 | 2026-06-30 | Luna Studio AI: base64 data URLs for images | Cloudinary not configured; `StudioUpload.sourceImages` stores base64 data URLs. Future Phase 5b will migrate to Cloudinary CDN URLs. |
 | 2026-06-30 | Luna Studio AI: image/video generation stubbed | `generate_images` and `generate_video` studioTools return empty values. Full implementation deferred to Phase 5b. |
+| 2026-08-06 | Admin Console 6a: defense-in-depth authz | Server actions and RSC layout independently re-check ADMIN role via `getAuthUser()` from `@e-luna/auth`, not middleware alone — server actions are directly-invocable POST endpoints. Role gate lives in `(dashboard)/layout.tsx` (covers all child routes) + each action in `actions/sellers.ts`. |
+| 2026-08-06 | Admin Console 6a: GMV definitions | Platform GMV (dashboard) = sum of `Order.total` where status NOT IN (CANCELLED, REFUNDED). Per-vendor GMV (detail page) = sum of `OrderItem.unitPrice × quantity` — item-level attribution since one order can span multiple vendors. |
 
 ---
 
