@@ -8,6 +8,8 @@ const NAV_ITEMS = [
   { icon: "📊", label: "Overview", href: "/" },
   { icon: "🏬", label: "Sellers", href: "/sellers" },
   { icon: "✅", label: "Approvals", href: "/sellers/approvals" },
+  { icon: "📋", label: "Orders", href: "/orders" },
+  { icon: "🛍️", label: "Products", href: "/products" },
 ] as const;
 
 export function Sidebar() {
@@ -31,7 +33,11 @@ export function Sidebar() {
                 ? (pathname === "/sellers" ||
                     (pathname.startsWith("/sellers/") &&
                       pathname !== "/sellers/approvals"))
-                : pathname === href;
+                : href === "/orders"
+                  ? pathname === "/orders" || pathname.startsWith("/orders/")
+                  : href === "/products"
+                    ? pathname === "/products"
+                    : pathname === href;
           return (
             <Link
               key={href}

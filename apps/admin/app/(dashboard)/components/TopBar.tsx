@@ -6,13 +6,19 @@ const PAGE_TITLES: Record<string, string> = {
   "/": "Overview",
   "/sellers": "Sellers",
   "/sellers/approvals": "Pending Approvals",
+  "/orders": "Orders",
+  "/products": "Products",
 };
 
 export function TopBar() {
   const pathname = usePathname();
   const title =
     PAGE_TITLES[pathname] ??
-    (pathname.startsWith("/sellers/") ? "Seller Detail" : "Luna Ops");
+    (pathname.startsWith("/sellers/")
+      ? "Seller Detail"
+      : pathname.startsWith("/orders/")
+        ? "Order Detail"
+        : "Luna Ops");
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-sand bg-ivory px-6">
