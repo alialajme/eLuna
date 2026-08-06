@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getAuthUser } from "@e-luna/auth";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
@@ -19,12 +20,12 @@ export default async function DashboardLayout({
           <p className="font-display text-display-md text-ink mb-4">
             Sign in to access the admin console
           </p>
-          <a
+          <Link
             href="/sign-in"
             className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory"
           >
             Sign in
-          </a>
+          </Link>
         </div>
       </div>
     );

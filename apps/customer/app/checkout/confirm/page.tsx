@@ -19,9 +19,9 @@ export default async function OrderConfirmPage({ searchParams }: Props) {
     return (
       <div className="mx-auto max-w-lg px-4 py-24 text-center">
         <p className="font-display text-display-md text-ink mb-4">Sign in to view your order</p>
-        <a href="/sign-in" className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory">
+        <Link href="/sign-in" className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory">
           Sign in
-        </a>
+        </Link>
       </div>
     );
   }

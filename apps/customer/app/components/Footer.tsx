@@ -10,7 +10,7 @@ export function Footer() {
               LUNA
             </p>
             <p className="text-body-sm text-mist">
-              The Gulf's AI-powered abaya marketplace
+              The Gulf&apos;s AI-powered abaya marketplace
             </p>
           </div>
           <div>

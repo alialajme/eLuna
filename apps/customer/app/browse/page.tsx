@@ -85,7 +85,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
     <div>
       {filters.q && (
         <div className="bg-sand px-4 py-3 text-body-md text-ink">
-          Results for <strong>"{filters.q}"</strong>
+          Results for <strong>&quot;{filters.q}&quot;</strong>
         </div>
       )}
 

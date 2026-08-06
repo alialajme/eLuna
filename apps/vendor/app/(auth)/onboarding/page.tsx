@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
+import Link from "next/link";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { OnboardingWizard } from "./OnboardingWizard";
@@ -16,12 +17,12 @@ export default async function OnboardingPage() {
       <main className="flex min-h-screen items-center justify-center bg-ink">
         <div className="text-center">
           <p className="font-display text-display-md text-gold mb-4">Luna Vendor OS</p>
-          <a
+          <Link
             href="/sign-in"
             className="inline-flex rounded-full bg-gold px-6 py-3 text-body-md font-medium text-ink"
           >
             Sign in to continue
-          </a>
+          </Link>
         </div>
       </main>
     );

@@ -74,7 +74,7 @@ export async function ProductGrid({ filters, customerSizeProfileUsualSize, wishl
     return (
       <div className="py-24 text-center">
         <p className="text-body-lg text-ink mb-2">No abayas found</p>
-        <p className="text-body-md text-mist mb-6">Luna hasn't found a match — try asking her</p>
+        <p className="text-body-md text-mist mb-6">Luna hasn&apos;t found a match — try asking her</p>
         <Link
           href="/chat"
           className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"

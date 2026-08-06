@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 import { Sidebar } from "./components/Sidebar";
@@ -18,12 +19,12 @@ export default async function DashboardLayout({
           <p className="font-display text-display-md text-ink mb-4">
             Sign in to access your vendor dashboard
           </p>
-          <a
+          <Link
             href="/sign-in"
             className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory"
           >
             Sign in
-          </a>
+          </Link>
         </div>
       </div>
     );
