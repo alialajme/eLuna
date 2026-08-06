@@ -14,6 +14,14 @@ const STATUS_BADGE: Record<string, string> = {
   REJECTED: "bg-sand text-mist",
 };
 
+const SELLER_FILTERS = [
+  { label: "All", value: "all" },
+  { label: "Pending", value: "PENDING" },
+  { label: "Active", value: "ACTIVE" },
+  { label: "Suspended", value: "SUSPENDED" },
+  { label: "Rejected", value: "REJECTED" },
+];
+
 const VALID: VendorStatus[] = ["PENDING", "ACTIVE", "SUSPENDED", "REJECTED"];
 
 type Props = { searchParams: Promise<{ status?: string }> };
@@ -37,7 +45,7 @@ export default async function SellersPage({ searchParams }: Props) {
         <h2 className="font-display text-display-md text-ink">Sellers</h2>
       </div>
 
-      <StatusFilter status={raw} />
+      <StatusFilter status={raw} options={SELLER_FILTERS} />
 
       {vendors.length === 0 ? (
         <div className="rounded-lg border border-sand bg-white py-16 text-center">

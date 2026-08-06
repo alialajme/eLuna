@@ -2,24 +2,18 @@
 
 import { useRouter, usePathname } from "next/navigation";
 
-const FILTERS = [
-  { label: "All", value: "all" },
-  { label: "Pending", value: "PENDING" },
-  { label: "Active", value: "ACTIVE" },
-  { label: "Suspended", value: "SUSPENDED" },
-  { label: "Rejected", value: "REJECTED" },
-] as const;
+export type FilterOption = { label: string; value: string };
 
-type Props = { status: string };
+type Props = { status: string; options: FilterOption[] };
 
-export function StatusFilter({ status }: Props) {
+export function StatusFilter({ status, options }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
   return (
     <div className="flex flex-wrap gap-1.5">
-      {FILTERS.map(({ label, value }) => {
-        const active = status === value || (value === "all" && status === "all");
+      {options.map(({ label, value }) => {
+        const active = status === value;
         return (
           <button
             key={value}
