@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma, type VendorStatus } from "@e-luna/db";
-import { safeCurrentUser } from "../lib/auth";
+import { getAuthUser } from "@e-luna/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -10,8 +10,12 @@ async function setVendorStatus(
   id: string,
   status: VendorStatus
 ): Promise<ActionResult> {
-  const user = await safeCurrentUser();
+  // Defense-in-depth: verify the ADMIN role in the action itself, not just in
+  // middleware. Server actions are directly-invocable POST endpoints, so route
+  // gating alone would leave this update open to any authenticated user.
+  const user = await getAuthUser();
   if (!user) return { error: "Unauthorized" };
+  if (user.role !== "ADMIN") return { error: "Forbidden" };
 
   try {
     await prisma.vendor.update({ where: { id }, data: { status } });
