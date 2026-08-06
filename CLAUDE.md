@@ -238,6 +238,7 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 2026-06-30 | Luna Studio AI: image/video generation stubbed | `generate_images` and `generate_video` studioTools return empty values. Full implementation deferred to Phase 5b. |
 | 2026-08-06 | Admin Console 6a: defense-in-depth authz | Server actions and RSC layout independently re-check ADMIN role via `getAuthUser()` from `@e-luna/auth`, not middleware alone — server actions are directly-invocable POST endpoints. Role gate lives in `(dashboard)/layout.tsx` (covers all child routes) + each action in `actions/sellers.ts`. |
 | 2026-08-06 | Admin Console 6a: GMV definitions | Platform GMV (dashboard) = sum of `Order.total` where status NOT IN (CANCELLED, REFUNDED). Per-vendor GMV (detail page) = sum of `OrderItem.unitPrice × quantity` — item-level attribution since one order can span multiple vendors. |
+| 2026-08-06 | ESLint configs added to all apps (CI fix) | Apps had no `.eslintrc.json` since scaffold, so CI's `pnpm lint` (`next lint`) hit an interactive prompt and failed. Each app now has `.eslintrc.json` extending `next/core-web-vitals`. Convention: internal navigation uses `next/link` `<Link>` (never raw `<a href>`); escape JSX entities. `<img>` for external/data-URL images is an accepted **warning** (does not fail `next lint`) — keep the `eslint-disable-next-line @next/next/no-img-element` comments where used. CI also runs `pnpm --filter "@e-luna/*" exec tsc --noEmit` after lint. |
 
 ---
 
