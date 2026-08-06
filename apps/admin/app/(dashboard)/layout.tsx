@@ -1,4 +1,4 @@
-import { safeCurrentUser } from "../lib/auth";
+import { getAuthUser } from "@e-luna/auth";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 
@@ -7,9 +7,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await safeCurrentUser();
+  // Defense-in-depth: enforce the ADMIN role centrally for every route under
+  // (dashboard)/*, not just in middleware. This single gate covers the
+  // dashboard, sellers list, approvals queue, and detail pages.
+  const user = await getAuthUser();
 
-  if (!user) {
+  if (!user || user.role !== "ADMIN") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-ivory">
         <div className="text-center">
