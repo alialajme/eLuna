@@ -8,6 +8,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/sellers/approvals": "Pending Approvals",
   "/orders": "Orders",
   "/products": "Products",
+  "/payouts": "Payouts",
+  "/commissions": "Commissions",
 };
 
 export function TopBar() {

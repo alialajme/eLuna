@@ -10,6 +10,8 @@ const NAV_ITEMS = [
   { icon: "✅", label: "Approvals", href: "/sellers/approvals" },
   { icon: "📋", label: "Orders", href: "/orders" },
   { icon: "🛍️", label: "Products", href: "/products" },
+  { icon: "💸", label: "Payouts", href: "/payouts" },
+  { icon: "📊", label: "Commissions", href: "/commissions" },
 ] as const;
 
 export function Sidebar() {
@@ -37,7 +39,11 @@ export function Sidebar() {
                   ? pathname === "/orders" || pathname.startsWith("/orders/")
                   : href === "/products"
                     ? pathname === "/products"
-                    : pathname === href;
+                    : href === "/payouts"
+                      ? pathname === "/payouts"
+                      : href === "/commissions"
+                        ? pathname === "/commissions"
+                        : pathname === href;
           return (
             <Link
               key={href}
