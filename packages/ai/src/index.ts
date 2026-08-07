@@ -3,5 +3,5 @@ export { runShoppingAgent } from "./agents/shopping";
 export { runSellerAgent, buildSellerTools } from "./agents/seller";
 export { runStudioAgent, studioTools, detectGarment, writeCopy } from "./agents/studio";
 export { runLogisticsAgent, logisticsTools } from "./agents/logistics";
-export { runPaymentAgent, paymentTools } from "./agents/payment";
+export { runPaymentAgent, buildPaymentTools } from "./agents/payment";
 export { runPOSAgent, posTools } from "./agents/pos";
