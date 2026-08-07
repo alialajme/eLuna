@@ -5,6 +5,7 @@ param delegatedSubnetId string
 param adminUser string
 @secure()
 param adminPassword string
+param vnetId string
 
 resource pgDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   name: '${prefix}.private.postgres.database.azure.com'
@@ -12,10 +13,21 @@ resource pgDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   tags: tags
 }
 
+resource pgDnsLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  parent: pgDnsZone
+  name: '${prefix}-pg-vnet-link'
+  location: 'global'
+  properties: {
+    registrationEnabled: false
+    virtualNetwork: { id: vnetId }
+  }
+}
+
 resource pg 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-preview' = {
   name: '${prefix}-pg'
   location: location
   tags: tags
+  dependsOn: [pgDnsLink]
   sku: { name: 'Standard_D2ds_v5', tier: 'GeneralPurpose' }
   properties: {
     version: '16'

@@ -29,6 +29,6 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   }
 }
 
-output nodeSubnetId string = vnet.properties.subnets[0].id
-output pgSubnetId string = vnet.properties.subnets[1].id
+output nodeSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet.name, 'aks-nodes')
+output pgSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet.name, 'postgres')
 output vnetId string = vnet.id

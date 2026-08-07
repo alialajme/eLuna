@@ -60,6 +60,7 @@ module postgres 'modules/postgres.bicep' = {
     location: location
     tags: tags
     delegatedSubnetId: network.outputs.pgSubnetId
+    vnetId: network.outputs.vnetId
     adminUser: pgAdminUser
     adminPassword: pgAdminPassword
   }
