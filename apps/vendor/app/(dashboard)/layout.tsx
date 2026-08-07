@@ -4,6 +4,7 @@ import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
+import { LunaChatWidget } from "@e-luna/ui";
 
 export default async function DashboardLayout({
   children,
@@ -47,6 +48,11 @@ export default async function DashboardLayout({
         <TopBar storeName={vendor.storeName} />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
+      <LunaChatWidget
+        apiPath="/api/assistant"
+        title="Seller Assistant"
+        greeting="Hi! I can check your stock, suggest pricing, and forecast demand. What would you like to look at?"
+      />
     </div>
   );
 }
