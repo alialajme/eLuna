@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { icon: "📋", label: "Orders", href: "/orders" },
   { icon: "🛍️", label: "Products", href: "/products" },
   { icon: "💸", label: "Payouts", href: "/payouts" },
-  { icon: "📊", label: "Commissions", href: "/commissions" },
+  { icon: "⚖️", label: "Commissions", href: "/commissions" },
 ] as const;
 
 export function Sidebar() {
