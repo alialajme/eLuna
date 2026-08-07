@@ -211,7 +211,8 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 6b | Admin Console — Orders + Products Moderation | ✅ Complete — /orders list + /orders/[id] detail (read-only), /products list + inline Reject/Reinstate, products.ts actions (ADMIN check), generalized StatusFilter (commits 9933d91–020c712) |
 | 6c-i | Admin Console — Payouts + Commissions | ✅ Complete — /payouts (vendors-owed balance + Create Payout + history with process actions), /commissions (per-vendor rate editing + commission revenue), payouts.ts + commissions.ts actions (ADMIN-gated, server-side balance recompute) (commits 894a2d3–48cab9a) |
 | 6c-ii | Admin Console — Analytics | ✅ Complete — /analytics: PeriodToggle (7/30/90d), 4 KPI cards w/ period-over-period % change, GMV line chart, top vendors, GMV by category. Hand-rolled inline-SVG LineChart + BarChart server components (zero deps) (commits 28e8141–60a5727) |
-| 6d | Admin Console — fraud, customers, settings | 🔲 Not started |
+| 6d | Admin Console — Customers + Fraud | ✅ Complete — /customers (list: spend/loyalty/wallet) + /customers/[id] (detail: stats, order history cross-linked to /orders, wishlist/review counts, size-profile status); /fraud (heuristic review queue: failed payment / high value ≥3×mean / rapid repeat 3+/24h, reason badges). Read-only, no schema change (commits ac91d47–515994d) |
+| 6e | Admin Console — Settings (feature flags, categories) | 🔲 Deferred — needs a PlatformSetting model + the first Prisma migration of the admin work |
 | 7 | Logistics (courier routing, tracking, returns) | 🔲 Not started |
 | 8 | AI Agent Mesh (all 6 agents wired up end-to-end) | 🔲 Not started |
 
