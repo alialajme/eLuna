@@ -19,10 +19,12 @@ function getOrCreateSessionId(): string {
 }
 
 type LunaChatWidgetProps = {
-  apiPath: string; // e.g. "/api/chat" — route handler in customer app
+  apiPath: string; // e.g. "/api/chat" — route handler in the app
+  title?: string; // header title; default "Luna Stylist"
+  greeting?: string; // empty-state assistant greeting; default the customer copy
 };
 
-export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
+export function LunaChatWidget({ apiPath, title, greeting }: LunaChatWidgetProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -60,7 +62,7 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
           <div className="flex items-center justify-between bg-ink px-4 py-3">
             <div className="flex items-center gap-2">
               <span className="text-gold text-lg">◑</span>
-              <span className="font-sans text-body-md font-semibold text-ivory">Luna Stylist</span>
+              <span className="font-sans text-body-md font-semibold text-ivory">{title ?? "Luna Stylist"}</span>
             </div>
             <button
               onClick={() => setOpen(false)}
@@ -76,8 +78,14 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
             {messages.length === 0 && (
               <div className="text-center text-body-sm text-mist pt-8">
                 <p className="text-gold text-2xl mb-2">◑</p>
-                <p>مرحباً! I'm Luna.</p>
-                <p className="mt-1">Tell me your occasion and I'll find your perfect abaya.</p>
+                {greeting ? (
+                  <p>{greeting}</p>
+                ) : (
+                  <>
+                    <p>مرحباً! I'm Luna.</p>
+                    <p className="mt-1">Tell me your occasion and I'll find your perfect abaya.</p>
+                  </>
+                )}
               </div>
             )}
             {messages.map((m: Message) => (
