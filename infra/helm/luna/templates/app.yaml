@@ -20,6 +20,7 @@ spec:
         app: {{ $app.name }}
         azure.workload.identity/use: "true"
     spec:
+      serviceAccountName: {{ $.Values.serviceAccount.name }}
       containers:
         - name: {{ $app.name }}
           image: {{ include "luna.image" (dict "root" $ "app" $app) }}

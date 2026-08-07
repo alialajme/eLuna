@@ -11,6 +11,9 @@ keyVault:
   tenantId: "00000000-0000-0000-0000-000000000000"   # set per tenant
   userAssignedIdentityClientId: ""                     # workload identity client id
 
+serviceAccount:
+  name: luna-workload-identity
+
 # Secrets to mount as env (name in Key Vault == env var name)
 secrets:
   - DATABASE_URL
