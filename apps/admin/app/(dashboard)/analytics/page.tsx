@@ -121,7 +121,7 @@ export default async function AnalyticsPage({ searchParams }: Props) {
   const topVendors = [...vendorGmv.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
-    .map(([id, value]) => ({ name: nameById.get(id) ?? "Unknown", value }));
+    .map(([id, value]) => ({ id, name: nameById.get(id) ?? "Unknown", value }));
   const topVendorMax = Math.max(...topVendors.map((v) => v.value), 0);
 
   const categoryBars = [...categoryGmv.entries()]
@@ -181,7 +181,7 @@ export default async function AnalyticsPage({ searchParams }: Props) {
           ) : (
             <div className="flex flex-col gap-2.5">
               {topVendors.map((v) => (
-                <div key={v.name}>
+                <div key={v.id}>
                   <div className="flex justify-between text-body-xs text-ink">
                     <span className="truncate">{v.name}</span>
                     <span className="shrink-0">{fmtAED(v.value)}</span>
