@@ -22,9 +22,10 @@ type LunaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in the app
   title?: string; // header title; default "Luna Stylist"
   greeting?: string; // empty-state assistant greeting; default the customer copy
+  hiddenPaths?: string[]; // pathnames where the widget renders nothing; default ["/chat"]
 };
 
-export function LunaChatWidget({ apiPath, title, greeting }: LunaChatWidgetProps) {
+export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths }: LunaChatWidgetProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -50,8 +51,8 @@ export function LunaChatWidget({ apiPath, title, greeting }: LunaChatWidgetProps
     }
   }, [messages]);
 
-  // Hide on the full chat page — after all hooks
-  if (pathname === "/chat") return null;
+  // Hide on configured paths (default: the full chat page) — after all hooks
+  if ((hiddenPaths ?? ["/chat"]).includes(pathname)) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
