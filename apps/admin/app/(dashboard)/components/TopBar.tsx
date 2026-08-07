@@ -11,6 +11,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/payouts": "Payouts",
   "/commissions": "Commissions",
   "/analytics": "Analytics",
+  "/customers": "Customers",
+  "/fraud": "Fraud",
 };
 
 export function TopBar() {
@@ -21,7 +23,9 @@ export function TopBar() {
       ? "Seller Detail"
       : pathname.startsWith("/orders/")
         ? "Order Detail"
-        : "Luna Ops");
+        : pathname.startsWith("/customers/")
+          ? "Customer Detail"
+          : "Luna Ops");
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-sand bg-ivory px-6">
