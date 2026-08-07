@@ -1,0 +1,49 @@
+# Global image settings
+image:
+  registry: elunaacr.azurecr.io
+  repository: e-luna
+  tag: latest          # overridden by CI with the git SHA
+  pullPolicy: IfNotPresent
+
+# Key Vault (Secrets Store CSI) settings
+keyVault:
+  name: eluna-kv
+  tenantId: "00000000-0000-0000-0000-000000000000"   # set per tenant
+  userAssignedIdentityClientId: ""                     # workload identity client id
+
+# Secrets to mount as env (name in Key Vault == env var name)
+secrets:
+  - DATABASE_URL
+  - ANTHROPIC_API_KEY
+  - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  - CLERK_SECRET_KEY
+  - CLOUDINARY_URL
+
+ingress:
+  className: nginx
+  clusterIssuer: letsencrypt-prod
+
+# Per-app configuration
+apps:
+  - name: customer
+    host: luna.ae
+    replicas: 2
+  - name: vendor
+    host: sell.luna.ae
+    replicas: 2
+  - name: admin
+    host: ops.luna.ae
+    replicas: 2
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+autoscaling:
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70

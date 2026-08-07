@@ -1,0 +1,110 @@
+{{- range $app := .Values.apps }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $app.name }}
+  labels: { app: {{ $app.name }} }
+spec:
+  replicas: {{ $app.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels: { app: {{ $app.name }} }
+  template:
+    metadata:
+      labels:
+        app: {{ $app.name }}
+        azure.workload.identity/use: "true"
+    spec:
+      containers:
+        - name: {{ $app.name }}
+          image: {{ include "luna.image" (dict "root" $ "app" $app) }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          livenessProbe:
+            httpGet: { path: /api/health, port: 3000 }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet: { path: /api/health, port: 3000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources: {{ toYaml $.Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+          envFrom:
+            - secretRef: { name: {{ $app.name }}-secrets }
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes: { secretProviderClass: luna-spc }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $app.name }}
+spec:
+  selector: { app: {{ $app.name }} }
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $app.name }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ $.Values.ingress.clusterIssuer }}
+spec:
+  ingressClassName: {{ $.Values.ingress.className }}
+  tls:
+    - hosts: [{{ $app.host | quote }}]
+      secretName: {{ $app.name }}-tls
+  rules:
+    - host: {{ $app.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $app.name }}
+                port: { number: 80 }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $app.name }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ $app.name }}
+  minReplicas: {{ $.Values.autoscaling.minReplicas }}
+  maxReplicas: {{ $.Values.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $.Values.autoscaling.targetCPUUtilizationPercentage }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $app.name }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app: {{ $app.name }} }
+{{- end }}
