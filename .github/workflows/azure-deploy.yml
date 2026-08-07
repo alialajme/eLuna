@@ -1,0 +1,55 @@
+name: Azure Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to deploy (defaults to commit SHA)"
+        required: false
+
+permissions:
+  id-token: write   # OIDC federation to Azure
+  contents: read
+
+env:
+  ACR_NAME: elunaacr
+  AKS_NAME: eluna-aks
+  RESOURCE_GROUP: eluna-rg
+  IMAGE_REPO: e-luna
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: tag
+        run: echo "value=${{ github.event.inputs.tag || github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build & push images (ACR)
+        run: |
+          for app in customer vendor admin; do
+            az acr build \
+              --registry "$ACR_NAME" \
+              --image "$IMAGE_REPO/$app:${{ steps.tag.outputs.value }}" \
+              --build-arg APP=$app \
+              --file docker/Dockerfile .
+          done
+
+      - name: Get AKS credentials
+        run: az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$AKS_NAME" --overwrite-existing
+
+      - name: Helm deploy
+        run: |
+          helm upgrade --install luna infra/helm/luna \
+            --namespace luna --create-namespace \
+            --set image.tag=${{ steps.tag.outputs.value }} \
+            --wait --timeout 10m
