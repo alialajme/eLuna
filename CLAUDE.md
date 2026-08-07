@@ -214,7 +214,9 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 6d | Admin Console — Customers + Fraud | ✅ Complete — /customers (list: spend/loyalty/wallet) + /customers/[id] (detail: stats, order history cross-linked to /orders, wishlist/review counts, size-profile status); /fraud (heuristic review queue: failed payment / high value ≥3×mean / rapid repeat 3+/24h, reason badges). Read-only, no schema change (commits ac91d47–515994d) |
 | 6e | Admin Console — Settings (feature flags, categories) | 🔲 Deferred — needs a PlatformSetting model + the first Prisma migration of the admin work |
 | 7 | Logistics (courier routing, tracking, returns) | 🔲 Not started |
-| 8 | AI Agent Mesh (all 6 agents wired up end-to-end) | 🔲 Not started |
+| 8 | AI Agent Mesh (all 6 agents wired up end-to-end) | 🟡 In progress — decomposed into 8a–8e |
+| 8a | Seller Agent + vendor assistant | ✅ Complete — real vendor-scoped tools (flag_low_stock, suggest_price [category-median benchmark], forecast_demand [30-vs-prior-30 trend], studio_link deep-link) via `buildSellerTools(vendorId)`/`runSellerAgent`; `/api/assistant` route; `LunaChatWidget` reused with new optional title/greeting props, mounted in vendor dashboard. vendorId is session-resolved, never an LLM param; ownership-checked product tools (commits 203c621–91fa5d3) |
+| 8b–8e | Payment agent (8b, checkout), Logistics agent (8c, needs Phase 7), POS agent (8d), Agent handoff/orchestration + AISession persistence (8e) | 🔲 Not started |
 
 ---
 
