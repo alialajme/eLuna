@@ -209,7 +209,9 @@ Each sub-project gets its own spec → plan → implementation cycle.
 | 5 | Luna Studio AI (photo upload → campaign generation) | ✅ Complete — detectGarment + writeCopy, upload API, server actions, list/wizard/results pages (commits 60efcad–3e33fc1) |
 | 6a | Admin Console — Core Dashboard + Seller Management | ✅ Complete — dashboard KPIs, /sellers list+filter, /sellers/approvals queue, /sellers/[id] detail, approve/reject/suspend/reactivate actions (commits 702546c–9bcabca). Three auth layers: middleware + (dashboard) layout role gate + per-action ADMIN check |
 | 6b | Admin Console — Orders + Products Moderation | ✅ Complete — /orders list + /orders/[id] detail (read-only), /products list + inline Reject/Reinstate, products.ts actions (ADMIN check), generalized StatusFilter (commits 9933d91–020c712) |
-| 6c–6d | Admin Console — payouts/commissions/analytics (6c), fraud/customers/settings (6d) | 🔲 Not started |
+| 6c-i | Admin Console — Payouts + Commissions | ✅ Complete — /payouts (vendors-owed balance + Create Payout + history with process actions), /commissions (per-vendor rate editing + commission revenue), payouts.ts + commissions.ts actions (ADMIN-gated, server-side balance recompute) (commits 894a2d3–48cab9a) |
+| 6c-ii | Admin Console — Analytics (dashboards + charts) | 🔲 Not started (charting-approach decision pending) |
+| 6d | Admin Console — fraud, customers, settings | 🔲 Not started |
 | 7 | Logistics (courier routing, tracking, returns) | 🔲 Not started |
 | 8 | AI Agent Mesh (all 6 agents wired up end-to-end) | 🔲 Not started |
 
