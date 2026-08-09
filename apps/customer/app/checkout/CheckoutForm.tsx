@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { placeOrder } from "../actions/checkout";
+import { placeOrder, initiateCardPayment } from "../actions/checkout";
+import { StripePaymentForm } from "./StripePaymentForm";
 import { saveAddress, type AddressFormData } from "../actions/address";
 
 type Address = {
@@ -43,6 +44,7 @@ export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, 
   const defaultAddr = addresses.find((a) => a.isDefault) ?? addresses[0];
   const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddr?.id ?? "new");
   const [paymentMethod, setPaymentMethod] = useState<string>("CARD");
+  const [stripeSession, setStripeSession] = useState<{ clientSecret: string; orderId: string } | null>(null);
   const [showNewAddress, setShowNewAddress] = useState(addresses.length === 0);
 
   const [newAddr, setNewAddr] = useState<AddressFormData>({
@@ -73,9 +75,27 @@ export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, 
         return;
       }
 
+      if (paymentMethod === "CARD") {
+        const card = await initiateCardPayment({ addressId });
+        if (!card.success) {
+          setError(card.error);
+          return;
+        }
+        if (card.captured) {
+          router.push(`/checkout/confirm?orderId=${card.orderId}`);
+          return;
+        }
+        if (card.clientSecret) {
+          setStripeSession({ clientSecret: card.clientSecret, orderId: card.orderId });
+          return;
+        }
+        setError("Could not start card payment. Please try again.");
+        return;
+      }
+
       const result = await placeOrder({
         addressId,
-        paymentMethod: paymentMethod as "CARD" | "LUNA_WALLET" | "TABBY" | "TAMARA" | "CASH_ON_DELIVERY",
+        paymentMethod: paymentMethod as "LUNA_WALLET" | "TABBY" | "TAMARA" | "CASH_ON_DELIVERY",
       });
 
       if (!result.success) {
@@ -185,6 +205,11 @@ export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, 
         {/* Payment Method */}
         <section>
           <h2 className="font-display text-display-sm text-ink mb-4">Payment Method</h2>
+          {stripeSession ? (
+            <div className="rounded-xl border border-sand p-4">
+              <StripePaymentForm clientSecret={stripeSession.clientSecret} orderId={stripeSession.orderId} />
+            </div>
+          ) : (
           <div className="space-y-3">
             {PAYMENT_METHODS.map((method) => (
               <label
@@ -209,6 +234,7 @@ export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, 
               </label>
             ))}
           </div>
+          )}
         </section>
 
         {error && (
