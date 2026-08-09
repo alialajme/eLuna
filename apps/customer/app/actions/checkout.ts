@@ -15,7 +15,9 @@ const SHIPPING_FEE = 15;
 
 export type PlaceOrderInput = {
   addressId: string;
-  paymentMethod: "CARD" | "LUNA_WALLET" | "TABBY" | "TAMARA" | "CASH_ON_DELIVERY";
+  // CARD is intentionally excluded — card payments go through initiateCardPayment
+  // (order-first + Stripe intent). placeOrder only handles synchronous methods.
+  paymentMethod: "LUNA_WALLET" | "TABBY" | "TAMARA" | "CASH_ON_DELIVERY";
   notes?: string;
 };
 
@@ -25,6 +27,13 @@ export type PlaceOrderResult =
 
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   try {
+    // Defensive guard for untyped/direct callers: card payments must use the
+    // order-first Stripe flow, never this synchronous path (which would create a
+    // gateway payment against a temp order id).
+    if ((input.paymentMethod as string) === "CARD") {
+      return { success: false, error: "Card payments must be completed through the card checkout flow." };
+    }
+
     const user = await safeCurrentUser();
     if (!user) return { success: false, error: "Please sign in to place an order" };
 
