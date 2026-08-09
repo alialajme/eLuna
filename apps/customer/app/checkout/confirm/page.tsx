@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../../lib/auth";
+import { ConfirmPaymentSync } from "../ConfirmPaymentSync";
 
 export const metadata: Metadata = {
   title: "Order Confirmed — Luna",
@@ -53,6 +54,41 @@ export default async function OrderConfirmPage({ searchParams }: Props) {
     select: { id: true },
   });
   if (!profile || order.customerId !== profile.id) notFound();
+
+  if (order.status === "PENDING") {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-24 text-center">
+        <ConfirmPaymentSync orderId={order.id} />
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/20 text-3xl">
+          ⏳
+        </div>
+        <h1 className="font-display text-display-md text-ink">Confirming your payment…</h1>
+        <p className="mt-2 text-body-md text-mist">
+          This can take a few seconds. This page will update automatically.
+        </p>
+      </div>
+    );
+  }
+
+  if (order.status === "CANCELLED") {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-24 text-center">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-coral/20 text-3xl">
+          ✕
+        </div>
+        <h1 className="font-display text-display-md text-ink">Payment not completed</h1>
+        <p className="mt-2 text-body-md text-mist">
+          Your card was not charged. Please try checking out again.
+        </p>
+        <Link
+          href="/cart"
+          className="mt-6 inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
+        >
+          Back to bag
+        </Link>
+      </div>
+    );
+  }
 
   const paymentTx = order.paymentTransactions[0];
 
