@@ -72,7 +72,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     const tempOrderId = `ord_${Date.now()}`;
 
     const gateway = getGateway(input.paymentMethod);
-    const chargeResult = await gateway.charge({
+    const paymentResult = await gateway.createPayment({
       amount: total,
       currency: "AED",
       orderId: tempOrderId,
@@ -80,8 +80,14 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       description: `Luna order — ${lineItems.length} item(s)`,
     });
 
-    if (!chargeResult.success) {
-      return { success: false, error: chargeResult.error ?? "Payment failed" };
+    if (paymentResult.status !== "captured") {
+      return {
+        success: false,
+        error:
+          paymentResult.status === "failed"
+            ? paymentResult.error
+            : "This payment method must be completed through the card checkout flow.",
+      };
     }
 
     const order = await prisma.$transaction(async (tx) => {
@@ -110,7 +116,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
               status: "CAPTURED",
               amount: total,
               currency: "AED",
-              externalRef: chargeResult.externalRef,
+              externalRef: paymentResult.externalRef,
             },
           },
         },

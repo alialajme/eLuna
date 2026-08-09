@@ -1,4 +1,4 @@
-export type ChargeParams = {
+export type CreatePaymentParams = {
   amount: number;
   currency: string;
   orderId: string;
@@ -7,11 +7,10 @@ export type ChargeParams = {
   metadata?: Record<string, string>;
 };
 
-export type ChargeResult = {
-  success: boolean;
-  externalRef: string;
-  error?: string;
-};
+export type CreatePaymentResult =
+  | { status: "captured"; externalRef: string }
+  | { status: "requires_action"; externalRef: string; clientSecret: string }
+  | { status: "failed"; error: string };
 
 export type RefundParams = {
   externalRef: string;
@@ -24,7 +23,13 @@ export type RefundResult = {
   error?: string;
 };
 
+export type WebhookResult =
+  | { kind: "payment_succeeded"; orderId: string; externalRef: string; walletType?: string }
+  | { kind: "payment_failed"; orderId: string; externalRef: string }
+  | { kind: "ignored" };
+
 export interface PaymentGateway {
-  charge(params: ChargeParams): Promise<ChargeResult>;
+  createPayment(params: CreatePaymentParams): Promise<CreatePaymentResult>;
   refund(params: RefundParams): Promise<RefundResult>;
+  handleWebhook?(rawBody: string, signature: string): Promise<WebhookResult>;
 }
