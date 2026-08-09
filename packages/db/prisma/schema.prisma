@@ -71,6 +71,9 @@ enum PaymentMethod {
   TABBY
   TAMARA
   CASH_ON_DELIVERY
+  TAP
+  NOQODI
+  NEOPAY
 }
 
 enum PaymentStatus {
