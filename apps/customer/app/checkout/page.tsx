@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@e-luna/db";
+import { LunaChatWidget } from "@e-luna/ui";
 import { safeCurrentUser } from "../lib/auth";
 import { getCart } from "../actions/cart";
 import { CheckoutForm } from "./CheckoutForm";
@@ -56,12 +57,19 @@ export default async function CheckoutPage() {
   }).catch(() => []);
 
   return (
-    <CheckoutForm
-      addresses={addresses}
-      cartSubtotal={subtotal}
-      shippingFee={shippingFee}
-      cartTotal={total}
-      itemCount={itemCount}
-    />
+    <>
+      <CheckoutForm
+        addresses={addresses}
+        cartSubtotal={subtotal}
+        shippingFee={shippingFee}
+        cartTotal={total}
+        itemCount={itemCount}
+      />
+      <LunaChatWidget
+        apiPath="/api/payment-help"
+        title="Payment Help"
+        greeting="Ask about your wallet balance, a Tabby/Tamara split, or refund eligibility — I explain options; you complete payment with the button."
+      />
+    </>
   );
 }
