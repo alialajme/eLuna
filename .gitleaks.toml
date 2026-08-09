@@ -1,0 +1,11 @@
+# gitleaks config for e-Luna. Extends the built-in ruleset.
+# Docs: https://github.com/gitleaks/gitleaks
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholder/template and generated files that intentionally contain example tokens"
+paths = [
+  '''\.env\.example$''',
+  '''pnpm-lock\.yaml$''',
+]

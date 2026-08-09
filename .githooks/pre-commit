@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# Pre-commit secret scan via gitleaks (scans only STAGED changes).
+# Enabled by pointing git at this directory:  git config core.hooksPath .githooks
+# (run scripts/setup-hooks.sh once per clone). Config: .gitleaks.toml
+#
+set -euo pipefail
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "❌ gitleaks is not installed — the pre-commit secret scan cannot run."
+  echo "   Install it:"
+  echo "     macOS:  brew install gitleaks"
+  echo "     other:  https://github.com/gitleaks/gitleaks#installing"
+  echo "   To bypass this ONE commit (discouraged): git commit --no-verify"
+  exit 1
+fi
+
+# 'protect --staged' scans the staged diff only. --redact hides any secret value in output.
+if ! gitleaks protect --staged --redact --config .gitleaks.toml --verbose; then
+  echo ""
+  echo "❌ gitleaks found a potential secret in your staged changes (shown above, redacted)."
+  echo "   - Remove the secret and use an environment variable instead."
+  echo "   - If it is a false positive, add an allowlist entry to .gitleaks.toml."
+  echo "   - To bypass this ONE commit (discouraged): git commit --no-verify"
+  exit 1
+fi
