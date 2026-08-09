@@ -29,6 +29,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Generate the Prisma client so @e-luna/db re-exports model types
+      # (e.g. SizeProfile); without this, tsc sees them as missing/any.
+      - name: Generate Prisma client
+        run: pnpm --filter @e-luna/db db:generate
+
       - name: Lint
         run: pnpm lint
 
