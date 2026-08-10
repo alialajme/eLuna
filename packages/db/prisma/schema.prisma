@@ -365,6 +365,8 @@ model Shipment {
   vendorId          String
   courier           String
   trackingNumber    String?
+  externalRef       String?
+  labelUrl          String?
   status            ShipmentStatus @default(CREATED)
   estimatedDelivery DateTime?
   deliveredAt       DateTime?
@@ -380,6 +382,7 @@ model Shipment {
   @@index([vendorId])
   @@index([status])
   @@index([trackingNumber])
+  @@index([externalRef])
 }
 
 // ─────────────────────────────────────────────
