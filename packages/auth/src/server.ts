@@ -1,7 +1,9 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import type { UserRole } from "./roles";
 
-type LunaClaims = { metadata?: { role?: UserRole; mfaEnabled?: boolean; vendorId?: string } };
+type LunaClaims = {
+  metadata?: { role?: UserRole; mfaEnabled?: boolean; vendorId?: string; supplierId?: string };
+};
 
 function parseClaims(sessionClaims: unknown): LunaClaims {
   if (
@@ -23,8 +25,9 @@ export async function getAuthUser() {
   const role = claims.metadata?.role ?? null;
   const mfaEnabled = claims.metadata?.mfaEnabled ?? false;
   const vendorId = claims.metadata?.vendorId ?? null;
+  const supplierId = claims.metadata?.supplierId ?? null;
 
-  return { userId, role, mfaEnabled, vendorId };
+  return { userId, role, mfaEnabled, vendorId, supplierId };
 }
 
 export async function requireRole(role: UserRole) {

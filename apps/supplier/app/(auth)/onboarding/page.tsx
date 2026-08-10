@@ -33,6 +33,9 @@ export default async function OnboardingPage() {
   // Already onboarded — redirect based on status
   if (supplier?.status === "ACTIVE") redirect("/");
   if (supplier?.status === "PENDING") redirect("/pending");
+  if (supplier?.status === "SUSPENDED" || supplier?.status === "REJECTED") {
+    redirect("/pending?reason=" + supplier.status.toLowerCase());
+  }
 
   const userEmail = user.emailAddresses[0]?.emailAddress ?? "";
 

@@ -27,6 +27,14 @@ export async function createSupplier(
       return { success: false, error: "Select at least one material type" };
     }
 
+    const alreadyRegistered = await prisma.supplier.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+    if (alreadyRegistered) {
+      return { success: false, error: "You already have a supplier account" };
+    }
+
     const existing = await prisma.supplier.findUnique({
       where: { companySlug: trimmedSlug },
       select: { id: true },
