@@ -38,6 +38,20 @@ enum SupplierStatus {
   REJECTED
 }
 
+enum MaterialStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum MaterialUnit {
+  METER
+  YARD
+  ROLL
+  PIECE
+  SPOOL
+}
+
 enum ProductStatus {
   DRAFT
   ACTIVE
@@ -231,9 +245,35 @@ model Supplier {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  materials Material[]
 
   @@index([status])
+}
+
+model Material {
+  id             String         @id @default(cuid())
+  supplierId     String
+  name           String
+  slug           String         @unique
+  materialType   String
+  color          String?
+  composition    String?
+  unit           MaterialUnit
+  wholesalePrice Decimal        @db.Decimal(10, 2)
+  moq            Int            @default(1)
+  stock          Int            @default(0)
+  description    String?
+  images         Json           @default("[]")
+  status         MaterialStatus @default(DRAFT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([supplierId])
+  @@index([status])
+  @@index([supplierId, status])
 }
 
 // ─────────────────────────────────────────────
