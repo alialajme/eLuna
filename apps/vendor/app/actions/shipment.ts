@@ -5,33 +5,7 @@ import { prisma } from "@e-luna/db";
 import { getCourier } from "@e-luna/ui/couriers";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
-
-const FULFILLMENT_RANGE = ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"];
-
-async function recomputeOrderStatus(orderId: string): Promise<void> {
-  const order = await prisma.order
-    .findUnique({
-      where: { id: orderId },
-      select: { status: true, items: { select: { fulfillmentStatus: true } } },
-    })
-    .catch(() => null);
-  if (!order) return;
-  if (!FULFILLMENT_RANGE.includes(order.status)) return; // never touch PENDING/CANCELLED/REFUNDED
-
-  const statuses = order.items.map((i) => i.fulfillmentStatus);
-  const next =
-    statuses.length > 0 && statuses.every((s) => s === "DELIVERED")
-      ? "DELIVERED"
-      : statuses.some((s) => s === "SHIPPED" || s === "DELIVERED")
-        ? "SHIPPED"
-        : statuses.some((s) => s === "PROCESSING")
-          ? "PROCESSING"
-          : "CONFIRMED";
-
-  if (next !== order.status) {
-    await prisma.order.update({ where: { id: orderId }, data: { status: next } }).catch(() => null);
-  }
-}
+import { recomputeOrderStatus } from "../lib/order-status";
 
 export async function createShipment(input: {
   orderId: string;
