@@ -44,7 +44,7 @@ export default async function OrderDetailPage({ params }: Props) {
     .findMany({
       where: { orderId: id, vendorId: vendor.id },
       orderBy: { createdAt: "asc" },
-      select: { id: true, courier: true, trackingNumber: true, status: true },
+      select: { id: true, courier: true, trackingNumber: true, status: true, labelUrl: true },
     })
     .catch(() => []);
 

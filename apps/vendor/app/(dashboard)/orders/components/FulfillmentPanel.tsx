@@ -7,7 +7,7 @@ import { updateFulfillmentStatus } from "../../../actions/order";
 import { createShipment, markShipmentDelivered } from "../../../actions/shipment";
 
 type Item = { id: string; fulfillmentStatus: string; shipmentId: string | null };
-type Shipment = { id: string; courier: string; trackingNumber: string | null; status: string };
+type Shipment = { id: string; courier: string; trackingNumber: string | null; status: string; labelUrl: string | null };
 
 type Props = {
   orderId: string;
@@ -45,10 +45,6 @@ export function FulfillmentPanel({ orderId, items, shipments }: Props) {
 
   const submitShipment = () => {
     setError(null);
-    if (!tracking.trim()) {
-      setError("Enter a tracking number");
-      return;
-    }
     startTransition(async () => {
       const r = await createShipment({
         orderId,
@@ -93,6 +89,16 @@ export function FulfillmentPanel({ orderId, items, shipments }: Props) {
               {s.trackingNumber ? ` · ${s.trackingNumber}` : ""}
             </p>
             <p className="text-body-xs text-mist capitalize">{s.status.replace(/_/g, " ").toLowerCase()}</p>
+            {s.labelUrl && (
+              <a
+                href={s.labelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-body-xs text-gold hover:underline"
+              >
+                Print label
+              </a>
+            )}
             {s.status !== "DELIVERED" && (
               <button
                 type="button"
@@ -134,7 +140,7 @@ export function FulfillmentPanel({ orderId, items, shipments }: Props) {
           <input
             value={tracking}
             onChange={(e) => setTracking(e.target.value)}
-            placeholder="Tracking number"
+            placeholder="Tracking number (blank if the courier auto-generates)"
             className="w-full rounded-lg border border-sand px-3 py-2 text-body-sm text-ink bg-ivory placeholder:text-mist"
           />
           <input
