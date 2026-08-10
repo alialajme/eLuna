@@ -6,11 +6,13 @@ import { getCourier } from "@e-luna/ui/couriers";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 import { recomputeOrderStatus } from "../lib/order-status";
+import { getCourierGateway } from "../lib/courier/factory";
+import { applyShipmentStatus } from "../lib/courier/apply-status";
 
 export async function createShipment(input: {
   orderId: string;
   courier: string;
-  trackingNumber: string;
+  trackingNumber?: string;
   estimatedDelivery?: string;
 }): Promise<{ success: boolean; error?: string; shipmentId?: string }> {
   const user = await safeCurrentUser();
@@ -18,7 +20,6 @@ export async function createShipment(input: {
   const vendor = await getVendorByUserId(user.id);
   if (!vendor) return { success: false, error: "Vendor not found" };
 
-  if (!input.trackingNumber.trim()) return { success: false, error: "Tracking number is required" };
   if (!getCourier(input.courier)) return { success: false, error: "Unknown courier" };
 
   const items = await prisma.orderItem
@@ -33,6 +34,37 @@ export async function createShipment(input: {
     .catch(() => []);
   if (items.length === 0) return { success: false, error: "No items available to ship for this order" };
 
+  const order = await prisma.order
+    .findUnique({
+      where: { id: input.orderId },
+      select: { address: { select: { fullName: true, addressLine1: true, city: true, emirate: true } } },
+    })
+    .catch(() => null);
+
+  const result = await getCourierGateway(input.courier).createShipment({
+    orderId: input.orderId,
+    courier: input.courier,
+    destination: {
+      name: order?.address.fullName ?? "",
+      addressLine1: order?.address.addressLine1 ?? "",
+      city: order?.address.city ?? "",
+      emirate: order?.address.emirate ?? null,
+    },
+  });
+
+  let trackingNumber: string;
+  let externalRef: string | null = null;
+  let labelUrl: string | null = null;
+  if (result.status === "failed") return { success: false, error: result.error };
+  if (result.status === "created") {
+    trackingNumber = result.trackingNumber;
+    externalRef = result.externalRef;
+    labelUrl = result.labelUrl ?? null;
+  } else {
+    if (!input.trackingNumber?.trim()) return { success: false, error: "Tracking number is required" };
+    trackingNumber = input.trackingNumber.trim();
+  }
+
   try {
     const shipment = await prisma.$transaction(async (tx) => {
       const created = await tx.shipment.create({
@@ -40,7 +72,9 @@ export async function createShipment(input: {
           orderId: input.orderId,
           vendorId: vendor.id,
           courier: input.courier,
-          trackingNumber: input.trackingNumber.trim(),
+          trackingNumber,
+          externalRef,
+          labelUrl,
           status: "IN_TRANSIT",
           estimatedDelivery: input.estimatedDelivery ? new Date(input.estimatedDelivery) : null,
         },
@@ -76,14 +110,7 @@ export async function markShipmentDelivered(
   if (shipment.status === "DELIVERED") return { success: false, error: "Already delivered" };
 
   try {
-    await prisma.$transaction(async (tx) => {
-      await tx.shipment.update({
-        where: { id: shipmentId },
-        data: { status: "DELIVERED", deliveredAt: new Date() },
-      });
-      await tx.orderItem.updateMany({ where: { shipmentId }, data: { fulfillmentStatus: "DELIVERED" } });
-    });
-    await recomputeOrderStatus(shipment.orderId);
+    await applyShipmentStatus(shipmentId, "DELIVERED");
     revalidatePath("/orders");
     revalidatePath(`/orders/${shipment.orderId}`);
     return { success: true };
