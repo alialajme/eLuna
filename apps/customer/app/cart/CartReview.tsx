@@ -19,12 +19,11 @@ type CartLineItem = {
 
 type Props = {
   items: CartLineItem[];
+  freeShippingThreshold?: number;
+  flatShippingFee?: number;
 };
 
-const SHIPPING_THRESHOLD = 500;
-const SHIPPING_FEE = 15;
-
-export function CartReview({ items: initialItems }: Props) {
+export function CartReview({ items: initialItems, freeShippingThreshold = 500, flatShippingFee = 15 }: Props) {
   const [items, setItems] = useState(initialItems);
   const [isPending, startTransition] = useTransition();
 
@@ -63,7 +62,7 @@ export function CartReview({ items: initialItems }: Props) {
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.qty, 0);
-  const shippingFee = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+  const shippingFee = subtotal >= freeShippingThreshold ? 0 : flatShippingFee;
   const total = subtotal + shippingFee;
 
   return (
@@ -140,7 +139,7 @@ export function CartReview({ items: initialItems }: Props) {
             </div>
             {shippingFee > 0 && (
               <p className="text-body-sm text-mist">
-                Add AED {(SHIPPING_THRESHOLD - subtotal).toLocaleString("en-AE", { minimumFractionDigits: 2 })} more for free shipping
+                Add AED {(freeShippingThreshold - subtotal).toLocaleString("en-AE", { minimumFractionDigits: 2 })} more for free shipping
               </p>
             )}
             <div className="border-t border-sand pt-3 flex justify-between font-display text-body-lg font-semibold text-ink">

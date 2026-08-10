@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
+import { prisma, getSetting } from "@e-luna/db";
 import { getCart } from "../actions/cart";
 import { CartReview } from "./CartReview";
 
@@ -9,9 +9,11 @@ export const metadata: Metadata = {
 
 export default async function CartPage() {
   const cartItems = await getCart();
+  const freeShippingThreshold = await getSetting("free_shipping_threshold");
+  const flatShippingFee = await getSetting("shipping_fee");
 
   if (cartItems.length === 0) {
-    return <CartReview items={[]} />;
+    return <CartReview items={[]} freeShippingThreshold={freeShippingThreshold} flatShippingFee={flatShippingFee} />;
   }
 
   const variantIds = cartItems.map((i) => i.variantId);
@@ -51,5 +53,5 @@ export default async function CartPage() {
     }];
   });
 
-  return <CartReview items={lineItems} />;
+  return <CartReview items={lineItems} freeShippingThreshold={freeShippingThreshold} flatShippingFee={flatShippingFee} />;
 }
