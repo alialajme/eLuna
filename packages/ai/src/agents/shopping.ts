@@ -230,6 +230,7 @@ export async function runShoppingAgent(
   options?: {
     sizeProfile?: SizeProfile | null;
     sessionId?: string;
+    onFinish?: (event: { text: string }) => void | Promise<void>;
   }
 ) {
   const sizeProfile = options?.sizeProfile ?? null;
@@ -244,5 +245,6 @@ export async function runShoppingAgent(
     messages,
     tools: createShoppingTools(sizeProfile),
     maxSteps: 5,
+    onFinish: options?.onFinish,
   });
 }

@@ -136,7 +136,7 @@ export function buildPaymentTools(customerId: string) {
 
 export async function runPaymentAgent(
   messages: CoreMessage[],
-  options: { customerId: string },
+  options: { customerId: string; onFinish?: (event: { text: string }) => void | Promise<void> },
 ) {
   return streamText({
     model: anthropic(LUNA_MODEL),
@@ -144,5 +144,6 @@ export async function runPaymentAgent(
     messages,
     tools: buildPaymentTools(options.customerId),
     maxSteps: 5,
+    onFinish: options.onFinish,
   });
 }

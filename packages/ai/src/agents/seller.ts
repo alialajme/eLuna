@@ -151,7 +151,7 @@ export function buildSellerTools(vendorId: string) {
 
 export async function runSellerAgent(
   messages: CoreMessage[],
-  options: { vendorId: string }
+  options: { vendorId: string; onFinish?: (event: { text: string }) => void | Promise<void> }
 ) {
   return streamText({
     model: anthropic(LUNA_MODEL),
@@ -159,5 +159,6 @@ export async function runSellerAgent(
     messages,
     tools: buildSellerTools(options.vendorId),
     maxSteps: 5,
+    onFinish: options.onFinish,
   });
 }

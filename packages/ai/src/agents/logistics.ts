@@ -151,7 +151,7 @@ export function buildLogisticsTools(customerId: string) {
 
 export async function runLogisticsAgent(
   messages: CoreMessage[],
-  options: { customerId: string },
+  options: { customerId: string; onFinish?: (event: { text: string }) => void | Promise<void> },
 ) {
   return streamText({
     model: anthropic(LUNA_MODEL),
@@ -159,5 +159,6 @@ export async function runLogisticsAgent(
     messages,
     tools: buildLogisticsTools(options.customerId),
     maxSteps: 5,
+    onFinish: options.onFinish,
   });
 }
