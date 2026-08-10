@@ -515,3 +515,14 @@ model StudioUpload {
 
   @@index([vendorId])
 }
+
+// ─────────────────────────────────────────────
+// PLATFORM SETTINGS
+// ─────────────────────────────────────────────
+
+model PlatformSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
