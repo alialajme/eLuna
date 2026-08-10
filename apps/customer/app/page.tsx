@@ -1,14 +1,7 @@
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma, getCategories } from "@e-luna/db";
 import { ProductCard } from "@e-luna/ui";
 import { safeCurrentUser as currentUser } from "./lib/auth";
-
-const CATEGORIES = [
-  { label: "Occasion", slug: "Occasion", emoji: "✦" },
-  { label: "Everyday", slug: "Everyday", emoji: "◌" },
-  { label: "Travel", slug: "Travel", emoji: "◎" },
-  { label: "Sport", slug: "Sport", emoji: "◈" },
-];
 
 const HERO_CAMPAIGN = {
   label: "New Season",
@@ -29,8 +22,9 @@ export default async function HomePage() {
       : Promise.resolve(null),
   ]);
 
-  const countMap = Object.fromEntries(categoryStats.map((c) => [c.category, c._count._all]));
-  const categoryCounts = CATEGORIES.map((cat) => ({ ...cat, count: countMap[cat.slug] ?? 0 }));
+  const categories = await getCategories();
+  const countMap = Object.fromEntries(categoryStats.map((c) => [c.category.toLowerCase(), c._count._all]));
+  const categoryCounts = categories.map((cat) => ({ ...cat, count: countMap[cat.slug] ?? 0 }));
 
   const hasSizeProfile = !!sizeProfileStatus;
 
@@ -64,8 +58,8 @@ export default async function HomePage() {
               href={`/browse?category=${cat.slug}`}
               className="group flex flex-col items-center justify-center rounded-2xl bg-sand p-8 text-center hover:bg-gold/20 transition-colors"
             >
-              <span className="text-2xl text-gold mb-2">{cat.emoji}</span>
-              <span className="font-sans text-body-lg font-semibold text-ink">{cat.label}</span>
+              <span className="text-2xl text-gold mb-2">✦</span>
+              <span className="font-sans text-body-lg font-semibold text-ink">{cat.name}</span>
               <span className="text-body-sm text-mist mt-1">{cat.count} abayas</span>
             </Link>
           ))}

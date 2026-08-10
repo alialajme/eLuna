@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { prisma } from "@e-luna/db";
+import { prisma, getCategories } from "@e-luna/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { FilterBar } from "@e-luna/ui";
 import { safeCurrentUser as currentUser } from "../lib/auth";
@@ -54,11 +54,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
   };
 
   const [categories, fabrics, sizeProfile, filteredCount, allActiveCount] = await Promise.all([
-    prisma.product.findMany({
-      where: { status: "ACTIVE" },
-      select: { category: true },
-      distinct: ["category"],
-    }).then((rows) => rows.map((r) => r.category).sort()).catch(() => [] as string[]),
+    getCategories().then((cats) => cats.map((c) => c.name)).catch(() => [] as string[]),
 
     prisma.product.findMany({
       where: { status: "ACTIVE", fabric: { not: null } },

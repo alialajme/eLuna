@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { getCategories } from "@e-luna/db";
 
-export function Footer() {
+export async function Footer() {
+  const categories = await getCategories();
   return (
     <footer className="border-t border-sand bg-ink mt-16">
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
@@ -16,10 +18,13 @@ export function Footer() {
           <div>
             <h3 className="text-label uppercase text-gold mb-3">Shop</h3>
             <ul className="space-y-2 text-body-sm text-mist">
-              <li><Link href="/browse?category=Occasion" className="hover:text-ivory transition-colors">Occasion</Link></li>
-              <li><Link href="/browse?category=Everyday" className="hover:text-ivory transition-colors">Everyday</Link></li>
-              <li><Link href="/browse?category=Travel" className="hover:text-ivory transition-colors">Travel</Link></li>
-              <li><Link href="/browse?category=Sport" className="hover:text-ivory transition-colors">Sport</Link></li>
+              {categories.map((cat) => (
+                <li key={cat.slug}>
+                  <Link href={`/browse?category=${cat.slug}`} className="hover:text-ivory transition-colors">
+                    {cat.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div>

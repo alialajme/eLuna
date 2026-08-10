@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
+import { getCategories } from "@e-luna/db";
 import BrowsePage from "../page";
-
-const VALID_CATEGORIES = ["occasion", "everyday", "travel", "sport"];
 
 type Props = {
   params: Promise<{ category: string }>;
@@ -20,7 +19,8 @@ export async function generateMetadata({ params }: Props) {
 export default async function CategoryBrowsePage({ params, searchParams }: Props) {
   const [{ category }, resolvedSearch] = await Promise.all([params, searchParams]);
 
-  if (!VALID_CATEGORIES.includes(category.toLowerCase())) {
+  const validSlugs = (await getCategories()).map((c) => c.slug);
+  if (!validSlugs.includes(category.toLowerCase())) {
     notFound();
   }
 
