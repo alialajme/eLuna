@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bodoni_Moda, Hanken_Grotesk, IBM_Plex_Sans_Arabic } from "next/font/google";
 import dynamic from "next/dynamic";
 import { RTLProvider, LunaChatWidget } from "@e-luna/ui";
+import { getSetting } from "@e-luna/db";
 import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
 import "./globals.css";
@@ -43,12 +44,18 @@ function MaybeClerkProvider({ children }: { children: React.ReactNode }) {
   return <ClerkProviderWrapper>{children}</ClerkProviderWrapper>;
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const maintenanceBanner = await getSetting("maintenance_banner");
   return (
     <MaybeClerkProvider>
       <html lang="en" dir="ltr" className={`${bodoni.variable} ${hanken.variable} ${ibmArabic.variable}`}>
         <body className="bg-ivory font-sans text-ink antialiased">
           <RTLProvider>
+            {maintenanceBanner && (
+              <div className="bg-gold px-4 py-2 text-center text-body-sm font-medium text-ink">
+                {maintenanceBanner}
+              </div>
+            )}
             <Nav />
             <main>{children}</main>
             <Footer />

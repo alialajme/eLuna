@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma, getSetting } from "@e-luna/db";
 import { LunaChatWidget } from "@e-luna/ui";
 import { safeCurrentUser } from "../lib/auth";
 import { getCart } from "../actions/cart";
@@ -11,8 +11,6 @@ export const metadata: Metadata = {
   title: "Checkout — Luna",
 };
 
-const SHIPPING_THRESHOLD = 500;
-const SHIPPING_FEE = 15;
 
 export default async function CheckoutPage() {
   const user = await safeCurrentUser();
@@ -47,7 +45,9 @@ export default async function CheckoutPage() {
     return sum + Number(variant.price ?? variant.product.price) * item.qty;
   }, 0);
 
-  const shippingFee = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+  const threshold = await getSetting("free_shipping_threshold");
+  const fee = await getSetting("shipping_fee");
+  const shippingFee = subtotal >= threshold ? 0 : fee;
   const total = subtotal + shippingFee;
   const itemCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
 
