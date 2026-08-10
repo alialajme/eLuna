@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import type { CategoryDTO } from "@e-luna/db";
 import { VariantMatrix, VariantRow } from "./VariantMatrix";
 import { createProduct, updateProduct } from "../../../actions/product";
 
@@ -23,23 +24,18 @@ type InitialData = {
 type Props = {
   productId?: string;
   initialData?: InitialData;
+  categories: CategoryDTO[];
 };
 
-const CATEGORIES = [
-  { value: "OCCASION", label: "Occasion" },
-  { value: "EVERYDAY", label: "Everyday" },
-  { value: "TRAVEL", label: "Travel" },
-  { value: "SPORT", label: "Sport" },
-] as const;
 
-export function ProductForm({ productId, initialData }: Props) {
+export function ProductForm({ productId, initialData, categories }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [description, setDescription] = useState(initialData?.description ?? "");
-  const [category, setCategory] = useState(initialData?.category ?? "OCCASION");
+  const [category, setCategory] = useState(initialData?.category ?? categories[0]?.slug ?? "");
   const [fabric, setFabric] = useState(initialData?.fabric ?? "");
   const [careGuide, setCareGuide] = useState(initialData?.careGuide ?? "");
   const [images, setImages] = useState<string[]>(
@@ -156,9 +152,9 @@ export function ProductForm({ productId, initialData }: Props) {
               onChange={(e) => setCategory(e.target.value)}
               className="w-full rounded-lg border border-sand bg-ivory px-3 py-2 text-body-md text-ink focus:border-gold focus:outline-none"
             >
-              {CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
+              {categories.map((cat) => (
+                <option key={cat.slug} value={cat.slug}>
+                  {cat.name}
                 </option>
               ))}
             </select>

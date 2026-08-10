@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma, getCategories } from "@e-luna/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 import { ProductForm } from "../components/ProductForm";
@@ -61,7 +61,7 @@ export default async function EditProductPage({ params }: Props) {
   return (
     <div className="max-w-4xl">
       <h2 className="font-display text-display-md text-ink mb-6">Edit product</h2>
-      <ProductForm productId={product.id} initialData={initialData} />
+      <ProductForm productId={product.id} initialData={initialData} categories={await getCategories()} />
     </div>
   );
 }

@@ -1,13 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma, getCategories } from "@e-luna/db";
 import { slugify } from "../lib/slugify";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 
-const VALID_CATEGORIES = ["OCCASION", "EVERYDAY", "TRAVEL", "SPORT"] as const;
-type Category = (typeof VALID_CATEGORIES)[number];
 
 export type VariantInput = {
   size: string;
@@ -71,7 +69,8 @@ export async function createProduct(
   if (data.price <= 0) {
     return { success: false, error: "Price must be greater than 0" };
   }
-  if (!VALID_CATEGORIES.includes(data.category as Category)) {
+  const validSlugs = (await getCategories()).map((c) => c.slug);
+  if (!validSlugs.includes(data.category.toLowerCase())) {
     return { success: false, error: "Invalid category" };
   }
 
@@ -140,7 +139,8 @@ export async function updateProduct(
   if (data.price <= 0) {
     return { success: false, error: "Price must be greater than 0" };
   }
-  if (!VALID_CATEGORIES.includes(data.category as Category)) {
+  const validSlugs = (await getCategories()).map((c) => c.slug);
+  if (!validSlugs.includes(data.category.toLowerCase())) {
     return { success: false, error: "Invalid category" };
   }
 
