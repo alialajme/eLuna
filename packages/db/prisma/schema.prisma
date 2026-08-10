@@ -494,7 +494,7 @@ model AISession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([userId, agentType])
+  @@unique([userId, agentType])
 }
 
 // ─────────────────────────────────────────────

@@ -5,3 +5,5 @@ export { runStudioAgent, studioTools, detectGarment, writeCopy } from "./agents/
 export { runLogisticsAgent, buildLogisticsTools } from "./agents/logistics";
 export { runPaymentAgent, buildPaymentTools } from "./agents/payment";
 export { runPOSAgent, posTools } from "./agents/pos";
+export { loadAgentMessages, persistOnFinish, isAgentType } from "./session";
+export type { StoredMessage } from "./session";
