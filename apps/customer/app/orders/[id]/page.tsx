@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
 import { prisma } from "@e-luna/db";
+import { courierName, trackingUrl } from "@e-luna/ui/couriers";
 import { safeCurrentUser } from "../../lib/auth";
+import { TrackingTimeline } from "../components/TrackingTimeline";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -10,14 +12,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   return { title: `Order #${id.slice(-8).toUpperCase()} — Luna` };
 }
-
-const SHIPMENT_STAGES = [
-  "CREATED",
-  "PICKED_UP",
-  "IN_TRANSIT",
-  "OUT_FOR_DELIVERY",
-  "DELIVERED",
-] as const;
 
 export default async function OrderDetailPage({ params }: Props) {
   const [{ id }, user] = await Promise.all([params, safeCurrentUser()]);
@@ -49,7 +43,7 @@ export default async function OrderDetailPage({ params }: Props) {
         },
       },
       address: true,
-      shipments: { orderBy: { createdAt: "desc" }, take: 1 },
+      shipments: { orderBy: { createdAt: "asc" } },
       paymentTransactions: { take: 1 },
     },
   }).catch(() => null);
@@ -63,14 +57,23 @@ export default async function OrderDetailPage({ params }: Props) {
   });
   if (!profile || order.customerId !== profile.id) notFound();
 
-  const shipment = order.shipments[0] ?? null;
   const paymentTx = order.paymentTransactions[0] ?? null;
 
-  const currentStageIndex = shipment
-    ? SHIPMENT_STAGES.indexOf(
-        shipment.status as (typeof SHIPMENT_STAGES)[number]
-      )
-    : -1;
+  // Group items by shipment for the tracking display.
+  const itemsByShipment = new Map<string, typeof order.items>();
+  const unshippedItems: typeof order.items = [];
+  for (const item of order.items) {
+    if (item.shipmentId) {
+      const arr = itemsByShipment.get(item.shipmentId) ?? [];
+      arr.push(item);
+      itemsByShipment.set(item.shipmentId, arr);
+    } else {
+      unshippedItems.push(item);
+    }
+  }
+
+  const fmtDate = (d: Date) =>
+    new Date(d).toLocaleDateString("en-AE", { day: "numeric", month: "short", year: "numeric" });
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 md:px-6 space-y-6">
@@ -108,90 +111,60 @@ export default async function OrderDetailPage({ params }: Props) {
         </span>
       </div>
 
-      {/* Shipment timeline */}
-      {shipment && (
-        <div className="rounded-2xl border border-sand bg-ivory p-6">
-          <h2 className="font-display text-display-sm text-ink mb-4">Tracking</h2>
-          {shipment.trackingNumber && (
-            <p className="text-body-sm text-mist mb-4">
-              {shipment.courier} · {shipment.trackingNumber}
-            </p>
-          )}
-          <div className="flex items-start">
-            {SHIPMENT_STAGES.map((stage, idx) => (
-              <div key={stage} className="flex flex-1 flex-col items-center">
-                <div className="flex w-full items-center">
-                  <div
-                    className={`h-3 w-3 shrink-0 rounded-full ${
-                      idx <= currentStageIndex ? "bg-ink" : "bg-sand"
-                    }`}
-                  />
-                  {idx < SHIPMENT_STAGES.length - 1 && (
-                    <div
-                      className={`h-0.5 flex-1 ${
-                        idx < currentStageIndex ? "bg-ink" : "bg-sand"
-                      }`}
-                    />
-                  )}
-                </div>
-                <p
-                  className={`mt-1 text-body-xs text-center ${
-                    idx <= currentStageIndex ? "text-ink" : "text-mist"
-                  }`}
-                >
-                  {stage.replace(/_/g, " ")}
-                </p>
-              </div>
-            ))}
+      {/* Shipments & tracking */}
+      {order.shipments.map((s) => {
+        const url = s.trackingNumber ? trackingUrl(s.courier, s.trackingNumber) : null;
+        const shipmentItems = itemsByShipment.get(s.id) ?? [];
+        return (
+          <div key={s.id} className="rounded-2xl border border-sand bg-ivory p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-display-sm text-ink">{courierName(s.courier)}</h2>
+              {s.trackingNumber &&
+                (url ? (
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-body-sm text-gold hover:underline"
+                  >
+                    Track {s.trackingNumber} →
+                  </a>
+                ) : (
+                  <span className="text-body-sm text-mist">{s.trackingNumber}</span>
+                ))}
+            </div>
+            <TrackingTimeline status={s.status} />
+            <div className="mt-3 flex justify-between text-body-sm text-mist">
+              {s.estimatedDelivery && <span>Est. delivery {fmtDate(s.estimatedDelivery)}</span>}
+              {s.deliveredAt && <span className="text-sage">Delivered {fmtDate(s.deliveredAt)}</span>}
+            </div>
+            {shipmentItems.length > 0 && (
+              <ul className="mt-4 divide-y divide-sand border-t border-sand">
+                {shipmentItems.map((item) => (
+                  <ItemRow key={item.id} item={item} />
+                ))}
+              </ul>
+            )}
           </div>
+        );
+      })}
+
+      {/* Items not yet shipped */}
+      {unshippedItems.length > 0 && (
+        <div className="rounded-2xl border border-sand bg-ivory p-6">
+          <h2 className="font-display text-display-sm text-ink mb-1">
+            {order.shipments.length > 0 ? "Preparing your order" : "Items"}
+          </h2>
+          {order.shipments.length > 0 && (
+            <p className="text-body-sm text-mist mb-3">These items haven&apos;t shipped yet.</p>
+          )}
+          <ul className="divide-y divide-sand">
+            {unshippedItems.map((item) => (
+              <ItemRow key={item.id} item={item} />
+            ))}
+          </ul>
         </div>
       )}
-
-      {/* Items */}
-      <div className="rounded-2xl border border-sand bg-ivory p-6">
-        <h2 className="font-display text-display-sm text-ink mb-4">Items</h2>
-        <ul className="divide-y divide-sand">
-          {order.items.map((item) => {
-            const images = Array.isArray(item.variant.product.aiImages)
-              ? (item.variant.product.aiImages as string[])
-              : [];
-            return (
-              <li key={item.id} className="flex gap-4 py-4">
-                <div className="h-16 w-12 shrink-0 overflow-hidden rounded-lg bg-sand/40">
-                  {images[0] ? (
-                    <img
-                      src={images[0]}
-                      alt={item.variant.product.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full bg-sand" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <Link
-                    href={`/p/${item.variant.product.slug}`}
-                    className="text-body-md font-medium text-ink hover:text-gold transition-colors"
-                  >
-                    {item.variant.product.title}
-                  </Link>
-                  <p className="text-body-sm text-mist">
-                    {item.variant.size} · {item.variant.color}
-                  </p>
-                  <p className="text-body-sm text-mist">Qty: {item.quantity}</p>
-                </div>
-                <p className="font-display text-body-md text-gold whitespace-nowrap">
-                  AED{" "}
-                  {(Number(item.unitPrice) * item.quantity).toLocaleString(
-                    "en-AE",
-                    { minimumFractionDigits: 2 }
-                  )}
-                </p>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
 
       {/* Totals */}
       <div className="rounded-2xl border border-sand bg-ivory p-6 space-y-3 text-body-md">
@@ -254,5 +227,47 @@ export default async function OrderDetailPage({ params }: Props) {
         </Link>
       </div>
     </div>
+  );
+}
+
+function ItemRow({
+  item,
+}: {
+  item: {
+    id: string;
+    quantity: number;
+    unitPrice: unknown;
+    variant: { size: string; color: string; product: { title: string; slug: string; aiImages: unknown } };
+  };
+}) {
+  const images = Array.isArray(item.variant.product.aiImages)
+    ? (item.variant.product.aiImages as string[])
+    : [];
+  return (
+    <li className="flex gap-4 py-4">
+      <div className="h-16 w-12 shrink-0 overflow-hidden rounded-lg bg-sand/40">
+        {images[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={images[0]} alt={item.variant.product.title} className="h-full w-full object-cover" />
+        ) : (
+          <div className="h-full bg-sand" />
+        )}
+      </div>
+      <div className="flex-1">
+        <Link
+          href={`/p/${item.variant.product.slug}`}
+          className="text-body-md font-medium text-ink hover:text-gold transition-colors"
+        >
+          {item.variant.product.title}
+        </Link>
+        <p className="text-body-sm text-mist">
+          {item.variant.size} · {item.variant.color}
+        </p>
+        <p className="text-body-sm text-mist">Qty: {item.quantity}</p>
+      </div>
+      <p className="font-display text-body-md text-gold whitespace-nowrap">
+        AED {(Number(item.unitPrice) * item.quantity).toLocaleString("en-AE", { minimumFractionDigits: 2 })}
+      </p>
+    </li>
   );
 }
