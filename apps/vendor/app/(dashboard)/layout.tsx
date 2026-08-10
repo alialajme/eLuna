@@ -52,6 +52,7 @@ export default async function DashboardLayout({
         apiPath="/api/assistant"
         title="Seller Assistant"
         greeting="Hi! I can check your stock, suggest pricing, and forecast demand. What would you like to look at?"
+        agentType="SELLER"
       />
     </div>
   );

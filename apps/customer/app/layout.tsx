@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Nav />
             <main>{children}</main>
             <Footer />
-            <LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} hiddenPrefixes={["/orders"]} />
+            <LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} hiddenPrefixes={["/orders"]} agentType="SHOPPING" />
           </RTLProvider>
         </body>
       </html>

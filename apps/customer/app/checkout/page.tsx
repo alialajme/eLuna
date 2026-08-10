@@ -69,6 +69,7 @@ export default async function CheckoutPage() {
         apiPath="/api/payment-help"
         title="Payment Help"
         greeting="Ask about your wallet balance, a Tabby/Tamara split, or refund eligibility — I explain options; you complete payment with the button."
+        agentType="PAYMENT"
       />
     </>
   );

@@ -24,9 +24,10 @@ type LunaChatWidgetProps = {
   greeting?: string; // empty-state assistant greeting; default the customer copy
   hiddenPaths?: string[]; // exact-match pathnames where the widget renders nothing; default ["/chat"]
   hiddenPrefixes?: string[]; // hide when pathname starts with any prefix; default none
+  agentType?: string; // if set, load persisted history from /api/ai-history on mount
 };
 
-export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPrefixes }: LunaChatWidgetProps) {
+export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPrefixes, agentType }: LunaChatWidgetProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -37,10 +38,22 @@ export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPr
     sessionIdRef.current = getOrCreateSessionId();
   }
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error, setMessages } = useChat({
     api: apiPath,
     id: sessionIdRef.current ?? undefined,
   });
+
+  const historyLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!agentType || historyLoadedRef.current) return;
+    historyLoadedRef.current = true;
+    fetch(`/api/ai-history?agentType=${encodeURIComponent(agentType)}`)
+      .then((r) => (r.ok ? r.json() : { messages: [] }))
+      .then((d) => {
+        if (Array.isArray(d.messages) && d.messages.length > 0) setMessages(d.messages);
+      })
+      .catch(() => {});
+  }, [agentType, setMessages]);
 
   // Smart scroll: only scroll to bottom if user is already near the bottom
   useEffect(() => {
