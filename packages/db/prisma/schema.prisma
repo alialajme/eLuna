@@ -52,6 +52,15 @@ enum MaterialUnit {
   SPOOL
 }
 
+enum MaterialOrderStatus {
+  PENDING
+  ACCEPTED
+  SHIPPED
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
 enum ProductStatus {
   DRAFT
   ACTIVE
@@ -220,12 +229,13 @@ model Vendor {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  products      Product[]
-  orderItems    OrderItem[]
-  payouts       Payout[]
-  studioUploads StudioUpload[]
-  shipments     Shipment[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products       Product[]
+  orderItems     OrderItem[]
+  payouts        Payout[]
+  studioUploads  StudioUpload[]
+  shipments      Shipment[]
+  materialOrders MaterialOrder[]
 
   @@index([status])
 }
@@ -245,8 +255,9 @@ model Supplier {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  materials Material[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  materials      Material[]
+  materialOrders MaterialOrder[]
 
   @@index([status])
 }
@@ -269,11 +280,49 @@ model Material {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  supplier   Supplier            @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  orderItems MaterialOrderItem[]
 
   @@index([supplierId])
   @@index([status])
   @@index([supplierId, status])
+}
+
+model MaterialOrder {
+  id           String              @id @default(cuid())
+  vendorId     String
+  supplierId   String
+  status       MaterialOrderStatus @default(PENDING)
+  total        Decimal             @db.Decimal(10, 2)
+  note         String?
+  trackingNote String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  vendor   Vendor              @relation(fields: [vendorId], references: [id])
+  supplier Supplier            @relation(fields: [supplierId], references: [id])
+  items    MaterialOrderItem[]
+
+  @@index([vendorId])
+  @@index([supplierId])
+  @@index([supplierId, status])
+  @@index([vendorId, status])
+}
+
+model MaterialOrderItem {
+  id           String       @id @default(cuid())
+  orderId      String
+  materialId   String?
+  materialName String
+  unit         MaterialUnit
+  unitPrice    Decimal      @db.Decimal(10, 2)
+  quantity     Int
+
+  order    MaterialOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  material Material?     @relation(fields: [materialId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([materialId])
 }
 
 // ─────────────────────────────────────────────
