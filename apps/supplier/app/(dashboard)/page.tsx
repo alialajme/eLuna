@@ -1,6 +1,8 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
+import { prisma } from "@e-luna/db";
 
 export const metadata: Metadata = {
   title: "Dashboard — Luna Supplier",
@@ -20,6 +22,10 @@ export default async function DashboardPage() {
   const supplier = await getSupplierByUserId(user.id);
   if (!supplier) return null; // Layout handles the onboarding redirect
 
+  const materialCount = await prisma.material
+    .count({ where: { supplierId: supplier.id } })
+    .catch(() => 0);
+
   const today = new Date().toLocaleDateString("en-AE", {
     weekday: "long",
     day: "numeric",
@@ -36,13 +42,18 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-dashed border-sand bg-ivory p-6">
-          <p className="text-label text-gold mb-1">COMING SOON</p>
-          <p className="text-body-md font-medium text-ink">Materials catalog</p>
+        <Link
+          href="/materials"
+          className="rounded-2xl border border-sand bg-ivory p-6 hover:border-ink transition-colors"
+        >
+          <p className="text-label text-gold mb-1">CATALOG</p>
+          <p className="text-body-md font-medium text-ink">Materials</p>
           <p className="text-body-sm text-mist mt-1">
-            List the fabrics, trims, and hardware you supply — with stock and wholesale pricing.
+            {materialCount === 0
+              ? "Add fabrics, trims, and hardware with wholesale pricing."
+              : `${materialCount} material${materialCount === 1 ? "" : "s"} listed. Manage your catalog →`}
           </p>
-        </div>
+        </Link>
         <div className="rounded-2xl border border-dashed border-sand bg-ivory p-6">
           <p className="text-label text-gold mb-1">COMING SOON</p>
           <p className="text-body-md font-medium text-ink">Incoming orders</p>

@@ -6,10 +6,10 @@ import { SignOutButton } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
   { icon: "📊", label: "Dashboard", href: "/" },
+  { icon: "🧵", label: "Materials", href: "/materials" },
 ] as const;
 
 const SOON_ITEMS = [
-  { icon: "🧵", label: "Materials" },
   { icon: "📋", label: "Incoming Orders" },
 ] as const;
 
