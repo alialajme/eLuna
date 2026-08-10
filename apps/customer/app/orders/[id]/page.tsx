@@ -5,6 +5,7 @@ import { prisma } from "@e-luna/db";
 import { courierName, trackingUrl } from "@e-luna/ui/couriers";
 import { safeCurrentUser } from "../../lib/auth";
 import { TrackingTimeline } from "../components/TrackingTimeline";
+import { ReturnButton } from "../components/ReturnButton";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -40,6 +41,7 @@ export default async function OrderDetailPage({ params }: Props) {
               product: { select: { title: true, slug: true, aiImages: true } },
             },
           },
+          returns: { select: { id: true, status: true } },
         },
       },
       address: true,
@@ -141,7 +143,11 @@ export default async function OrderDetailPage({ params }: Props) {
             {shipmentItems.length > 0 && (
               <ul className="mt-4 divide-y divide-sand border-t border-sand">
                 {shipmentItems.map((item) => (
-                  <ItemRow key={item.id} item={item} />
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    returnNode={returnControl(item, s.deliveredAt, order.updatedAt)}
+                  />
                 ))}
               </ul>
             )}
@@ -232,6 +238,7 @@ export default async function OrderDetailPage({ params }: Props) {
 
 function ItemRow({
   item,
+  returnNode,
 }: {
   item: {
     id: string;
@@ -239,6 +246,7 @@ function ItemRow({
     unitPrice: unknown;
     variant: { size: string; color: string; product: { title: string; slug: string; aiImages: unknown } };
   };
+  returnNode?: React.ReactNode;
 }) {
   const images = Array.isArray(item.variant.product.aiImages)
     ? (item.variant.product.aiImages as string[])
@@ -264,10 +272,26 @@ function ItemRow({
           {item.variant.size} · {item.variant.color}
         </p>
         <p className="text-body-sm text-mist">Qty: {item.quantity}</p>
+        {returnNode}
       </div>
       <p className="font-display text-body-md text-gold whitespace-nowrap">
         AED {(Number(item.unitPrice) * item.quantity).toLocaleString("en-AE", { minimumFractionDigits: 2 })}
       </p>
     </li>
   );
+}
+
+function returnControl(
+  item: { id: string; fulfillmentStatus: string; returns: { status: string }[] },
+  deliveredAt: Date | null,
+  orderUpdatedAt: Date,
+) {
+  const active = item.returns.find((r) => r.status !== "REJECTED");
+  if (active) {
+    return <p className="mt-1 text-body-xs text-mist">Return: {active.status.toLowerCase()}</p>;
+  }
+  if (item.fulfillmentStatus !== "DELIVERED") return null;
+  const anchor = deliveredAt ?? orderUpdatedAt;
+  if (Date.now() - new Date(anchor).getTime() > 14 * 86_400_000) return null;
+  return <ReturnButton orderItemId={item.id} />;
 }
