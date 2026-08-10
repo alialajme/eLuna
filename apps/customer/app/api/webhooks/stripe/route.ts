@@ -1,6 +1,6 @@
-import { StripeGateway } from "../../../lib/payment/stripe";
-import { applyPaymentResult } from "../../../lib/payment/reconcile";
-import { hasStripe } from "../../../lib/payment/config";
+import { StripeGateway } from "@e-luna/payments";
+import { applyPaymentResult } from "@e-luna/payments";
+import { hasStripe } from "@e-luna/payments";
 
 export async function POST(req: Request) {
   if (!hasStripe()) return new Response("Stripe not configured", { status: 503 });

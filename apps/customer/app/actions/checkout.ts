@@ -4,11 +4,11 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
-import { getGateway } from "../lib/payment/factory";
+import { getGateway } from "@e-luna/payments";
 import { parseCart } from "../lib/cart-utils";
-import { hasStripe } from "../lib/payment/config";
-import { StripeGateway } from "../lib/payment/stripe";
-import { applyPaymentResult } from "../lib/payment/reconcile";
+import { hasStripe } from "@e-luna/payments";
+import { StripeGateway } from "@e-luna/payments";
+import { applyPaymentResult } from "@e-luna/payments";
 
 const SHIPPING_THRESHOLD = 500;
 const SHIPPING_FEE = 15;

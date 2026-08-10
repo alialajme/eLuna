@@ -75,6 +75,9 @@ importers:
       '@e-luna/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@e-luna/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@e-luna/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -142,6 +145,9 @@ importers:
       '@e-luna/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@e-luna/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@e-luna/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -257,6 +263,22 @@ importers:
       tsx:
         specifier: ^4.7.0
         version: 4.22.4
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+
+  packages/payments:
+    dependencies:
+      '@e-luna/db':
+        specifier: workspace:*
+        version: link:../db
+      stripe:
+        specifier: ^22.4.0
+        version: 22.4.0(@types/node@20.19.43)
+    devDependencies:
+      '@e-luna/config':
+        specifier: workspace:*
+        version: link:../config
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
