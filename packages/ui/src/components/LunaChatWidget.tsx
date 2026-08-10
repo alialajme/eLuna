@@ -22,10 +22,11 @@ type LunaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in the app
   title?: string; // header title; default "Luna Stylist"
   greeting?: string; // empty-state assistant greeting; default the customer copy
-  hiddenPaths?: string[]; // pathnames where the widget renders nothing; default ["/chat"]
+  hiddenPaths?: string[]; // exact-match pathnames where the widget renders nothing; default ["/chat"]
+  hiddenPrefixes?: string[]; // hide when pathname starts with any prefix; default none
 };
 
-export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths }: LunaChatWidgetProps) {
+export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPrefixes }: LunaChatWidgetProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -53,6 +54,7 @@ export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths }: LunaCh
 
   // Hide on configured paths (default: the full chat page) — after all hooks
   if ((hiddenPaths ?? ["/chat"]).includes(pathname)) return null;
+  if ((hiddenPrefixes ?? []).some((p) => pathname.startsWith(p))) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
