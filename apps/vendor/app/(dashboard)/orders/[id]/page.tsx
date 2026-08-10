@@ -40,6 +40,14 @@ export default async function OrderDetailPage({ params }: Props) {
 
   if (items.length === 0) redirect("/orders");
 
+  const shipments = await prisma.shipment
+    .findMany({
+      where: { orderId: id, vendorId: vendor.id },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, courier: true, trackingNumber: true, status: true },
+    })
+    .catch(() => []);
+
   const order = items[0]!.order;
   const address = order.address;
   const subtotal = items.reduce(
@@ -93,10 +101,13 @@ export default async function OrderDetailPage({ params }: Props) {
           </table>
 
           <FulfillmentPanel
+            orderId={id}
             items={items.map((i) => ({
               id: i.id,
               fulfillmentStatus: i.fulfillmentStatus,
+              shipmentId: i.shipmentId,
             }))}
+            shipments={shipments}
           />
         </div>
 

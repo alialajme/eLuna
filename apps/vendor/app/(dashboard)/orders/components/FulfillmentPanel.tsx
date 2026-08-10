@@ -1,110 +1,160 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { COURIERS } from "@e-luna/ui/couriers";
 import { updateFulfillmentStatus } from "../../../actions/order";
+import { createShipment, markShipmentDelivered } from "../../../actions/shipment";
 
-type ItemStatus = {
-  id: string;
-  fulfillmentStatus: string;
-};
+type Item = { id: string; fulfillmentStatus: string; shipmentId: string | null };
+type Shipment = { id: string; courier: string; trackingNumber: string | null; status: string };
 
 type Props = {
-  items: ItemStatus[];
+  orderId: string;
+  items: Item[];
+  shipments: Shipment[];
 };
 
-type ForwardStatus = "PROCESSING" | "SHIPPED" | "DELIVERED";
-
-const STATUS_PRECEDENCE = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "RETURNED"];
-
-const NEXT_STATUS: Record<string, ForwardStatus | null> = {
-  PENDING: "PROCESSING",
-  PROCESSING: "SHIPPED",
-  SHIPPED: "DELIVERED",
-  DELIVERED: null,
-};
-
-const BUTTON_LABELS: Record<string, string> = {
-  PENDING: "Mark as Processing",
-  PROCESSING: "Mark as Shipped",
-  SHIPPED: "Mark as Delivered",
-};
-
-function worstStatus(statuses: string[]): string {
-  let worst = "DELIVERED";
-  for (const s of statuses) {
-    if (STATUS_PRECEDENCE.indexOf(s) < STATUS_PRECEDENCE.indexOf(worst)) {
-      worst = s;
-    }
-  }
-  return worst;
-}
-
-export function FulfillmentPanel({ items }: Props) {
-  const [statuses, setStatuses] = useState<Record<string, string>>(
-    Object.fromEntries(items.map((i) => [i.id, i.fulfillmentStatus]))
-  );
-  const [error, setError] = useState<string | null>(null);
+export function FulfillmentPanel({ orderId, items, shipments }: Props) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [courier, setCourier] = useState<string>(COURIERS[0]?.id ?? "");
+  const [tracking, setTracking] = useState("");
+  const [eta, setEta] = useState("");
 
-  const currentStatuses = Object.values(statuses);
-  const current = worstStatus(currentStatuses);
-  const allDelivered = currentStatuses.every((s) => s === "DELIVERED");
-  const nextStatus = NEXT_STATUS[current];
+  const unshipped = items.filter(
+    (i) => !i.shipmentId && (i.fulfillmentStatus === "PENDING" || i.fulfillmentStatus === "PROCESSING"),
+  );
+  const pendingItems = unshipped.filter((i) => i.fulfillmentStatus === "PENDING");
+  const allDelivered = items.length > 0 && items.every((i) => i.fulfillmentStatus === "DELIVERED");
 
-  const handleAdvance = () => {
-    if (!nextStatus) return;
+  const markProcessing = () => {
     setError(null);
-
-    const eligibleItems = items.filter((i) => statuses[i.id] === current);
-
     startTransition(async () => {
-      const updates: Record<string, string> = {};
-      let firstError: string | null = null;
-
-      for (const item of eligibleItems) {
-        const result = await updateFulfillmentStatus(item.id, nextStatus);
-        if (result.success) {
-          updates[item.id] = nextStatus;
-        } else if (!firstError) {
-          firstError = result.error ?? "Failed to update";
+      for (const i of pendingItems) {
+        const r = await updateFulfillmentStatus(i.id, "PROCESSING");
+        if (!r.success) {
+          setError(r.error ?? "Failed to update");
+          return;
         }
       }
+      router.refresh();
+    });
+  };
 
-      if (Object.keys(updates).length > 0) {
-        setStatuses((prev) => ({ ...prev, ...updates }));
+  const submitShipment = () => {
+    setError(null);
+    if (!tracking.trim()) {
+      setError("Enter a tracking number");
+      return;
+    }
+    startTransition(async () => {
+      const r = await createShipment({
+        orderId,
+        courier,
+        trackingNumber: tracking,
+        estimatedDelivery: eta || undefined,
+      });
+      if (!r.success) {
+        setError(r.error ?? "Failed to create shipment");
+        return;
       }
-      if (firstError) {
-        setError(firstError);
+      setTracking("");
+      setEta("");
+      router.refresh();
+    });
+  };
+
+  const deliver = (shipmentId: string) => {
+    setError(null);
+    startTransition(async () => {
+      const r = await markShipmentDelivered(shipmentId);
+      if (!r.success) {
+        setError(r.error ?? "Failed to mark delivered");
+        return;
       }
+      router.refresh();
     });
   };
 
   return (
-    <div className="rounded-lg border border-sand bg-ivory p-4 mt-4">
-      <h3 className="text-body-xs font-medium text-ink mb-2">Fulfillment</h3>
-      {allDelivered ? (
-        <p className="text-body-sm text-sage font-medium">Fulfilled ✓</p>
-      ) : (
-        <div className="space-y-3">
-          <p className="text-body-sm text-mist">
-            Status:{" "}
-            <span className="text-ink font-medium capitalize">
-              {current.toLowerCase()}
-            </span>
-          </p>
-          {nextStatus && (
+    <div className="rounded-lg border border-sand bg-ivory p-4 mt-4 space-y-4">
+      <h3 className="text-body-xs font-medium text-ink">Fulfillment</h3>
+
+      {allDelivered && <p className="text-body-sm text-sage font-medium">Fulfilled ✓</p>}
+
+      {shipments.map((s) => {
+        const name = COURIERS.find((c) => c.id === s.courier)?.name ?? s.courier;
+        return (
+          <div key={s.id} className="rounded-md border border-sand p-3 space-y-2">
+            <p className="text-body-sm text-ink">
+              {name}
+              {s.trackingNumber ? ` · ${s.trackingNumber}` : ""}
+            </p>
+            <p className="text-body-xs text-mist capitalize">{s.status.replace(/_/g, " ").toLowerCase()}</p>
+            {s.status !== "DELIVERED" && (
+              <button
+                type="button"
+                onClick={() => deliver(s.id)}
+                disabled={isPending}
+                className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
+              >
+                {isPending ? "Updating…" : "Mark Delivered"}
+              </button>
+            )}
+          </div>
+        );
+      })}
+
+      {unshipped.length > 0 && (
+        <div className="space-y-2">
+          {pendingItems.length > 0 && (
             <button
               type="button"
-              onClick={handleAdvance}
+              onClick={markProcessing}
               disabled={isPending}
-              className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="text-body-xs text-mist hover:text-gold transition-colors disabled:opacity-50"
             >
-              {isPending ? "Updating…" : BUTTON_LABELS[current]}
+              Mark {pendingItems.length} item(s) as processing
             </button>
           )}
-          {error && <p className="text-body-xs text-coral">{error}</p>}
+          <p className="text-body-sm text-ink font-medium">Ship {unshipped.length} item(s)</p>
+          <select
+            value={courier}
+            onChange={(e) => setCourier(e.target.value)}
+            className="w-full rounded-lg border border-sand px-3 py-2 text-body-sm text-ink bg-ivory"
+          >
+            {COURIERS.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <input
+            value={tracking}
+            onChange={(e) => setTracking(e.target.value)}
+            placeholder="Tracking number"
+            className="w-full rounded-lg border border-sand px-3 py-2 text-body-sm text-ink bg-ivory placeholder:text-mist"
+          />
+          <input
+            type="date"
+            value={eta}
+            onChange={(e) => setEta(e.target.value)}
+            className="w-full rounded-lg border border-sand px-3 py-2 text-body-sm text-ink bg-ivory"
+          />
+          <button
+            type="button"
+            onClick={submitShipment}
+            disabled={isPending}
+            className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
+          >
+            {isPending ? "Creating…" : "Create Shipment"}
+          </button>
         </div>
       )}
+
+      {error && <p className="text-body-xs text-coral">{error}</p>}
     </div>
   );
 }
