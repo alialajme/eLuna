@@ -42,6 +42,7 @@ export default async function EditMaterialPage({ params }: Props) {
     description: material.description ?? undefined,
     images: (material.images as string[]) ?? [],
     status: material.status === "ARCHIVED" ? "DRAFT" : material.status,
+    archived: material.status === "ARCHIVED",
   };
 
   return (

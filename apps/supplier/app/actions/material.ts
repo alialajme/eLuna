@@ -5,7 +5,7 @@ import { prisma } from "@e-luna/db";
 import { slugify } from "../lib/slugify";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
-import { isMaterialType, type MaterialUnitValue } from "../lib/materials";
+import { isMaterialType, MATERIAL_UNITS, type MaterialUnitValue } from "../lib/materials";
 
 export type MaterialData = {
   name: string;
@@ -21,7 +21,7 @@ export type MaterialData = {
   status: "DRAFT" | "ACTIVE";
 };
 
-const UNITS = ["METER", "YARD", "ROLL", "PIECE", "SPOOL"];
+const VALID_UNITS = new Set<string>(MATERIAL_UNITS.map((u) => u.value));
 
 type ActiveSupplier = { id: string };
 
@@ -42,7 +42,7 @@ function validate(data: MaterialData): { data: MaterialData } | { error: string 
   const name = data.name.trim();
   if (name.length < 2 || name.length > 80) return { error: "Name must be 2–80 characters" };
   if (!isMaterialType(data.materialType)) return { error: "Invalid material type" };
-  if (!UNITS.includes(data.unit)) return { error: "Invalid unit" };
+  if (!VALID_UNITS.has(data.unit)) return { error: "Invalid unit" };
   if (!Number.isFinite(data.wholesalePrice) || data.wholesalePrice <= 0) {
     return { error: "Wholesale price must be greater than 0" };
   }
@@ -51,8 +51,14 @@ function validate(data: MaterialData): { data: MaterialData } | { error: string 
     return { error: "Stock must be a non-negative whole number" };
   }
   if (data.status !== "DRAFT" && data.status !== "ACTIVE") return { error: "Invalid status" };
+  const color = data.color?.trim() || undefined;
+  if (color && color.length > 60) return { error: "Color must be under 60 characters" };
+  const composition = data.composition?.trim() || undefined;
+  if (composition && composition.length > 120) return { error: "Composition must be under 120 characters" };
+  const description = data.description?.trim() || undefined;
+  if (description && description.length > 600) return { error: "Description must be under 600 characters" };
   const images = data.images.map((s) => s.trim()).filter(Boolean).slice(0, 8);
-  return { data: { ...data, name, images } };
+  return { data: { ...data, name, color, composition, description, images } };
 }
 
 async function generateSlug(name: string): Promise<string> {

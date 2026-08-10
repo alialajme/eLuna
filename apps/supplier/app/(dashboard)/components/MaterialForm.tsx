@@ -11,7 +11,7 @@ import {
 } from "../../actions/material";
 import { MATERIAL_TYPES, MATERIAL_UNITS } from "../../lib/materials";
 
-export type MaterialFormInitial = MaterialData & { id: string };
+export type MaterialFormInitial = MaterialData & { id: string; archived?: boolean };
 
 type Props = {
   initial?: MaterialFormInitial;
@@ -147,7 +147,7 @@ export function MaterialForm({ initial }: Props) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
           <label htmlFor="m-price" className={labelCls}>WHOLESALE PRICE (AED)</label>
-          <input id="m-price" type="number" min="0" step="0.01" className={inputCls}
+          <input id="m-price" type="number" min="0.01" step="0.01" className={inputCls}
             value={wholesalePrice} onChange={(e) => setWholesalePrice(e.target.value)} placeholder="0.00" />
         </div>
         <div>
@@ -203,10 +203,12 @@ export function MaterialForm({ initial }: Props) {
         </button>
         {isEdit && (
           <>
-            <button type="button" onClick={handleArchive} disabled={isPending}
-              className="rounded-full border border-sand px-5 py-3 text-body-sm text-mist hover:border-ink hover:text-ink transition-colors disabled:opacity-50">
-              Archive
-            </button>
+            {!initial!.archived && (
+              <button type="button" onClick={handleArchive} disabled={isPending}
+                className="rounded-full border border-sand px-5 py-3 text-body-sm text-mist hover:border-ink hover:text-ink transition-colors disabled:opacity-50">
+                Archive
+              </button>
+            )}
             <button type="button" onClick={handleDelete} disabled={isPending}
               className="rounded-full bg-coral/10 px-5 py-3 text-body-sm font-medium text-coral hover:bg-coral/20 transition-colors disabled:opacity-50">
               Delete
