@@ -1,6 +1,6 @@
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { prisma } from "@e-luna/db";
-import { runLogisticsAgent } from "@e-luna/ai";
+import { runLogisticsAgent, persistOnFinish } from "@e-luna/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -25,7 +25,10 @@ export async function POST(req: Request) {
       });
     }
 
-    const result = await runLogisticsAgent(messages, { customerId: profile.id });
+    const result = await runLogisticsAgent(messages, {
+      customerId: profile.id,
+      onFinish: persistOnFinish(user.id, "LOGISTICS", messages),
+    });
     return result.toDataStreamResponse();
   } catch (error) {
     console.error("[/api/delivery-help] error:", error);

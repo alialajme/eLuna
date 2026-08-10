@@ -1,6 +1,6 @@
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { prisma } from "@e-luna/db";
-import { runShoppingAgent } from "@e-luna/ai";
+import { runShoppingAgent, persistOnFinish } from "@e-luna/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -21,6 +21,7 @@ export async function POST(req: Request) {
     const result = await runShoppingAgent(messages, {
       sizeProfile,
       sessionId: id,
+      onFinish: user ? persistOnFinish(user.id, "SHOPPING", messages) : undefined,
     });
 
     return result.toDataStreamResponse();

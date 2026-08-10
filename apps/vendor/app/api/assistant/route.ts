@@ -1,6 +1,6 @@
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
-import { runSellerAgent } from "@e-luna/ai";
+import { runSellerAgent, persistOnFinish } from "@e-luna/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -23,7 +23,10 @@ export async function POST(req: Request) {
       });
     }
 
-    const result = await runSellerAgent(messages, { vendorId: vendor.id });
+    const result = await runSellerAgent(messages, {
+      vendorId: vendor.id,
+      onFinish: persistOnFinish(user.id, "SELLER", messages),
+    });
     return result.toDataStreamResponse();
   } catch (error) {
     console.error("[/api/assistant] error:", error);

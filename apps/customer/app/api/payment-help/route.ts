@@ -1,6 +1,6 @@
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { prisma } from "@e-luna/db";
-import { runPaymentAgent } from "@e-luna/ai";
+import { runPaymentAgent, persistOnFinish } from "@e-luna/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -25,7 +25,10 @@ export async function POST(req: Request) {
       });
     }
 
-    const result = await runPaymentAgent(messages, { customerId: profile.id });
+    const result = await runPaymentAgent(messages, {
+      customerId: profile.id,
+      onFinish: persistOnFinish(user.id, "PAYMENT", messages),
+    });
     return result.toDataStreamResponse();
   } catch (error) {
     console.error("[/api/payment-help] error:", error);
