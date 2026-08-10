@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { icon: "📈", label: "Analytics", href: "/analytics" },
   { icon: "👥", label: "Customers", href: "/customers" },
   { icon: "🛡️", label: "Fraud", href: "/fraud" },
+  { icon: "⚙️", label: "Settings", href: "/settings" },
 ] as const;
 
 export function Sidebar() {
