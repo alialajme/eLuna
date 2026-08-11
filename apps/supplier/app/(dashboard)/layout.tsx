@@ -3,6 +3,7 @@ import Link from "next/link";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
 import { Sidebar } from "./components/Sidebar";
+import { LunaChatWidget } from "@e-luna/ui";
 
 export default async function DashboardLayout({
   children,
@@ -48,6 +49,12 @@ export default async function DashboardLayout({
         </header>
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
+      <LunaChatWidget
+        apiPath="/api/assistant"
+        title="Supplier Assistant"
+        greeting="Hi! I can flag low material stock, surface orders needing a response, summarise sales, and benchmark your pricing. What would you like to look at?"
+        agentType="SUPPLIER"
+      />
     </div>
   );
 }
