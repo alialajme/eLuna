@@ -34,7 +34,19 @@ export type ProductData = {
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   variants: VariantInput[];
   sizeGuide?: { entries: SizeGuideEntry[] };
+  dropshipSupplierId?: string | null;
 };
+
+async function resolveDropshipSupplierId(
+  raw: string | null | undefined
+): Promise<{ id: string | null } | { error: string }> {
+  if (!raw) return { id: null };
+  const supplier = await prisma.supplier
+    .findFirst({ where: { id: raw, status: "ACTIVE" }, select: { id: true } })
+    .catch(() => null);
+  if (!supplier) return { error: "Selected supplier is not available" };
+  return { id: supplier.id };
+}
 
 async function generateSlug(title: string): Promise<string> {
   const base = slugify(title) || `product-${Date.now()}`;
@@ -82,6 +94,8 @@ export async function createProduct(
   if (!validSlugs.includes(data.category.toLowerCase())) {
     return { success: false, error: "Invalid category" };
   }
+  const ds = await resolveDropshipSupplierId(data.dropshipSupplierId);
+  if ("error" in ds) return { success: false, error: ds.error };
 
   try {
     const slug = await generateSlug(title);
@@ -90,6 +104,7 @@ export async function createProduct(
     const product = await prisma.product.create({
       data: {
         vendorId: vendor.id,
+        dropshipSupplierId: ds.id,
         title,
         slug,
         description: data.description ?? null,
@@ -153,6 +168,8 @@ export async function updateProduct(
   if (!validSlugs.includes(data.category.toLowerCase())) {
     return { success: false, error: "Invalid category" };
   }
+  const ds = await resolveDropshipSupplierId(data.dropshipSupplierId);
+  if ("error" in ds) return { success: false, error: ds.error };
 
   try {
     const existing = await prisma.product.findUnique({
@@ -180,6 +197,7 @@ export async function updateProduct(
         careGuide: data.careGuide ?? null,
         aiImages: data.images.filter(Boolean),
         status: data.status,
+        dropshipSupplierId: ds.id,
         ...(data.sizeGuide ? { sizeGuide: data.sizeGuide } : {}),
       },
     });

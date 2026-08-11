@@ -60,12 +60,20 @@ export default async function EditProductPage({ params }: Props) {
     sizeGuide: Array.isArray((product.sizeGuide as { entries?: unknown } | null)?.entries)
       ? ((product.sizeGuide as { entries: SizeGuideEntry[] }).entries)
       : undefined,
+    dropshipSupplierId: product.dropshipSupplierId,
   };
+
+  const [categories, suppliers] = await Promise.all([
+    getCategories(),
+    prisma.supplier
+      .findMany({ where: { status: "ACTIVE" }, select: { id: true, companyName: true }, orderBy: { companyName: "asc" } })
+      .catch(() => []),
+  ]);
 
   return (
     <div className="max-w-4xl">
       <h2 className="font-display text-display-md text-ink mb-6">Edit product</h2>
-      <ProductForm productId={product.id} initialData={initialData} categories={await getCategories()} />
+      <ProductForm productId={product.id} initialData={initialData} categories={categories} suppliers={suppliers} />
     </div>
   );
 }

@@ -30,16 +30,18 @@ type InitialData = {
   status: Status;
   variants: VariantRow[];
   sizeGuide?: SizeGuideEntry[];
+  dropshipSupplierId?: string | null;
 };
 
 type Props = {
   productId?: string;
   initialData?: InitialData;
   categories: CategoryDTO[];
+  suppliers: { id: string; companyName: string }[];
 };
 
 
-export function ProductForm({ productId, initialData, categories }: Props) {
+export function ProductForm({ productId, initialData, categories, suppliers }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +49,7 @@ export function ProductForm({ productId, initialData, categories }: Props) {
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [description, setDescription] = useState(initialData?.description ?? "");
   const [category, setCategory] = useState(initialData?.category ?? categories[0]?.slug ?? "");
+  const [dropshipSupplierId, setDropshipSupplierId] = useState<string>(initialData?.dropshipSupplierId ?? "");
   const [fabric, setFabric] = useState(initialData?.fabric ?? "");
   const [careGuide, setCareGuide] = useState(initialData?.careGuide ?? "");
   const [images, setImages] = useState<string[]>(
@@ -114,6 +117,7 @@ export function ProductForm({ productId, initialData, categories }: Props) {
       price,
       compareAt: compareAt || undefined,
       status,
+      dropshipSupplierId: dropshipSupplierId || null,
       variants: variants.map((v) => ({
         size: v.size,
         color: v.color,
@@ -200,6 +204,28 @@ export function ProductForm({ productId, initialData, categories }: Props) {
               className="w-full rounded-lg border border-sand bg-ivory px-3 py-2 text-body-md text-ink placeholder:text-mist focus:border-gold focus:outline-none"
             />
           </div>
+        </div>
+
+        {/* Fulfilment */}
+        <div>
+          <label className="block text-body-xs font-medium text-ink mb-1">
+            Fulfilment
+          </label>
+          <select
+            value={dropshipSupplierId}
+            onChange={(e) => setDropshipSupplierId(e.target.value)}
+            className="w-full rounded-lg border border-sand bg-ivory px-3 py-2 text-body-md text-ink focus:border-gold focus:outline-none"
+          >
+            <option value="">In-house (I ship this)</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                Dropship — {s.companyName}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-body-xs text-mist">
+            Choose a supplier to have them ship this product directly to the customer.
+          </p>
         </div>
 
         {/* Care Guide */}
