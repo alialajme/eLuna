@@ -2,7 +2,7 @@ import { prisma } from "@e-luna/db";
 
 export type StoredMessage = { id: string; role: "user" | "assistant"; content: string };
 
-const AGENT_TYPES = ["SHOPPING", "SELLER", "STUDIO", "LOGISTICS", "PAYMENT", "POS"] as const;
+const AGENT_TYPES = ["SHOPPING", "SELLER", "STUDIO", "LOGISTICS", "PAYMENT", "POS", "SUPPLIER"] as const;
 export type AgentType = (typeof AGENT_TYPES)[number];
 
 export function isAgentType(v: string): v is AgentType {

@@ -138,6 +138,7 @@ enum AIAgentType {
   LOGISTICS
   PAYMENT
   POS
+  SUPPLIER
 }
 
 enum NotificationType {
