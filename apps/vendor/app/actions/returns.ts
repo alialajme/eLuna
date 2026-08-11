@@ -1,11 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma, recomputeOrderStatus } from "@e-luna/db";
 import { getGateway } from "@e-luna/payments";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
-import { recomputeOrderStatus } from "../lib/order-status";
 
 type Result = { success: boolean; error?: string };
 
