@@ -76,11 +76,17 @@ export default async function MaterialsPage({ searchParams }: Props) {
           {materials.map((m) => (
             <Link key={m.id} href={`/materials/${m.id}`}
               className="flex items-center justify-between gap-4 rounded-2xl border border-sand bg-ivory p-5 hover:border-ink transition-colors">
-              <div className="min-w-0">
-                <p className="text-body-md font-medium text-ink truncate">{m.name}</p>
-                <p className="text-body-xs text-mist capitalize">
-                  {m.materialType}{m.color ? ` · ${m.color}` : ""}
-                </p>
+              <div className="flex items-center gap-4 min-w-0">
+                {(m.images as string[])?.[0] && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={(m.images as string[])[0]} alt={m.name} className="h-12 w-12 shrink-0 rounded-lg border border-sand object-cover" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-body-md font-medium text-ink truncate">{m.name}</p>
+                  <p className="text-body-xs text-mist capitalize">
+                    {m.materialType}{m.color ? ` · ${m.color}` : ""}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-5 shrink-0">
                 <div className="text-right">

@@ -64,12 +64,18 @@ export default async function SourcingPage({ searchParams }: Props) {
             <Link key={m.id} href={`/sourcing/${m.id}`}
               className="rounded-2xl border border-sand bg-ivory p-5 hover:border-ink transition-colors">
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-body-md font-medium text-ink truncate">{m.name}</p>
-                  <p className="text-body-xs text-mist capitalize">
-                    {m.materialType}{m.color ? ` · ${m.color}` : ""}
-                  </p>
-                  <p className="text-body-xs text-mist mt-1">{m.supplier.companyName}</p>
+                <div className="flex items-start gap-3 min-w-0">
+                  {(m.images as string[])?.[0] && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={(m.images as string[])[0]} alt={m.name} className="h-14 w-14 shrink-0 rounded-lg border border-sand object-cover" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-body-md font-medium text-ink truncate">{m.name}</p>
+                    <p className="text-body-xs text-mist capitalize">
+                      {m.materialType}{m.color ? ` · ${m.color}` : ""}
+                    </p>
+                    <p className="text-body-xs text-mist mt-1">{m.supplier.companyName}</p>
+                  </div>
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-body-sm text-ink">
