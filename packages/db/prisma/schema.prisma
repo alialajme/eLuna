@@ -232,6 +232,7 @@ model Vendor {
   status         VendorStatus @default(PENDING)
   commissionRate Decimal      @default(0.15) @db.Decimal(4, 2)
   ibanNumber     String?
+  trn            String?
   mfaVerifiedAt  DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -243,6 +244,7 @@ model Vendor {
   studioUploads  StudioUpload[]
   shipments      Shipment[]
   materialOrders MaterialOrder[]
+  orderInvoices  OrderInvoice[]
 
   @@index([status])
 }
@@ -361,6 +363,31 @@ model MaterialInvoice {
   @@index([supplierId, issuedAt])
 }
 
+model OrderInvoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  orderId       String
+  vendorId      String
+  vendorName    String
+  vendorTRN     String
+  customerName  String
+  subtotal      Decimal  @db.Decimal(10, 2)
+  vatRate       Decimal  @default(0.05) @db.Decimal(4, 2)
+  vatAmount     Decimal  @db.Decimal(10, 2)
+  total         Decimal  @db.Decimal(10, 2)
+  lines         Json
+  externalRef   String?
+  issuedAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  order  Order  @relation(fields: [orderId], references: [id])
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@unique([orderId, vendorId])
+  @@index([vendorId])
+  @@index([vendorId, issuedAt])
+}
+
 // ─────────────────────────────────────────────
 // PRODUCTS
 // ─────────────────────────────────────────────
@@ -455,6 +482,7 @@ model Order {
   items               OrderItem[]
   shipments           Shipment[]
   paymentTransactions PaymentTransaction[]
+  invoices            OrderInvoice[]
 
   @@index([customerId])
   @@index([status])
