@@ -39,3 +39,12 @@ the order `SHIPPED → COMPLETED` on a `delivered` event.
 **Operator note:** the `Vendor` has no structured address model yet, so the real-courier destination is
 best-effort (`storeName` only). Before enabling a real courier for the supplier leg, add a vendor
 shipping-address source and populate `destination.addressLine1`/`city`/`emirate` in `shipMaterialOrder`.
+
+## Supplier dropship → customer
+
+A vendor can set `Product.dropshipSupplierId` so a supplier fulfils that product directly to the customer.
+The supplier's **Customer Orders** queue lists paid orders' dropship items (grouped by order + listing
+vendor) with the customer's shipping address; the supplier ships via the same `@e-luna/courier` gateway
+(Simulated → manual tracking with no keys), creating a `Shipment { vendorId, supplierId }`. Delivery is
+marked manually by the supplier this phase; real-courier webhook auto-delivery for dropship shipments is a
+later operator step. The customer never sees the supplier — only courier + tracking.
