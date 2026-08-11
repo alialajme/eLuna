@@ -26,6 +26,7 @@ export async function createShipment(input: {
         orderId: input.orderId,
         vendorId: vendor.id,
         fulfillmentStatus: { in: ["PENDING", "PROCESSING"] },
+        variant: { product: { dropshipSupplierId: null } },
       },
       select: { id: true },
     })

@@ -6,7 +6,7 @@ import { COURIERS } from "@e-luna/ui/couriers";
 import { updateFulfillmentStatus } from "../../../actions/order";
 import { createShipment, markShipmentDelivered } from "../../../actions/shipment";
 
-type Item = { id: string; fulfillmentStatus: string; shipmentId: string | null };
+type Item = { id: string; fulfillmentStatus: string; shipmentId: string | null; dropshipSupplierName: string | null };
 type Shipment = { id: string; courier: string; trackingNumber: string | null; status: string; labelUrl: string | null };
 
 type Props = {
@@ -23,8 +23,12 @@ export function FulfillmentPanel({ orderId, items, shipments }: Props) {
   const [tracking, setTracking] = useState("");
   const [eta, setEta] = useState("");
 
+  const dropshipItems = items.filter((i) => i.dropshipSupplierName);
   const unshipped = items.filter(
-    (i) => !i.shipmentId && (i.fulfillmentStatus === "PENDING" || i.fulfillmentStatus === "PROCESSING"),
+    (i) =>
+      !i.dropshipSupplierName &&
+      !i.shipmentId &&
+      (i.fulfillmentStatus === "PENDING" || i.fulfillmentStatus === "PROCESSING"),
   );
   const pendingItems = unshipped.filter((i) => i.fulfillmentStatus === "PENDING");
   const allDelivered = items.length > 0 && items.every((i) => i.fulfillmentStatus === "DELIVERED");
@@ -77,6 +81,12 @@ export function FulfillmentPanel({ orderId, items, shipments }: Props) {
   return (
     <div className="rounded-lg border border-sand bg-ivory p-4 mt-4 space-y-4">
       <h3 className="text-body-xs font-medium text-ink">Fulfillment</h3>
+
+      {dropshipItems.length > 0 && (
+        <p className="text-body-xs text-mist">
+          {dropshipItems.length} item(s) fulfilled by {dropshipItems[0]!.dropshipSupplierName} (dropship) — the supplier ships these directly.
+        </p>
+      )}
 
       {allDelivered && <p className="text-body-sm text-sage font-medium">Fulfilled ✓</p>}
 

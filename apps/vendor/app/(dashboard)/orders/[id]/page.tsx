@@ -35,7 +35,7 @@ export default async function OrderDetailPage({ params }: Props) {
       where: { orderId: id, vendorId: vendor.id },
       include: {
         order: { include: { address: true } },
-        variant: { include: { product: { select: { title: true } } } },
+        variant: { include: { product: { select: { title: true, dropshipSupplierId: true, dropshipSupplier: { select: { companyName: true } } } } } },
       },
     })
     .catch(() => []);
@@ -114,6 +114,9 @@ export default async function OrderDetailPage({ params }: Props) {
               id: i.id,
               fulfillmentStatus: i.fulfillmentStatus,
               shipmentId: i.shipmentId,
+              dropshipSupplierName: i.variant.product.dropshipSupplierId
+                ? (i.variant.product.dropshipSupplier?.companyName ?? "supplier")
+                : null,
             }))}
             shipments={shipments}
           />
