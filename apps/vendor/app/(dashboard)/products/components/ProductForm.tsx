@@ -4,9 +4,19 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { CategoryDTO } from "@e-luna/db";
 import { VariantMatrix, VariantRow } from "./VariantMatrix";
-import { createProduct, updateProduct } from "../../../actions/product";
+import { createProduct, updateProduct, type SizeGuideEntry } from "../../../actions/product";
 
 type Status = "DRAFT" | "ACTIVE" | "ARCHIVED";
+
+// Sensible defaults (cm) — the same measurement attributes customers keep in their size profile.
+const DEFAULT_GUIDE: SizeGuideEntry[] = [
+  { size: "XS", bust: [80, 86], waist: [64, 70], hip: [88, 94], length: 138 },
+  { size: "S", bust: [86, 92], waist: [70, 76], hip: [94, 100], length: 140 },
+  { size: "M", bust: [92, 98], waist: [76, 82], hip: [100, 106], length: 142 },
+  { size: "L", bust: [98, 104], waist: [82, 88], hip: [106, 112], length: 144 },
+  { size: "XL", bust: [104, 110], waist: [88, 94], hip: [112, 118], length: 146 },
+  { size: "XXL", bust: [110, 118], waist: [94, 102], hip: [118, 126], length: 148 },
+];
 
 type InitialData = {
   title: string;
@@ -19,6 +29,7 @@ type InitialData = {
   compareAt?: number;
   status: Status;
   variants: VariantRow[];
+  sizeGuide?: SizeGuideEntry[];
 };
 
 type Props = {
@@ -49,6 +60,23 @@ export function ProductForm({ productId, initialData, categories }: Props) {
   const [variants, setVariants] = useState<VariantRow[]>(
     initialData?.variants ?? []
   );
+  const [guide, setGuide] = useState<SizeGuideEntry[]>(
+    initialData?.sizeGuide?.length ? initialData.sizeGuide : DEFAULT_GUIDE
+  );
+
+  function updateGuide(i: number, key: "bust" | "waist" | "hip", j: number, value: number) {
+    setGuide((prev) =>
+      prev.map((e, idx) => {
+        if (idx !== i) return e;
+        const arr = [...e[key]] as [number, number];
+        arr[j] = value;
+        return { ...e, [key]: arr };
+      })
+    );
+  }
+  function updateGuideLength(i: number, value: number) {
+    setGuide((prev) => prev.map((e, idx) => (idx === i ? { ...e, length: value } : e)));
+  }
 
   const addImage = () => {
     if (images.length < 8) setImages([...images, ""]);
@@ -92,6 +120,7 @@ export function ProductForm({ productId, initialData, categories }: Props) {
         stock: v.stock,
         price: v.price,
       })),
+      sizeGuide: { entries: guide },
     };
 
     startTransition(async () => {
@@ -185,6 +214,56 @@ export function ProductForm({ productId, initialData, categories }: Props) {
             placeholder="e.g. Dry clean only"
             className="w-full rounded-lg border border-sand bg-ivory px-3 py-2 text-body-md text-ink placeholder:text-mist focus:border-gold focus:outline-none resize-none"
           />
+        </div>
+
+        {/* Size & Fit Guide — the measurement attributes customers match against */}
+        <div>
+          <label className="block text-body-xs font-medium text-ink mb-1">
+            Size &amp; Fit Guide (cm)
+          </label>
+          <p className="text-body-xs text-mist mb-2">
+            Bust / waist / hip ranges + length per size. Customers get a size recommendation by matching these to their own measurements.
+          </p>
+          <div className="overflow-x-auto rounded-lg border border-sand">
+            <table className="w-full text-body-xs">
+              <thead>
+                <tr className="border-b border-sand text-mist">
+                  <th className="px-2 py-2 text-left font-medium">Size</th>
+                  <th className="px-2 py-2 font-medium" colSpan={2}>Bust</th>
+                  <th className="px-2 py-2 font-medium" colSpan={2}>Waist</th>
+                  <th className="px-2 py-2 font-medium" colSpan={2}>Hip</th>
+                  <th className="px-2 py-2 font-medium">Length</th>
+                </tr>
+              </thead>
+              <tbody>
+                {guide.map((e, i) => (
+                  <tr key={e.size} className="border-b border-sand/50 last:border-0">
+                    <td className="px-2 py-1 font-medium text-ink">{e.size}</td>
+                    {(["bust", "waist", "hip"] as const).map((k) =>
+                      [0, 1].map((j) => (
+                        <td key={`${k}${j}`} className="px-1 py-1">
+                          <input
+                            type="number"
+                            value={e[k][j]}
+                            onChange={(ev) => updateGuide(i, k, j, Number(ev.target.value))}
+                            className="w-14 rounded border border-sand bg-ivory px-1 py-1 text-ink focus:border-gold focus:outline-none"
+                          />
+                        </td>
+                      ))
+                    )}
+                    <td className="px-1 py-1">
+                      <input
+                        type="number"
+                        value={e.length}
+                        onChange={(ev) => updateGuideLength(i, Number(ev.target.value))}
+                        className="w-14 rounded border border-sand bg-ivory px-1 py-1 text-ink focus:border-gold focus:outline-none"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Images */}

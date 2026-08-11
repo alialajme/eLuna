@@ -14,6 +14,14 @@ export type VariantInput = {
   price?: number;
 };
 
+export type SizeGuideEntry = {
+  size: string;
+  bust: [number, number];
+  waist: [number, number];
+  hip: [number, number];
+  length: number;
+};
+
 export type ProductData = {
   title: string;
   description?: string;
@@ -25,6 +33,7 @@ export type ProductData = {
   compareAt?: number;
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   variants: VariantInput[];
+  sizeGuide?: { entries: SizeGuideEntry[] };
 };
 
 async function generateSlug(title: string): Promise<string> {
@@ -91,6 +100,7 @@ export async function createProduct(
         careGuide: data.careGuide ?? null,
         aiImages: data.images.filter(Boolean),
         status: data.status,
+        ...(data.sizeGuide ? { sizeGuide: data.sizeGuide } : {}),
         variants: {
           create: data.variants.map((v) => ({
             size: v.size,
@@ -170,6 +180,7 @@ export async function updateProduct(
         careGuide: data.careGuide ?? null,
         aiImages: data.images.filter(Boolean),
         status: data.status,
+        ...(data.sizeGuide ? { sizeGuide: data.sizeGuide } : {}),
       },
     });
 

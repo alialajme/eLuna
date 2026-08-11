@@ -4,6 +4,7 @@ import { prisma, getCategories } from "@e-luna/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 import { ProductForm } from "../components/ProductForm";
+import type { SizeGuideEntry } from "../../../actions/product";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -56,6 +57,9 @@ export default async function EditProductPage({ params }: Props) {
       price: v.price ? Number(v.price) : undefined,
       hasOrders: v._count.orderItems > 0,
     })),
+    sizeGuide: Array.isArray((product.sizeGuide as { entries?: unknown } | null)?.entries)
+      ? ((product.sizeGuide as { entries: SizeGuideEntry[] }).entries)
+      : undefined,
   };
 
   return (
