@@ -5,6 +5,7 @@ import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getSupplierByUserId } from "../../../lib/supplier";
 import { OrderActions } from "../../components/OrderActions";
+import { IssueInvoiceButton } from "../../components/IssueInvoiceButton";
 
 export const metadata: Metadata = { title: "Order — Luna Supplier" };
 
@@ -25,11 +26,16 @@ export default async function IncomingOrderDetailPage({ params }: Props) {
   const order = await prisma.materialOrder
     .findUnique({
       where: { id },
-      include: { items: true, vendor: { select: { storeName: true } } },
+      include: { items: true, vendor: { select: { storeName: true } }, invoice: { select: { id: true } } },
     })
     .catch(() => null);
 
   if (!order || order.supplierId !== supplier.id) notFound();
+
+  const trnRecord = await prisma.supplier
+    .findUnique({ where: { id: supplier.id }, select: { trn: true } })
+    .catch(() => null);
+  const canInvoice = ["ACCEPTED", "SHIPPED", "COMPLETED"].includes(order.status);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -77,6 +83,17 @@ export default async function IncomingOrderDetailPage({ params }: Props) {
           <p className="text-body-sm text-ink">{order.trackingNote}</p>
         </div>
       )}
+
+      {order.invoice ? (
+        <Link
+          href={`/invoices/${order.invoice.id}`}
+          className="inline-flex rounded-full border border-sand px-5 py-2.5 text-body-sm text-ink hover:border-ink transition-colors"
+        >
+          View tax invoice →
+        </Link>
+      ) : canInvoice ? (
+        <IssueInvoiceButton orderId={order.id} hasTrn={!!trnRecord?.trn} />
+      ) : null}
 
       <OrderActions orderId={order.id} status={order.status} />
     </div>
