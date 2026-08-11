@@ -142,6 +142,9 @@ importers:
       '@e-luna/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@e-luna/courier':
+        specifier: workspace:*
+        version: link:../../packages/courier
       '@e-luna/db':
         specifier: workspace:*
         version: link:../../packages/db

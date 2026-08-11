@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@e-luna/db";
+import { courierName, trackingUrl } from "@e-luna/ui/couriers";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getSupplierByUserId } from "../../../lib/supplier";
 import { OrderActions } from "../../components/OrderActions";
@@ -77,7 +78,28 @@ export default async function IncomingOrderDetailPage({ params }: Props) {
           <p className="text-body-sm text-ink">{order.note}</p>
         </div>
       )}
-      {order.trackingNote && (
+      {order.courier && (
+        <div className="rounded-2xl border border-sand bg-ivory p-5 space-y-1">
+          <p className="text-label text-mist mb-1">SHIPMENT</p>
+          <p className="text-body-sm text-ink">{courierName(order.courier)}</p>
+          {order.trackingNumber &&
+            (trackingUrl(order.courier, order.trackingNumber) ? (
+              <a href={trackingUrl(order.courier, order.trackingNumber)!} target="_blank" rel="noopener noreferrer"
+                className="text-body-sm text-gold hover:underline">
+                Track {order.trackingNumber} →
+              </a>
+            ) : (
+              <p className="text-body-sm text-mist">{order.trackingNumber}</p>
+            ))}
+          {order.labelUrl && (
+            <a href={order.labelUrl} target="_blank" rel="noopener noreferrer" className="block text-body-sm text-gold hover:underline">
+              Print label →
+            </a>
+          )}
+          {order.trackingNote && <p className="text-body-sm text-ink">{order.trackingNote}</p>}
+        </div>
+      )}
+      {!order.courier && order.trackingNote && (
         <div className="rounded-2xl border border-sand bg-ivory p-5">
           <p className="text-label text-mist mb-1">TRACKING</p>
           <p className="text-body-sm text-ink">{order.trackingNote}</p>

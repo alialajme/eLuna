@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
+import { getCourier } from "@e-luna/ui/couriers";
+import { getCourierGateway } from "@e-luna/courier";
 
 type ActiveSupplier = { id: string };
 
@@ -107,7 +109,7 @@ export async function rejectMaterialOrder(
 
 export async function shipMaterialOrder(
   orderId: string,
-  trackingNote?: string
+  input: { courier: string; trackingNumber?: string; trackingNote?: string }
 ): Promise<{ success: boolean; error?: string }> {
   const auth = await resolveActiveSupplier();
   if ("error" in auth) return { success: false, error: auth.error };
@@ -116,12 +118,44 @@ export async function shipMaterialOrder(
   if ("error" in loaded) return { success: false, error: loaded.error };
   if (loaded.order.status !== "ACCEPTED") return { success: false, error: "Order is not accepted" };
 
-  const note = trackingNote?.trim().slice(0, 200) || null;
+  if (!getCourier(input.courier)) return { success: false, error: "Unknown courier" };
+
+  // Destination: Vendor has no structured address model today, so name only (best-effort).
+  // Real couriers need a full address — an operator follow-up (docs/deployment/couriers.md).
+  const detail = await prisma.materialOrder
+    .findUnique({ where: { id: orderId }, select: { vendor: { select: { storeName: true } } } })
+    .catch(() => null);
+
+  const result = await getCourierGateway(input.courier).createShipment({
+    reference: orderId,
+    courier: input.courier,
+    destination: {
+      name: detail?.vendor.storeName ?? "",
+      addressLine1: "",
+      city: "",
+      emirate: null,
+    },
+  });
+  if (result.status === "failed") return { success: false, error: result.error };
+
+  let trackingNumber: string;
+  let externalRef: string | null = null;
+  let labelUrl: string | null = null;
+  if (result.status === "created") {
+    trackingNumber = result.trackingNumber;
+    externalRef = result.externalRef;
+    labelUrl = result.labelUrl ?? null;
+  } else {
+    if (!input.trackingNumber?.trim()) return { success: false, error: "Tracking number is required" };
+    trackingNumber = input.trackingNumber.trim();
+  }
+
+  const note = input.trackingNote?.trim().slice(0, 200) || null;
 
   try {
     await prisma.materialOrder.update({
       where: { id: orderId },
-      data: { status: "SHIPPED", trackingNote: note },
+      data: { status: "SHIPPED", courier: input.courier, trackingNumber, externalRef, labelUrl, trackingNote: note },
     });
     revalidatePath("/orders");
     revalidatePath(`/orders/${orderId}`);
