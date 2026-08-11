@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@e-luna/db";
+import { courierName, trackingUrl } from "@e-luna/ui/couriers";
 import { safeCurrentUser } from "../../../../lib/auth";
 import { getVendorByUserId } from "../../../../lib/vendor";
 import { CancelOrderButton } from "../../../components/CancelOrderButton";
@@ -71,11 +72,28 @@ export default async function MaterialOrderDetailPage({ params }: Props) {
           <p className="text-body-sm text-ink">{order.note}</p>
         </div>
       )}
-      {order.trackingNote && (
-        <div className="rounded-2xl border border-sand bg-ivory p-5">
-          <p className="text-label text-mist mb-1">SUPPLIER TRACKING</p>
-          <p className="text-body-sm text-ink">{order.trackingNote}</p>
+      {order.courier ? (
+        <div className="rounded-2xl border border-sand bg-ivory p-5 space-y-1">
+          <p className="text-label text-mist mb-1">SHIPMENT</p>
+          <p className="text-body-sm text-ink">{courierName(order.courier)}</p>
+          {order.trackingNumber &&
+            (trackingUrl(order.courier, order.trackingNumber) ? (
+              <a href={trackingUrl(order.courier, order.trackingNumber)!} target="_blank" rel="noopener noreferrer"
+                className="text-body-sm text-gold hover:underline">
+                Track {order.trackingNumber} →
+              </a>
+            ) : (
+              <p className="text-body-sm text-mist">{order.trackingNumber}</p>
+            ))}
+          {order.trackingNote && <p className="text-body-sm text-ink">{order.trackingNote}</p>}
         </div>
+      ) : (
+        order.trackingNote && (
+          <div className="rounded-2xl border border-sand bg-ivory p-5">
+            <p className="text-label text-mist mb-1">SUPPLIER TRACKING</p>
+            <p className="text-body-sm text-ink">{order.trackingNote}</p>
+          </div>
+        )
       )}
 
       {order.status === "PENDING" && <CancelOrderButton orderId={order.id} />}
