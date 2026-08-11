@@ -79,7 +79,9 @@ export function buildSupplierTools(supplierId: string) {
             where: {
               supplierId,
               status: { in: ["ACCEPTED", "SHIPPED", "COMPLETED"] },
-              createdAt: { gte: cutoff },
+              // Window on when the sale was realized (accepted/shipped/completed),
+              // not when the vendor first placed the order.
+              updatedAt: { gte: cutoff },
             },
             include: { items: true },
           })
