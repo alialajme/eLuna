@@ -197,6 +197,9 @@ importers:
       '@e-luna/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@e-luna/einvoice':
+        specifier: workspace:*
+        version: link:../../packages/einvoice
       '@e-luna/payments':
         specifier: workspace:*
         version: link:../../packages/payments

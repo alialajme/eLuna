@@ -14,6 +14,7 @@
     "@e-luna/auth": "workspace:*",
     "@e-luna/db": "workspace:*",
     "@e-luna/ai": "workspace:*",
+    "@e-luna/einvoice": "workspace:*",
     "@e-luna/payments": "workspace:*",
     "ai": "^4.3.19",
     "next": "15.0.0",
