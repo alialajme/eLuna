@@ -150,10 +150,11 @@ export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPr
       {/* Bubble */}
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-ink shadow-lg hover:bg-ink/90 transition-colors"
-        aria-label="Open Luna Stylist"
+        className="flex h-14 items-center gap-2 rounded-full bg-ink px-5 shadow-lg hover:bg-ink/90 transition-colors"
+        aria-label="Open Luna assistant"
       >
         <span className="text-gold text-2xl">◑</span>
+        {!open && <span className="text-ivory text-body-sm font-medium">{title ?? "Ask Luna"}</span>}
       </button>
     </div>
   );

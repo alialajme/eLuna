@@ -31,7 +31,10 @@ export function ProductCard({
     setWishlisted(isWishlisted);
   }, [isWishlisted]);
 
-  async function handleWishlist() {
+  async function handleWishlist(e: React.MouseEvent) {
+    // The card is often wrapped in a <Link>; don't let the heart click navigate.
+    e.preventDefault();
+    e.stopPropagation();
     if (isLoading) return;
     const next = !wishlisted;
     setWishlisted(next); // optimistic
