@@ -26,6 +26,10 @@ export default async function DashboardPage() {
     .count({ where: { supplierId: supplier.id } })
     .catch(() => 0);
 
+  const pendingOrderCount = await prisma.materialOrder
+    .count({ where: { supplierId: supplier.id, status: "PENDING" } })
+    .catch(() => 0);
+
   const today = new Date().toLocaleDateString("en-AE", {
     weekday: "long",
     day: "numeric",
@@ -54,13 +58,18 @@ export default async function DashboardPage() {
               : `${materialCount} material${materialCount === 1 ? "" : "s"} listed. Manage your catalog →`}
           </p>
         </Link>
-        <div className="rounded-2xl border border-dashed border-sand bg-ivory p-6">
-          <p className="text-label text-gold mb-1">COMING SOON</p>
+        <Link
+          href="/orders"
+          className="rounded-2xl border border-sand bg-ivory p-6 hover:border-ink transition-colors"
+        >
+          <p className="text-label text-gold mb-1">ORDERS</p>
           <p className="text-body-md font-medium text-ink">Incoming orders</p>
           <p className="text-body-sm text-mist mt-1">
-            Receive and fulfil material orders placed by Luna vendors.
+            {pendingOrderCount === 0
+              ? "Vendor material orders will appear here."
+              : `${pendingOrderCount} pending order${pendingOrderCount === 1 ? "" : "s"} awaiting your response →`}
           </p>
-        </div>
+        </Link>
       </div>
 
       <div className="rounded-2xl border border-sand bg-ivory p-6">

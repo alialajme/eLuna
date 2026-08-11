@@ -7,10 +7,7 @@ import { SignOutButton } from "@clerk/nextjs";
 const NAV_ITEMS = [
   { icon: "📊", label: "Dashboard", href: "/" },
   { icon: "🧵", label: "Materials", href: "/materials" },
-] as const;
-
-const SOON_ITEMS = [
-  { icon: "📋", label: "Incoming Orders" },
+  { icon: "📋", label: "Incoming Orders", href: "/orders" },
 ] as const;
 
 type Props = {
@@ -43,18 +40,6 @@ export function Sidebar({ companyName }: Props) {
             </Link>
           );
         })}
-        {SOON_ITEMS.map(({ icon, label }) => (
-          <div
-            key={label}
-            className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-body-md text-mist/50"
-          >
-            <span className="flex items-center gap-3">
-              <span className="text-base">{icon}</span>
-              <span>{label}</span>
-            </span>
-            <span className="text-body-xs text-mist/40">soon</span>
-          </div>
-        ))}
       </nav>
 
       <div className="px-4 py-4 border-t border-white/10 space-y-2">
