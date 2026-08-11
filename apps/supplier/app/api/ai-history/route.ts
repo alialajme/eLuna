@@ -3,7 +3,9 @@ import { loadAgentMessages, isAgentType } from "@e-luna/ai";
 
 export async function GET(req: Request) {
   const agentType = new URL(req.url).searchParams.get("agentType") ?? "";
-  if (!isAgentType(agentType)) return Response.json({ messages: [] });
+  if (!isAgentType(agentType)) {
+    return Response.json({ error: "Invalid agentType" }, { status: 400 });
+  }
 
   const user = await currentUser();
   if (!user) return Response.json({ messages: [] });
