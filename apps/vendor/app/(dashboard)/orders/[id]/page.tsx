@@ -1,9 +1,11 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 import { FulfillmentPanel } from "../components/FulfillmentPanel";
+import { IssueInvoiceButton } from "../../components/IssueInvoiceButton";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -54,6 +56,12 @@ export default async function OrderDetailPage({ params }: Props) {
     (sum, i) => sum + Number(i.unitPrice) * i.quantity,
     0
   );
+
+  const invoice = await prisma.orderInvoice
+    .findUnique({ where: { orderId_vendorId: { orderId: order.id, vendorId: vendor.id } }, select: { id: true } })
+    .catch(() => null);
+  const trnRow = await prisma.vendor.findUnique({ where: { id: vendor.id }, select: { trn: true } }).catch(() => null);
+  const canInvoice = ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"].includes(order.status);
 
   return (
     <div className="max-w-4xl space-y-5">
@@ -157,6 +165,18 @@ export default async function OrderDetailPage({ params }: Props) {
                 maximumFractionDigits: 0,
               })}
             </p>
+          </div>
+          <div className="border-t border-sand pt-4">
+            <p className="text-body-xs text-mist mb-2">Tax invoice</p>
+            {invoice ? (
+              <Link href={`/invoices/${invoice.id}`} className="inline-flex rounded-full border border-sand px-5 py-2.5 text-body-sm text-ink hover:border-ink transition-colors">
+                View tax invoice →
+              </Link>
+            ) : canInvoice ? (
+              <IssueInvoiceButton orderId={order.id} hasTrn={!!trnRow?.trn} />
+            ) : (
+              <p className="text-body-xs text-mist">Available once the order is confirmed.</p>
+            )}
           </div>
         </div>
       </div>

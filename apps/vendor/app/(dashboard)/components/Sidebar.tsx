@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { icon: "🧶", label: "Sourcing", href: "/sourcing" },
   { icon: "📈", label: "Analytics", href: "/analytics" },
   { icon: "💸", label: "Payouts", href: "/payouts" },
+  { icon: "🧾", label: "Invoices", href: "/invoices" },
   { icon: "⚙️", label: "Settings", href: "/settings" },
 ] as const;
 

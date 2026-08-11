@@ -1,8 +1,10 @@
 import { Metadata } from "next";
+import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { ProfileForm } from "./components/ProfileForm";
 import { IbanForm } from "./components/IbanForm";
+import { TrnForm } from "./components/TrnForm";
 
 export const metadata: Metadata = { title: "Settings — Luna Vendor" };
 
@@ -12,6 +14,9 @@ export default async function SettingsPage() {
 
   const vendor = await getVendorByUserId(user.id);
   if (!vendor) return null;
+
+  const record = await prisma.vendor.findUnique({ where: { id: vendor.id }, select: { trn: true } }).catch(() => null);
+  const ftaConfigured = !!process.env.FTA_ACCESS_POINT_URL && !!process.env.FTA_API_KEY;
 
   return (
     <div className="max-w-xl space-y-10">
@@ -41,6 +46,18 @@ export default async function SettingsPage() {
           </p>
         </div>
         <IbanForm currentIban={vendor.ibanNumber ?? ""} />
+      </section>
+
+      {/* Tax & E-invoicing */}
+      <section className="space-y-4">
+        <div className="border-b border-sand pb-2">
+          <h3 className="text-body-md font-medium text-ink">Tax &amp; E-invoicing</h3>
+          <p className="text-body-sm text-mist">Your TRN appears on every tax invoice you issue to customers.</p>
+        </div>
+        <TrnForm initialTrn={record?.trn ?? null} />
+        <p className="text-body-xs text-mist">
+          E-invoicing status: {ftaConfigured ? "Connected (FTA)" : "Simulated (local)"}.
+        </p>
       </section>
     </div>
   );
