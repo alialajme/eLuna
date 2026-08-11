@@ -4,6 +4,7 @@ import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
 import { ProductCard } from "@e-luna/ui";
 import { toggleWishlist } from "../actions/wishlist";
+import { AccountNav } from "../components/AccountNav";
 
 export const metadata: Metadata = {
   title: "Wishlist — Luna",
@@ -60,6 +61,7 @@ export default async function WishlistPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
+      <AccountNav />
       <h1 className="font-display text-display-lg text-ink mb-8">
         Saved ({wishlists.length})
       </h1>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { saveSizeProfile, type SizeProfileFormData } from "../../actions/profile";
 
 type Props = {
@@ -14,6 +15,7 @@ const ABAYA_LENGTHS = ["MIDI", "MAXI", "FLOOR"];
 const FIT_PREFS = ["FITTED", "REGULAR", "LOOSE", "OVERSIZED"];
 
 export function SizeProfileForm({ initial }: Props) {
+  const router = useRouter();
   const [form, setForm] = useState<SizeProfileFormData>(initial);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +34,8 @@ export function SizeProfileForm({ initial }: Props) {
       const result = await saveSizeProfile(form);
       if (result.success) {
         setSaved(true);
+        router.push("/profile");
+        router.refresh();
       } else {
         setError(result.error ?? "Could not save");
       }

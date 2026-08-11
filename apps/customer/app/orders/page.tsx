@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
+import { AccountNav } from "../components/AccountNav";
 
 export const metadata: Metadata = {
   title: "Orders — Luna",
@@ -66,6 +67,7 @@ export default async function OrdersPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 md:px-6">
+      <AccountNav />
       <h1 className="font-display text-display-lg text-ink mb-8">Orders</h1>
       <ul className="space-y-4">
         {orders.map((order) => {
