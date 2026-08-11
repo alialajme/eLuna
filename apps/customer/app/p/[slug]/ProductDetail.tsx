@@ -21,7 +21,7 @@ type ProductDetailProps = {
     entries: { size: string; bust: [number, number]; waist: [number, number]; hip: [number, number]; length: number }[];
   } | null;
   variants: Variant[];
-  sizeProfile: Pick<SizeProfile, "usualSize" | "bust" | "fitPreference"> | null;
+  sizeProfile: Pick<SizeProfile, "usualSize" | "bust" | "waist" | "hip" | "height" | "fitPreference"> | null;
   recommendedSize: string | null;
 };
 
@@ -114,6 +114,29 @@ export function ProductDetail({
               Add your measurements
             </a>{" "}
             for a personalised size recommendation.
+          </div>
+        )}
+
+        {/* Your measurements — mirrors the attributes kept in the size profile */}
+        {sizeProfile && (
+          <div className="rounded-xl border border-sand px-4 py-3">
+            <p className="text-label text-mist mb-2">YOUR MEASUREMENTS</p>
+            <div className="grid grid-cols-4 gap-2 text-center">
+              {([
+                { label: "Bust", value: sizeProfile.bust },
+                { label: "Waist", value: sizeProfile.waist },
+                { label: "Hip", value: sizeProfile.hip },
+                { label: "Height", value: sizeProfile.height },
+              ] as const).map((m) => (
+                <div key={m.label}>
+                  <p className="text-body-md font-medium text-ink">{m.value != null ? `${m.value} cm` : "—"}</p>
+                  <p className="text-body-xs text-mist">{m.label}</p>
+                </div>
+              ))}
+            </div>
+            <a href="/profile/size" className="mt-2 inline-block text-body-xs text-gold hover:underline">
+              Update measurements
+            </a>
           </div>
         )}
 

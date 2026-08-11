@@ -54,7 +54,7 @@ export default async function ProductDetailPage({ params }: Props) {
     user
       ? prisma.sizeProfile.findFirst({
           where: { customerProfile: { userId: user.id } },
-          select: { bust: true, usualSize: true, fitPreference: true },
+          select: { bust: true, waist: true, hip: true, height: true, usualSize: true, fitPreference: true },
         }).catch(() => null)
       : null,
   ]);
@@ -69,15 +69,24 @@ export default async function ProductDetailPage({ params }: Props) {
   const guideParsed = SizeGuideSchema.safeParse(product.sizeGuide);
   const guide = guideParsed.success ? guideParsed.data : null;
 
+  // Recommend using the same measurements the customer keeps in their profile —
+  // bust, waist AND hip — picking the size that satisfies the most of them.
   let recommendedSize: string | null = null;
-  if (sizeProfile?.bust) {
-    const match = guide?.entries?.find(
-      (e) => sizeProfile.bust! >= e.bust[0] && sizeProfile.bust! < e.bust[1]
-    );
-    if (match) {
-      recommendedSize = match.size;
-      if (sizeProfile.fitPreference === "LOOSE" || sizeProfile.fitPreference === "OVERSIZED") {
-        const idx = SIZE_ORDER.indexOf(match.size);
+  if (guide?.entries?.length) {
+    const inRange = (v: number | null | undefined, r: [number, number]) =>
+      v != null && v >= r[0] && v < r[1];
+    let best: { size: string; score: number } | null = null;
+    for (const e of guide.entries) {
+      const score =
+        (inRange(sizeProfile?.bust, e.bust) ? 1 : 0) +
+        (inRange(sizeProfile?.waist, e.waist) ? 1 : 0) +
+        (inRange(sizeProfile?.hip, e.hip) ? 1 : 0);
+      if (score > 0 && (!best || score > best.score)) best = { size: e.size, score };
+    }
+    if (best) {
+      recommendedSize = best.size;
+      if (sizeProfile?.fitPreference === "LOOSE" || sizeProfile?.fitPreference === "OVERSIZED") {
+        const idx = SIZE_ORDER.indexOf(best.size);
         if (idx >= 0 && idx < SIZE_ORDER.length - 1) recommendedSize = SIZE_ORDER[idx + 1] ?? null;
       }
     }
