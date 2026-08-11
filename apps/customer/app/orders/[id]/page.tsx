@@ -59,6 +59,10 @@ export default async function OrderDetailPage({ params }: Props) {
   });
   if (!profile || order.customerId !== profile.id) notFound();
 
+  const invoices = await prisma.orderInvoice
+    .findMany({ where: { orderId: order.id }, select: { id: true, vendorName: true, invoiceNumber: true } })
+    .catch(() => []);
+
   const paymentTx = order.paymentTransactions[0] ?? null;
 
   // Group items by shipment for the tracking display.
@@ -208,6 +212,22 @@ export default async function OrderDetailPage({ params }: Props) {
           </p>
         )}
       </div>
+
+      {/* Tax invoices */}
+      {invoices.length > 0 && (
+        <section className="rounded-2xl border border-sand bg-ivory p-6">
+          <p className="text-label text-mist mb-2">TAX INVOICES</p>
+          <ul className="space-y-1">
+            {invoices.map((inv) => (
+              <li key={inv.id}>
+                <Link href={`/orders/${order.id}/invoice/${inv.id}`} className="text-body-sm text-gold hover:underline">
+                  Download tax invoice — {inv.vendorName} ({inv.invoiceNumber})
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Address */}
       <div className="rounded-2xl border border-sand bg-ivory p-6">
