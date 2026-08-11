@@ -8,6 +8,8 @@ const NAV_ITEMS = [
   { icon: "📊", label: "Dashboard", href: "/" },
   { icon: "🧵", label: "Materials", href: "/materials" },
   { icon: "📋", label: "Incoming Orders", href: "/orders" },
+  { icon: "🧾", label: "Invoices", href: "/invoices" },
+  { icon: "⚙️", label: "Settings", href: "/settings" },
 ] as const;
 
 type Props = {
