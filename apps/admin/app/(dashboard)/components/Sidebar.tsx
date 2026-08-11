@@ -6,6 +6,7 @@ import { SignOutButton } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
   { icon: "📊", label: "Overview", href: "/" },
+  { icon: "🔑", label: "Users & Access", href: "/users" },
   { icon: "🏬", label: "Sellers", href: "/sellers" },
   { icon: "✅", label: "Approvals", href: "/sellers/approvals" },
   { icon: "🧵", label: "Suppliers", href: "/suppliers/approvals" },
