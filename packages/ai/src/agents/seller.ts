@@ -62,7 +62,8 @@ export function buildSellerTools(vendorId: string) {
 
         const peers = await prisma.product
           .findMany({
-            where: { category: product.category, status: "ACTIVE" },
+            // Benchmark against OTHER vendors — exclude this vendor's own products.
+            where: { category: product.category, status: "ACTIVE", vendorId: { not: vendorId } },
             select: { price: true },
           })
           .catch(() => []);

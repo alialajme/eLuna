@@ -118,7 +118,8 @@ export function buildSupplierTools(supplierId: string) {
 
         const peers = await prisma.material
           .findMany({
-            where: { materialType: material.materialType, status: "ACTIVE" },
+            // Benchmark against OTHER suppliers — exclude this supplier's own materials.
+            where: { materialType: material.materialType, status: "ACTIVE", supplierId: { not: supplierId } },
             select: { wholesalePrice: true },
           })
           .catch(() => []);
