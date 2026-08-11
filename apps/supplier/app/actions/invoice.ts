@@ -114,9 +114,15 @@ export async function issueMaterialInvoice(
       revalidatePath(`/orders/${orderId}`);
       return { success: true, id: inv.id };
     } catch (err) {
-      const code = err && typeof err === "object" && "code" in err ? (err as { code: string }).code : "";
-      // materialOrderId unique → already invoiced (lost a race); invoiceNumber unique → retry number.
-      if (code === "P2002" && attempt === 0) continue;
+      const pErr = err as { code?: string; meta?: { target?: string[] } };
+      const target = pErr.meta?.target ?? [];
+      // materialOrderId unique → the order was already invoiced (lost a race): the correct error,
+      // not a retry (a retry would re-call the gateway for an invoice that can't be persisted).
+      if (pErr.code === "P2002" && target.includes("materialOrderId")) {
+        return { success: false, error: "This order already has an invoice" };
+      }
+      // invoiceNumber unique → a concurrent invoice took our number: recompute once.
+      if (pErr.code === "P2002" && attempt === 0) continue;
       return { success: false, error: "Failed to issue invoice" };
     }
   }

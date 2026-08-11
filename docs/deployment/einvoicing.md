@@ -20,5 +20,8 @@ tax authority.
    appears on the invoice.
 
 Numbering is sequential per supplier per year (`<PREFIX>-<YYYY>-<NNNN>`); the DB `@@unique(invoiceNumber)`
-plus a transactional retry guarantees no gaps or duplicates. Live transmission can only be verified with a
-real Access Point account.
+plus a single retry-on-collision guarantees no duplicate numbers, and `@@unique(materialOrderId)` guarantees
+at most one invoice per order. Note: `issue()` (the gateway/transmission call) is currently made **before**
+the DB write and is **not** wrapped in a transaction — safe under `SimulatedEInvoice`, but before activating
+`FtaEInvoice` move to a persist-DRAFT → transmit → mark-ISSUED flow so a failed DB write can't leave an
+invoice transmitted-but-unrecorded. Live transmission can only be verified with a real Access Point account.
