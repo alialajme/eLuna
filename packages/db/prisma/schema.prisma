@@ -307,6 +307,10 @@ model MaterialOrder {
   total        Decimal             @db.Decimal(10, 2)
   note         String?
   trackingNote String?
+  courier        String?
+  trackingNumber String?
+  externalRef    String?
+  labelUrl       String?
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
 
