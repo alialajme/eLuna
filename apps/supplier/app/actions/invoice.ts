@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
-import { getEInvoiceGateway } from "../lib/einvoice/factory";
+import { getEInvoiceGateway } from "@e-luna/einvoice";
 
 type ActiveSupplier = {
   id: string;
@@ -88,9 +88,10 @@ export async function issueMaterialInvoice(
 
     const result = await getEInvoiceGateway().issue({
       invoiceNumber,
-      supplier: { name: supplier.companyName, trn: supplier.trn },
-      vendor: { name: order.vendor.storeName },
-      subtotal, vatRate, vatAmount, total, lines,
+      seller: { name: supplier.companyName, trn: supplier.trn },
+      buyer: { name: order.vendor.storeName },
+      subtotal, vatRate, vatAmount, total,
+      lines: lines.map((l) => ({ description: l.name, quantity: l.quantity, unitPrice: l.unitPrice, lineTotal: l.lineTotal })),
     });
     if (result.status === "failed") return { success: false, error: result.error };
 

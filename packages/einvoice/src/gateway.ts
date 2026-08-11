@@ -1,15 +1,9 @@
-export type InvoiceLine = {
-  name: string;
-  unit: string;
-  unitPrice: number;
-  quantity: number;
-  lineTotal: number;
-};
+export type InvoiceLine = { description: string; quantity: number; unitPrice: number; lineTotal: number };
 
 export type IssueParams = {
   invoiceNumber: string;
-  supplier: { name: string; trn: string };
-  vendor: { name: string };
+  seller: { name: string; trn: string };
+  buyer: { name: string };
   subtotal: number;
   vatRate: number;
   vatAmount: number;

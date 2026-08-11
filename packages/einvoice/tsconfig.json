@@ -1,0 +1,5 @@
+{
+  "extends": "@e-luna/config/tsconfig/base",
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}

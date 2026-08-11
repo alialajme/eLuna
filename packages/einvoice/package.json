@@ -1,0 +1,11 @@
+{
+  "name": "@e-luna/einvoice",
+  "version": "0.0.1",
+  "private": true,
+  "exports": { ".": "./src/index.ts" },
+  "devDependencies": {
+    "@e-luna/config": "workspace:*",
+    "@types/node": "^20",
+    "typescript": "^5.4.0"
+  }
+}
