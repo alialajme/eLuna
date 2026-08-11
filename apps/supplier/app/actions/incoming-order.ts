@@ -57,7 +57,17 @@ export async function acceptMaterialOrder(
         data: { stock: { decrement: quantity } },
       });
       if (updated.count === 0) throw new Error("INSUFFICIENT_STOCK");
-      await tx.materialOrder.update({ where: { id: orderId }, data: { status: "ACCEPTED" } });
+      // Atomic status guard: only the transaction that flips PENDING→ACCEPTED wins.
+      // A concurrent accept that already committed leaves count 0 here — we then
+      // roll back the stock this transaction just decremented.
+      const accepted = await tx.materialOrder.updateMany({
+        where: { id: orderId, status: "PENDING" },
+        data: { status: "ACCEPTED" },
+      });
+      if (accepted.count === 0) {
+        await tx.material.update({ where: { id: materialId }, data: { stock: { increment: quantity } } });
+        throw new Error("ALREADY_ACCEPTED");
+      }
     });
     revalidatePath("/orders");
     revalidatePath(`/orders/${orderId}`);
@@ -66,6 +76,9 @@ export async function acceptMaterialOrder(
   } catch (err) {
     if (err instanceof Error && err.message === "INSUFFICIENT_STOCK") {
       return { success: false, error: "Insufficient stock to accept this order" };
+    }
+    if (err instanceof Error && err.message === "ALREADY_ACCEPTED") {
+      return { success: false, error: "Order is not pending" };
     }
     return { success: false, error: "Failed to accept order" };
   }

@@ -41,8 +41,9 @@ export async function createMaterialOrder(
     return { success: false, error: `Only ${material.stock} in stock` };
   }
   const trimmedNote = note?.trim().slice(0, 500) || null;
-  const unitPrice = Number(material.wholesalePrice);
-  const total = unitPrice * quantity;
+  // Keep money in Decimal (no float multiply) — wholesalePrice is a Prisma.Decimal.
+  const unitPrice = material.wholesalePrice;
+  const total = unitPrice.mul(quantity);
 
   try {
     const order = await prisma.materialOrder.create({

@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma, type MaterialOrderStatus } from "@e-luna/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 
@@ -34,7 +34,7 @@ export default async function IncomingOrdersPage({ searchParams }: Props) {
 
   const orders = await prisma.materialOrder
     .findMany({
-      where: { supplierId: supplier.id, ...(statusFilter ? { status: statusFilter as "PENDING" } : {}) },
+      where: { supplierId: supplier.id, ...(statusFilter ? { status: statusFilter as MaterialOrderStatus } : {}) },
       include: { items: true, vendor: { select: { storeName: true } } },
       orderBy: { createdAt: "desc" },
     })
