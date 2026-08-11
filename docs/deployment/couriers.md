@@ -4,16 +4,23 @@ Courier integration is **author-complete but credential-gated**. With no keys se
 `SimulatedCourier`, so the vendor enters the tracking number manually (7a behavior) — nothing changes.
 
 ## Model
-`apps/vendor/app/lib/courier/`:
+The gateway is a **shared package** `packages/courier/` (`@e-luna/courier`), used by both the vendor
+(customer-order shipments) and the supplier (material-order shipments):
 - `gateway.ts` — the `CourierGateway` interface: `createShipment(params)` returns
-  `created` (tracking + externalRef + labelUrl) / `manual` (vendor types the tracking #) / `failed`;
-  optional `parseWebhook(rawBody, headers)` returns a normalized `{ match, status } | { kind: "ignored" }`.
+  `created` (tracking + externalRef + labelUrl) / `manual` (the shipper types the tracking #) / `failed`;
+  optional `parseWebhook(rawBody, headers)` returns a normalized `{ match, status } | { kind: "ignored" }`,
+  where `status` is the neutral `CourierDeliveryStatus = "in_transit" | "delivered" | "exception"`.
 - `factory.ts` — `getCourierGateway(courierId)` returns a real adapter when its config is present, else `SimulatedCourier`.
-- `apply-status.ts` — `applyShipmentStatus(shipmentId, status)` (idempotent; DELIVERED also flips items + recomputes the order). Used by both the webhook and `markShipmentDelivered`.
+- `aramex.ts` / `dhl.ts` — config-gated real-adapter scaffolds (`TODO(operator)`).
 
-## Adding a real courier (Aramex is the template — `aramex.ts`)
+Each **app keeps its own `apply-status`** (the DB write differs): `apps/vendor/app/lib/courier/apply-status.ts`
+`applyShipmentStatus(shipmentId, status)` (customer-order `Shipment`; DELIVERED flips items + recomputes the
+order) and `apps/supplier/app/lib/courier/apply-status.ts` `applyMaterialOrderDelivery(materialOrderId)`
+(`MaterialOrder` SHIPPED→COMPLETED). Each app's webhook maps the neutral `CourierDeliveryStatus` to its own state.
+
+## Adding a real courier (Aramex is the template — `packages/courier/src/aramex.ts`)
 1. Implement `createShipment` against the courier's Shipping API; return `{ status: "created", trackingNumber, externalRef, labelUrl }`.
-2. Implement `parseWebhook`: verify the courier's signature/secret, map its status codes → `ShipmentStatus`, return `{ match: { externalRef | trackingNumber }, status }`.
+2. Implement `parseWebhook`: verify the courier's signature/secret, map its status codes → `CourierDeliveryStatus`, return `{ match: { externalRef | trackingNumber }, status }`.
 3. Add a factory case: `case "<courierId>": return has<Courier>() ? new <Courier>Courier() : new SimulatedCourier();`.
 4. Set the courier's env vars (see `.env.example`).
 5. Register the webhook endpoint in the courier dashboard: `https://<host>/api/webhooks/courier/<courierId>`.

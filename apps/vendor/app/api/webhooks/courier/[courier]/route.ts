@@ -27,6 +27,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ courier
     .findFirst({ where: { courier, OR: or }, select: { id: true } })
     .catch(() => null);
   if (shipment) {
+    // Neutral CourierDeliveryStatus → ShipmentStatus. Only "delivered" is terminal; "in_transit" and
+    // "exception" both map to IN_TRANSIT today (the TrackingTimeline renders no distinct exception state).
     const status: ShipmentStatus = event.status === "delivered" ? "DELIVERED" : "IN_TRANSIT";
     await applyShipmentStatus(shipment.id, status).catch((e) => console.error("[courier webhook] apply failed", e));
   }

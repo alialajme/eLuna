@@ -120,10 +120,14 @@ export async function issueOrderInvoice(
       revalidatePath(`/orders/${orderId}`);
       return { success: true, id: inv.id };
     } catch (err) {
-      const pErr = err as { code?: string; meta?: { target?: string[] } };
-      const target = pErr.meta?.target ?? [];
+      const pErr = err as { code?: string; meta?: { target?: string[] | string } };
+      // Prisma's P2002 `meta.target` is version/DB-dependent: a field-name array
+      // (["orderId","vendorId"]) or the constraint name ("OrderInvoice_orderId_vendorId_key").
+      // Normalise to a string and substring-match both so either shape is handled.
+      const rawTarget = pErr.meta?.target;
+      const targetStr = Array.isArray(rawTarget) ? rawTarget.join(",") : String(rawTarget ?? "");
       // (orderId, vendorId) unique → already invoiced; invoiceNumber unique → recompute once.
-      if (pErr.code === "P2002" && target.some((t) => t.includes("orderId") && t.includes("vendorId"))) {
+      if (pErr.code === "P2002" && targetStr.includes("orderId") && targetStr.includes("vendorId")) {
         return { success: false, error: "You have already invoiced this order" };
       }
       if (pErr.code === "P2002" && attempt === 0) continue;

@@ -153,10 +153,13 @@ export async function shipMaterialOrder(
   const note = input.trackingNote?.trim().slice(0, 200) || null;
 
   try {
-    await prisma.materialOrder.update({
-      where: { id: orderId },
+    // Atomic status guard: only flip ACCEPTED→SHIPPED (a concurrent complete/cancel between the
+    // read and here must not be overwritten). Mirrors the acceptMaterialOrder pattern.
+    const shipped = await prisma.materialOrder.updateMany({
+      where: { id: orderId, status: "ACCEPTED" },
       data: { status: "SHIPPED", courier: input.courier, trackingNumber, externalRef, labelUrl, trackingNote: note },
     });
+    if (shipped.count === 0) return { success: false, error: "Order is not accepted" };
     revalidatePath("/orders");
     revalidatePath(`/orders/${orderId}`);
     return { success: true };
@@ -176,7 +179,12 @@ export async function completeMaterialOrder(
   if (loaded.order.status !== "SHIPPED") return { success: false, error: "Order is not shipped" };
 
   try {
-    await prisma.materialOrder.update({ where: { id: orderId }, data: { status: "COMPLETED" } });
+    // Atomic status guard: only flip SHIPPED→COMPLETED (idempotent with the courier delivery webhook).
+    const completed = await prisma.materialOrder.updateMany({
+      where: { id: orderId, status: "SHIPPED" },
+      data: { status: "COMPLETED" },
+    });
+    if (completed.count === 0) return { success: false, error: "Order is not shipped" };
     revalidatePath("/orders");
     revalidatePath(`/orders/${orderId}`);
     revalidatePath("/");
