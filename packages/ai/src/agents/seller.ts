@@ -3,6 +3,7 @@ import type { CoreMessage } from "ai";
 import { z } from "zod";
 import { prisma } from "@e-luna/db";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
+import { median } from "../median";
 
 const SELLER_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
@@ -65,18 +66,15 @@ export function buildSellerTools(vendorId: string) {
             select: { price: true },
           })
           .catch(() => []);
-        const prices = peers.map((p) => Number(p.price)).sort((a, b) => a - b);
+        const prices = peers.map((p) => Number(p.price));
         const currentPrice = Number(product.price);
-        const median =
-          prices.length === 0
-            ? null
-            : (prices[Math.floor(prices.length / 2)] ?? null);
+        const benchmarkMedian = median(prices);
         return {
           product: product.title,
           category: product.category,
           currentPrice,
-          benchmarkMedian: median,
-          suggestedPrice: median ?? currentPrice,
+          benchmarkMedian,
+          suggestedPrice: benchmarkMedian ?? currentPrice,
           sampleSize: prices.length,
         };
       },
