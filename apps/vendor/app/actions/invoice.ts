@@ -123,7 +123,7 @@ export async function issueOrderInvoice(
       const pErr = err as { code?: string; meta?: { target?: string[] } };
       const target = pErr.meta?.target ?? [];
       // (orderId, vendorId) unique → already invoiced; invoiceNumber unique → recompute once.
-      if (pErr.code === "P2002" && (target.includes("orderId") || target.includes("vendorId"))) {
+      if (pErr.code === "P2002" && target.some((t) => t.includes("orderId") && t.includes("vendorId"))) {
         return { success: false, error: "You have already invoiced this order" };
       }
       if (pErr.code === "P2002" && attempt === 0) continue;

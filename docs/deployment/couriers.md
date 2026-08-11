@@ -21,3 +21,14 @@ Courier integration is **author-complete but credential-gated**. With no keys se
 `createShipment` (vendor action) auto-uses the returned tracking + label when the gateway returns `created`;
 the "Print label" link appears on the shipment once `labelUrl` is set. Live API creation, tracking, label,
 and webhook status flow can only be verified with a real merchant account.
+
+## Supplier → vendor material orders
+
+The supplier's `MaterialOrder` shipping reuses the same `@e-luna/courier` gateway. `shipMaterialOrder`
+calls `getCourierGateway(courier).createShipment(...)`; with no keys the Simulated gateway asks the supplier
+to enter a tracking number (manual). The webhook `POST /api/webhooks/courier/[courier]` (supplier app) moves
+the order `SHIPPED → COMPLETED` on a `delivered` event.
+
+**Operator note:** the `Vendor` has no structured address model yet, so the real-courier destination is
+best-effort (`storeName` only). Before enabling a real courier for the supplier leg, add a vendor
+shipping-address source and populate `destination.addressLine1`/`city`/`emirate` in `shipMaterialOrder`.
