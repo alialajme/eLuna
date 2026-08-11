@@ -22,6 +22,13 @@ export async function POST(req: Request) {
         headers: { "Content-Type": "application/json" },
       });
     }
+    // API routes bypass the (dashboard) layout gate, so re-check status here.
+    if (vendor.status !== "ACTIVE") {
+      return new Response(JSON.stringify({ error: "Account not active" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     const result = await runSellerAgent(messages, {
       vendorId: vendor.id,
