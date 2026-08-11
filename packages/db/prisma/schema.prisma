@@ -61,6 +61,12 @@ enum MaterialOrderStatus {
   REJECTED
 }
 
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  VOID
+}
+
 enum ProductStatus {
   DRAFT
   ACTIVE
@@ -252,13 +258,15 @@ model Supplier {
   status        SupplierStatus @default(PENDING)
   materialTypes String[]
   ibanNumber    String?
+  trn           String?
   mfaVerifiedAt DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   materials      Material[]
   materialOrders MaterialOrder[]
+  invoices       MaterialInvoice[]
 
   @@index([status])
 }
@@ -303,6 +311,7 @@ model MaterialOrder {
   vendor   Vendor              @relation(fields: [vendorId], references: [id])
   supplier Supplier            @relation(fields: [supplierId], references: [id])
   items    MaterialOrderItem[]
+  invoice  MaterialInvoice?
 
   @@index([vendorId])
   @@index([supplierId])
@@ -324,6 +333,32 @@ model MaterialOrderItem {
 
   @@index([orderId])
   @@index([materialId])
+}
+
+model MaterialInvoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+  materialOrderId String        @unique
+  supplierId      String
+  vendorId        String
+  supplierName    String
+  supplierTRN     String
+  vendorName      String
+  status          InvoiceStatus @default(ISSUED)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  vatRate         Decimal       @default(0.05) @db.Decimal(4, 2)
+  vatAmount       Decimal       @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  lines           Json
+  externalRef     String?
+  issuedAt        DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+
+  order    MaterialOrder @relation(fields: [materialOrderId], references: [id])
+  supplier Supplier      @relation(fields: [supplierId], references: [id])
+
+  @@index([supplierId])
+  @@index([supplierId, issuedAt])
 }
 
 // ─────────────────────────────────────────────
