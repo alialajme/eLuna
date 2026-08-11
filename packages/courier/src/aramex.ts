@@ -12,7 +12,7 @@ export class AramexCourier implements CourierGateway {
 
   parseWebhook(_rawBody: string, _headers: Headers): CourierStatusEvent {
     // TODO(operator): verify ARAMEX_WEBHOOK_SECRET, parse the event, map the Aramex status to a
-    //   ShipmentStatus, and return { match: { externalRef | trackingNumber }, status }.
+    //   CourierDeliveryStatus, and return { match: { externalRef | trackingNumber }, status }.
     return { kind: "ignored" };
   }
 }

@@ -1,7 +1,7 @@
-import type { ShipmentStatus } from "@e-luna/db";
+export type CourierDeliveryStatus = "in_transit" | "delivered" | "exception";
 
 export type CreateShipmentParams = {
-  orderId: string;
+  reference: string; // orderId (customer) or materialOrderId (supplier) — opaque to the gateway
   courier: string;
   destination: { name: string; addressLine1: string; city: string; emirate: string | null };
   weightKg?: number;
@@ -13,7 +13,7 @@ export type CreateShipmentResult =
   | { status: "failed"; error: string };
 
 export type CourierStatusEvent =
-  | { match: { trackingNumber?: string; externalRef?: string }; status: ShipmentStatus }
+  | { match: { trackingNumber?: string; externalRef?: string }; status: CourierDeliveryStatus }
   | { kind: "ignored" };
 
 export interface CourierGateway {

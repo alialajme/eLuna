@@ -194,6 +194,9 @@ importers:
       '@e-luna/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@e-luna/courier':
+        specifier: workspace:*
+        version: link:../../packages/courier
       '@e-luna/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -299,6 +302,18 @@ importers:
       tailwindcss:
         specifier: ^3
         version: 3.4.19(tsx@4.22.4)
+
+  packages/courier:
+    devDependencies:
+      '@e-luna/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
 
   packages/db:
     dependencies:

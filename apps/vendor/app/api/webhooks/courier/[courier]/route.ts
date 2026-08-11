@@ -1,6 +1,6 @@
-import { prisma } from "@e-luna/db";
-import type { CourierStatusEvent } from "../../../../lib/courier/gateway";
-import { getCourierGateway } from "../../../../lib/courier/factory";
+import { prisma, type ShipmentStatus } from "@e-luna/db";
+import type { CourierStatusEvent } from "@e-luna/courier";
+import { getCourierGateway } from "@e-luna/courier";
 import { applyShipmentStatus } from "../../../../lib/courier/apply-status";
 
 export async function POST(req: Request, { params }: { params: Promise<{ courier: string }> }) {
@@ -27,7 +27,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ courier
     .findFirst({ where: { courier, OR: or }, select: { id: true } })
     .catch(() => null);
   if (shipment) {
-    await applyShipmentStatus(shipment.id, event.status).catch((e) => console.error("[courier webhook] apply failed", e));
+    const status: ShipmentStatus = event.status === "delivered" ? "DELIVERED" : "IN_TRANSIT";
+    await applyShipmentStatus(shipment.id, status).catch((e) => console.error("[courier webhook] apply failed", e));
   }
   return new Response(null, { status: 200 });
 }

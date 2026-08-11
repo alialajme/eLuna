@@ -6,7 +6,7 @@ import { getCourier } from "@e-luna/ui/couriers";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 import { recomputeOrderStatus } from "../lib/order-status";
-import { getCourierGateway } from "../lib/courier/factory";
+import { getCourierGateway } from "@e-luna/courier";
 import { applyShipmentStatus } from "../lib/courier/apply-status";
 
 export async function createShipment(input: {
@@ -42,7 +42,7 @@ export async function createShipment(input: {
     .catch(() => null);
 
   const result = await getCourierGateway(input.courier).createShipment({
-    orderId: input.orderId,
+    reference: input.orderId,
     courier: input.courier,
     destination: {
       name: order?.address.fullName ?? "",
