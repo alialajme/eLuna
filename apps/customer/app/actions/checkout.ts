@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma, getSetting } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
-import { getGateway } from "@e-luna/payments";
+import { getGateway, neopayAvailable } from "@e-luna/payments";
 import { parseCart } from "../lib/cart-utils";
 import { hasStripe } from "@e-luna/payments";
 import { StripeGateway } from "@e-luna/payments";
@@ -15,7 +15,7 @@ export type PlaceOrderInput = {
   addressId: string;
   // CARD is intentionally excluded — card payments go through initiateCardPayment
   // (order-first + Stripe intent). placeOrder only handles synchronous methods.
-  paymentMethod: "LUNA_WALLET" | "TABBY" | "TAMARA" | "CASH_ON_DELIVERY";
+  paymentMethod: "LUNA_WALLET" | "TABBY" | "TAMARA" | "CASH_ON_DELIVERY" | "NEOPAY";
   notes?: string;
 };
 
@@ -30,6 +30,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     // gateway payment against a temp order id).
     if ((input.paymentMethod as string) === "CARD") {
       return { success: false, error: "Card payments must be completed through the card checkout flow." };
+    }
+    if (input.paymentMethod === "NEOPAY" && !neopayAvailable()) {
+      return { success: false, error: "NeoPay is not available" };
     }
 
     const user = await safeCurrentUser();
