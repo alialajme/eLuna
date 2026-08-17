@@ -24,6 +24,7 @@ type Props = {
   cartSubtotal: number;
   shippingFee: number;
   itemCount: number;
+  neopayEnabled: boolean;
 };
 
 const EMIRATES = ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah"];
@@ -32,11 +33,12 @@ const PAYMENT_METHODS = [
   { value: "CARD", label: "Credit / Debit Card", icon: "💳", desc: "Processed securely" },
   { value: "TABBY", label: "Tabby", icon: "🟢", desc: "Pay in 4 — no interest" },
   { value: "TAMARA", label: "Tamara", icon: "🟣", desc: "Split in 3 instalments" },
+  { value: "NEOPAY", label: "NeoPay", icon: "🇦🇪", desc: "UAE bank cards & wallets" },
   { value: "LUNA_WALLET", label: "Luna Wallet", icon: "🌙", desc: "Use your Luna balance" },
   { value: "CASH_ON_DELIVERY", label: "Cash on Delivery", icon: "📦", desc: "+AED 5 fee" },
 ] as const;
 
-export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, itemCount }: Props) {
+export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, itemCount, neopayEnabled }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, 
 
       const result = await placeOrder({
         addressId,
-        paymentMethod: paymentMethod as "LUNA_WALLET" | "TABBY" | "TAMARA" | "CASH_ON_DELIVERY",
+        paymentMethod: paymentMethod as "LUNA_WALLET" | "TABBY" | "TAMARA" | "CASH_ON_DELIVERY" | "NEOPAY",
       });
 
       if (!result.success) {
@@ -211,7 +213,7 @@ export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, 
             </div>
           ) : (
           <div className="space-y-3">
-            {PAYMENT_METHODS.map((method) => (
+            {PAYMENT_METHODS.filter((method) => method.value !== "NEOPAY" || neopayEnabled).map((method) => (
               <label
                 key={method.value}
                 className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-colors ${

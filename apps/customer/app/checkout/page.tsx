@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
 import { prisma, getSetting } from "@e-luna/db";
+import { neopayAvailable } from "@e-luna/payments";
 import { LunaChatWidget } from "@e-luna/ui";
 import { safeCurrentUser } from "../lib/auth";
 import { getCart } from "../actions/cart";
@@ -64,6 +65,7 @@ export default async function CheckoutPage() {
         shippingFee={shippingFee}
         cartTotal={total}
         itemCount={itemCount}
+        neopayEnabled={neopayAvailable()}
       />
       <LunaChatWidget
         apiPath="/api/payment-help"
