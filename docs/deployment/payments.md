@@ -50,3 +50,17 @@ a "not configured" failure until implemented. To activate one:
 `StripeGateway.refund()` is implemented (PaymentIntent refund). A customer/admin refund
 **trigger** UI is intentionally not part of this phase — it belongs to the returns flow
 (Phase 7).
+
+## NeoPay in checkout
+
+NeoPay is surfaced in the customer checkout picker, gated by `neopayAvailable()` (`@e-luna/payments`) =
+`hasNeopay() || NODE_ENV !== "production"`:
+
+- **Dev, no keys:** NeoPay is shown and completes via the Simulated gateway (`captured`), like Tabby/Tamara/Wallet.
+- **Prod, no keys:** NeoPay is hidden in the UI **and** `placeOrder` rejects a `NEOPAY` request — no order, no fake capture.
+- **Prod, with keys:** routes to the real `NeopayGateway`, which returns "not configured" until an operator
+  implements NeoPay's hosted-redirect + webhook flow in `packages/payments/src/neopay.ts`.
+
+**To enable NeoPay in production:** implement `NeopayGateway.createPayment` (hosted-redirect / `requires_action`)
+and the callback/webhook, THEN set `NEOPAY_API_KEY` / `NEOPAY_MERCHANT_ID`. Do not set the keys before the
+gateway is implemented, or customers selecting NeoPay will get a "not configured" failure.
