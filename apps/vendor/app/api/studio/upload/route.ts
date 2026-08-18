@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { safeCurrentUser } from "../../../lib/auth";
+import { getVendorByUserId } from "../../../lib/vendor";
 
 export async function POST(req: NextRequest) {
-  const user = await currentUser().catch(() => null);
+  const user = await safeCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  // Gate to ACTIVE vendors only — this endpoint should not be callable by arbitrary signed-in users.
+  const vendor = await getVendorByUserId(user.id);
+  if (!vendor || vendor.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   let formData: FormData;

@@ -46,7 +46,7 @@ function validate(data: MaterialData): { data: MaterialData } | { error: string 
   if (!Number.isFinite(data.wholesalePrice) || data.wholesalePrice <= 0) {
     return { error: "Wholesale price must be greater than 0" };
   }
-  if (!Number.isInteger(data.moq) || data.moq < 1) return { error: "MOQ must be a whole number ≥ 1" };
+  if (!Number.isInteger(data.moq) || data.moq < 1 || data.moq > 100000) return { error: "MOQ must be a whole number between 1 and 100,000" };
   if (!Number.isInteger(data.stock) || data.stock < 0) {
     return { error: "Stock must be a non-negative whole number" };
   }

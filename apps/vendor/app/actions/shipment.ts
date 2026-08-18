@@ -78,10 +78,17 @@ export async function createShipment(input: {
           estimatedDelivery: input.estimatedDelivery ? new Date(input.estimatedDelivery) : null,
         },
       });
-      await tx.orderItem.updateMany({
-        where: { id: { in: items.map((i) => i.id) } },
+      // Atomic claim: only assign items still unshipped and eligible (guards a concurrent double-submit or
+      // a race with supplier dropship shipping). If nothing is claimed, roll back the just-created shipment.
+      const claimed = await tx.orderItem.updateMany({
+        where: {
+          id: { in: items.map((i) => i.id) },
+          shipmentId: null,
+          fulfillmentStatus: { in: ["PENDING", "PROCESSING"] },
+        },
         data: { shipmentId: created.id, fulfillmentStatus: "SHIPPED" },
       });
+      if (claimed.count === 0) throw new Error("NO_ITEMS_CLAIMED");
       return created;
     });
     await recomputeOrderStatus(input.orderId);
