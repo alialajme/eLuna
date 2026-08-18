@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma, getSetting } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
-import { getGateway, neopayAvailable } from "@e-luna/payments";
+import { getGateway, providerAvailable } from "@e-luna/payments";
 import { parseCart } from "../lib/cart-utils";
 import { hasStripe } from "@e-luna/payments";
 import { StripeGateway } from "@e-luna/payments";
@@ -31,8 +31,12 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     if ((input.paymentMethod as string) === "CARD") {
       return { success: false, error: "Card payments must be completed through the card checkout flow." };
     }
-    if (input.paymentMethod === "NEOPAY" && !neopayAvailable()) {
-      return { success: false, error: "NeoPay is not available" };
+    // Authoritative server-side allowlist: never trust the client picker. Synchronous internal methods are
+    // always allowed; external providers only when their real gateway is live (or non-prod). This prevents a
+    // crafted request selecting an unconfigured provider whose Simulated fallback would "capture" for free.
+    const SYNCHRONOUS_METHODS = ["LUNA_WALLET", "CASH_ON_DELIVERY"];
+    if (!SYNCHRONOUS_METHODS.includes(input.paymentMethod) && !providerAvailable(input.paymentMethod)) {
+      return { success: false, error: "That payment method is not available." };
     }
 
     const user = await safeCurrentUser();
