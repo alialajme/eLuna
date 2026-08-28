@@ -33,7 +33,7 @@ Severity: **P0** = financial/inventory correctness or prod-safety; **P1** = high
 | F3 | **COD marked CAPTURED** — COD routed through gateway ⇒ `PaymentTransaction.status=CAPTURED` at placement instead of `PENDING` until cash collected. | P0 | `checkout.ts:93-144`; `packages/payments/src/simulated.ts:10-12` | ✅ FIXED |
 | F4 | **Money float arithmetic** — prices coerced `Number(...)`, `*`, `reduce +` then stored as `Decimal`. | P1 | `checkout.ts:75-89,192-206` | ✅ FIXED |
 | F5 | **Supplier app absent from deploy** — not in Dockerfile loop, CI/ACR, Helm values, no `/api/health`. | P0(deploy) | `docker/Dockerfile`, `.github/workflows/azure-deploy.yml:37-45`, `infra/helm/luna/values.yaml:30-39` | ✅ FIXED |
-| F6 | **Unguarded order status writes** — `checkout.ts` sets `CANCELLED`/`CONFIRMED` without validating prior state. | P1 | `checkout.ts:247`; `reconcile.ts:19,30` | ✅ FIXED (transition policy) |
+| F6 | **Unguarded order status writes** — `checkout.ts` sets `CANCELLED`/`CONFIRMED` without validating prior state. | P1 | `checkout.ts:247`; `reconcile.ts:19,30` | 🟡 PARTIAL — `order-state.ts` policy (`assertOrderTransition`/`assertPaymentTransition`) + unit tests landed; enforcement at every manual write site deferred to Phase 2 |
 | F7 | **Refund lacks prior-status guard** — refund writes `REFUNDED` without checking tx is `CAPTURED`; double-refund possible in DB. | P1 | `apps/vendor/app/actions/returns.ts:142-145` | ⬜ Phase 2 |
 | F8 | **No health/readiness split; no DB check** — `/api/health` returns static `{status:"ok"}`; probes uninformed. | P1 | `apps/*/app/api/health/route.ts` | ✅ FIXED (ready probe + DB check) |
 | — | Simulated gateway in prod | — | factory + `providerAvailable()` + checkout allowlist | ✅ ALREADY MITIGATED (commit 0315228) |
@@ -56,6 +56,20 @@ Design (matches existing repo conventions — domain logic in `@e-luna/db`, alon
 Testing (real Postgres `eluna_test`, no mocks for atomicity):
 - Unit: money math, domain errors, transition policy.
 - Integration/concurrency: last-item oversell race, wallet double-spend, COD payment-pending, card reserve/release.
+
+## Phase 1 status (this session) — COMPLETE
+
+Commits on `hardening/p0-financial-correctness`:
+- `ad4b182` — atomic inventory reservation, wallet ledger, COD-pending, decimal money (F1–F4)
+- `5436fe3` — supplier deploy parity, live/ready health probes, CI test+parity gates (F5, F8)
+
+Verification (all green): full-workspace `tsc --noEmit` exit 0; customer `next lint` clean
+(pre-existing `<img>` warnings only); `@e-luna/db` **27 tests pass** (unit + real-Postgres
+integration incl. concurrency invariants); deploy-parity guard passes (4/4 apps).
+
+Proven invariants (real Postgres, no mocks):
+- Inventory: `stock=3` + 100 concurrent buyers → exactly 3 sold, 97 rejected, final stock 0 (never negative).
+- Wallet: `AED 100` + 10 concurrent `AED 80` debits → exactly 1 succeeds, balance 20, one immutable DEBIT ledger row.
 
 ## Deferred to later phases
 - F7 refund guard, financial ledger (§10), payouts hardening (§11), full refund/return audit (§12).
