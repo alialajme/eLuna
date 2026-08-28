@@ -2,14 +2,23 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { prisma, getSetting } from "@e-luna/db";
+import {
+  prisma,
+  getSetting,
+  computeCartPricing,
+  reserveStockTx,
+  releaseStockTx,
+  debitWalletTx,
+  money,
+  isDomainError,
+  type DomainError,
+} from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
 import { getGateway, providerAvailable } from "@e-luna/payments";
 import { parseCart } from "../lib/cart-utils";
 import { hasStripe } from "@e-luna/payments";
 import { StripeGateway } from "@e-luna/payments";
 import { applyPaymentResult } from "@e-luna/payments";
-
 
 export type PlaceOrderInput = {
   addressId: string;
@@ -23,11 +32,91 @@ export type PlaceOrderResult =
   | { success: true; orderId: string }
   | { success: false; error: string };
 
+// Map internal domain errors to safe, customer-facing copy (never leak internals).
+function friendlyDomainMessage(e: DomainError): string {
+  switch (e.code) {
+    case "INSUFFICIENT_INVENTORY":
+      return "Sorry — one or more items just sold out. Please review your bag.";
+    case "INSUFFICIENT_FUNDS":
+      return "Your Luna Wallet balance is too low for this order.";
+    default:
+      return "We couldn't complete your order. Please try again.";
+  }
+}
+
+type PricedLine = {
+  variantId: string;
+  vendorId: string;
+  quantity: number;
+  unitPrice: string; // Decimal serialized; authoritative price resolved server-side
+};
+
+/**
+ * Resolve authoritative cart lines + Decimal pricing from the signed-in user's
+ * cart cookie. Prices always come from the DB, never the client.
+ */
+type ResolvedCart =
+  | { ok: false; error: string }
+  | { ok: true; lines: PricedLine[]; pricing: ReturnType<typeof computeCartPricing> };
+
+async function resolveCart(): Promise<ResolvedCart> {
+  const jar = await cookies();
+  const cartItems = parseCart(jar.get("luna_cart")?.value);
+  if (cartItems.length === 0) return { ok: false, error: "Your bag is empty" };
+
+  const variantIds = cartItems.map((i) => i.variantId);
+  const variants = await prisma.productVariant.findMany({
+    where: { id: { in: variantIds } },
+    include: { product: { select: { price: true, vendorId: true } } },
+  });
+  if (variants.length !== variantIds.length) {
+    return { ok: false, error: "Some items are no longer available" };
+  }
+
+  const lines: PricedLine[] = cartItems.map((cartItem) => {
+    const variant = variants.find((v) => v.id === cartItem.variantId)!;
+    return {
+      variantId: cartItem.variantId,
+      vendorId: variant.product.vendorId,
+      quantity: cartItem.qty,
+      unitPrice: (variant.price ?? variant.product.price).toString(),
+    };
+  });
+
+  const threshold = await getSetting("free_shipping_threshold");
+  const fee = await getSetting("shipping_fee");
+  const pricing = computeCartPricing(
+    lines.map((l) => ({ unitPrice: l.unitPrice, quantity: l.quantity })),
+    { freeShippingThreshold: threshold, shippingFee: fee },
+  );
+
+  return { ok: true, lines, pricing };
+}
+
+function orderItemsCreate(lines: PricedLine[]) {
+  return lines.map((l) => ({
+    variantId: l.variantId,
+    vendorId: l.vendorId,
+    quantity: l.quantity,
+    unitPrice: money(l.unitPrice),
+  }));
+}
+
+function stockLines(lines: PricedLine[]) {
+  return lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity }));
+}
+
+async function clearCartAndRevalidate() {
+  const jar = await cookies();
+  jar.delete("luna_cart");
+  revalidatePath("/cart");
+  revalidatePath("/orders");
+}
+
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   try {
     // Defensive guard for untyped/direct callers: card payments must use the
-    // order-first Stripe flow, never this synchronous path (which would create a
-    // gateway payment against a temp order id).
+    // order-first Stripe flow, never this synchronous path.
     if ((input.paymentMethod as string) === "CARD") {
       return { success: false, error: "Card payments must be completed through the card checkout flow." };
     }
@@ -42,27 +131,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     const user = await safeCurrentUser();
     if (!user) return { success: false, error: "Please sign in to place an order" };
 
-    const jar = await cookies();
-    const cartItems = parseCart(jar.get("luna_cart")?.value);
-    if (cartItems.length === 0) return { success: false, error: "Your bag is empty" };
-
-    const variantIds = cartItems.map((i) => i.variantId);
-    const variants = await prisma.productVariant.findMany({
-      where: { id: { in: variantIds } },
-      include: { product: { select: { price: true, vendorId: true } } },
-    });
-
-    if (variants.length !== variantIds.length) {
-      return { success: false, error: "Some items are no longer available" };
-    }
-
-    let customerProfile = await prisma.customerProfile.findUnique({
-      where: { userId: user.id },
-    });
+    let customerProfile = await prisma.customerProfile.findUnique({ where: { userId: user.id } });
     if (!customerProfile) {
-      customerProfile = await prisma.customerProfile.create({
-        data: { userId: user.id },
-      });
+      customerProfile = await prisma.customerProfile.create({ data: { userId: user.id } });
     }
 
     const address = await prisma.address.findFirst({
@@ -70,85 +141,124 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     });
     if (!address) return { success: false, error: "Invalid delivery address" };
 
-    const lineItems = cartItems.map((cartItem) => {
-      const variant = variants.find((v) => v.id === cartItem.variantId)!;
-      const unitPrice = Number(variant.price ?? variant.product.price);
-      return {
-        variantId: cartItem.variantId,
-        vendorId: variant.product.vendorId,
-        quantity: cartItem.qty,
-        unitPrice,
-        lineTotal: unitPrice * cartItem.qty,
-      };
-    });
+    const cart = await resolveCart();
+    if (!cart.ok) return { success: false, error: cart.error };
+    const { lines, pricing } = cart;
 
-    const subtotal = lineItems.reduce((sum, l) => sum + l.lineTotal, 0);
-    const threshold = await getSetting("free_shipping_threshold");
-    const fee = await getSetting("shipping_fee");
-    const shippingFee = subtotal >= threshold ? 0 : fee;
-    const total = subtotal + shippingFee;
+    const commonOrderData = {
+      customerId: customerProfile.id,
+      addressId: input.addressId,
+      subtotal: pricing.subtotal,
+      shippingFee: pricing.shippingFee,
+      total: pricing.total,
+      discount: money(0),
+      paymentMethod: input.paymentMethod,
+      notes: input.notes ?? null,
+    };
 
-    const tempOrderId = `ord_${Date.now()}`;
-
-    const gateway = getGateway(input.paymentMethod);
-    const paymentResult = await gateway.createPayment({
-      amount: total,
-      currency: "AED",
-      orderId: tempOrderId,
-      customerEmail: user.emailAddresses[0]?.emailAddress ?? "",
-      description: `Luna order — ${lineItems.length} item(s)`,
-    });
-
-    if (paymentResult.status !== "captured") {
-      return {
-        success: false,
-        error:
-          paymentResult.status === "failed"
-            ? paymentResult.error
-            : "This payment method must be completed through the card checkout flow.",
-      };
+    // ── LUNA WALLET ── atomic: reserve stock + create CONFIRMED order + debit wallet (with ledger).
+    if (input.paymentMethod === "LUNA_WALLET") {
+      const order = await prisma.$transaction(async (tx) => {
+        await reserveStockTx(tx, stockLines(lines));
+        const created = await tx.order.create({
+          data: {
+            ...commonOrderData,
+            status: "CONFIRMED",
+            items: { create: orderItemsCreate(lines) },
+            paymentTransactions: {
+              create: { method: "LUNA_WALLET", status: "CAPTURED", amount: pricing.total, currency: "AED" },
+            },
+          },
+        });
+        await debitWalletTx(tx, {
+          customerProfileId: customerProfile!.id,
+          amount: pricing.total,
+          orderId: created.id,
+          note: "Luna Wallet checkout",
+        });
+        return created;
+      });
+      await clearCartAndRevalidate();
+      return { success: true, orderId: order.id };
     }
 
-    const order = await prisma.$transaction(async (tx) => {
-      const created = await tx.order.create({
-        data: {
-          customerId: customerProfile.id,
-          addressId: input.addressId,
-          status: "CONFIRMED",
-          subtotal,
-          shippingFee,
-          total,
-          discount: 0,
-          paymentMethod: input.paymentMethod,
-          notes: input.notes ?? null,
-          items: {
-            create: lineItems.map((l) => ({
-              variantId: l.variantId,
-              vendorId: l.vendorId,
-              quantity: l.quantity,
-              unitPrice: l.unitPrice,
-            })),
-          },
-          paymentTransactions: {
-            create: {
-              method: input.paymentMethod,
-              status: "CAPTURED",
-              amount: total,
-              currency: "AED",
-              externalRef: paymentResult.externalRef,
+    // ── CASH ON DELIVERY ── order CONFIRMED, but payment stays PENDING until cash is collected.
+    if (input.paymentMethod === "CASH_ON_DELIVERY") {
+      const order = await prisma.$transaction(async (tx) => {
+        await reserveStockTx(tx, stockLines(lines));
+        return tx.order.create({
+          data: {
+            ...commonOrderData,
+            status: "CONFIRMED",
+            items: { create: orderItemsCreate(lines) },
+            paymentTransactions: {
+              create: { method: "CASH_ON_DELIVERY", status: "PENDING", amount: pricing.total, currency: "AED" },
             },
+          },
+        });
+      });
+      await clearCartAndRevalidate();
+      return { success: true, orderId: order.id };
+    }
+
+    // ── EXTERNAL PROVIDERS (TABBY / TAMARA / NEOPAY) ── order-first: reserve stock + PENDING order,
+    // then call the gateway. Release stock and cancel if the payment is not captured.
+    const order = await prisma.$transaction(async (tx) => {
+      await reserveStockTx(tx, stockLines(lines));
+      return tx.order.create({
+        data: {
+          ...commonOrderData,
+          status: "PENDING",
+          items: { create: orderItemsCreate(lines) },
+          paymentTransactions: {
+            create: { method: input.paymentMethod, status: "PENDING", amount: pricing.total, currency: "AED" },
           },
         },
       });
-      return created;
     });
 
-    jar.delete("luna_cart");
-    revalidatePath("/cart");
-    revalidatePath("/orders");
+    const gateway = getGateway(input.paymentMethod);
+    const paymentResult = await gateway.createPayment({
+      amount: Number(pricing.total),
+      currency: "AED",
+      orderId: order.id,
+      customerEmail: user.emailAddresses[0]?.emailAddress ?? "",
+      description: `Luna order — ${lines.length} item(s)`,
+    });
 
-    return { success: true, orderId: order.id };
+    if (paymentResult.status === "captured") {
+      await prisma.$transaction([
+        prisma.order.update({ where: { id: order.id }, data: { status: "CONFIRMED" } }),
+        prisma.paymentTransaction.updateMany({
+          where: { orderId: order.id, status: "PENDING" },
+          data: { status: "CAPTURED", externalRef: paymentResult.externalRef },
+        }),
+      ]);
+      await clearCartAndRevalidate();
+      return { success: true, orderId: order.id };
+    }
+
+    // Not captured — release the reservation and cancel the order.
+    await prisma.$transaction(async (tx) => {
+      await releaseStockTx(tx, stockLines(lines));
+      await tx.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } });
+      await tx.paymentTransaction.updateMany({
+        where: { orderId: order.id, status: "PENDING" },
+        data: { status: "FAILED" },
+      });
+    });
+    return {
+      success: false,
+      error:
+        paymentResult.status === "failed"
+          ? paymentResult.error
+          : "This payment method must be completed through the card checkout flow.",
+    };
   } catch (err) {
+    if (isDomainError(err)) {
+      console.warn("[placeOrder] domain error", err.code);
+      return { success: false, error: friendlyDomainMessage(err) };
+    }
     console.error("[placeOrder]", err);
     return { success: false, error: "Something went wrong. Please try again." };
   }
@@ -166,19 +276,6 @@ export async function initiateCardPayment(input: {
     const user = await safeCurrentUser();
     if (!user) return { success: false, error: "Please sign in to place an order" };
 
-    const jar = await cookies();
-    const cartItems = parseCart(jar.get("luna_cart")?.value);
-    if (cartItems.length === 0) return { success: false, error: "Your bag is empty" };
-
-    const variantIds = cartItems.map((i) => i.variantId);
-    const variants = await prisma.productVariant.findMany({
-      where: { id: { in: variantIds } },
-      include: { product: { select: { price: true, vendorId: true } } },
-    });
-    if (variants.length !== variantIds.length) {
-      return { success: false, error: "Some items are no longer available" };
-    }
-
     let customerProfile = await prisma.customerProfile.findUnique({ where: { userId: user.id } });
     if (!customerProfile) {
       customerProfile = await prisma.customerProfile.create({ data: { userId: user.id } });
@@ -189,65 +286,53 @@ export async function initiateCardPayment(input: {
     });
     if (!address) return { success: false, error: "Invalid delivery address" };
 
-    const lineItems = cartItems.map((cartItem) => {
-      const variant = variants.find((v) => v.id === cartItem.variantId)!;
-      const unitPrice = Number(variant.price ?? variant.product.price);
-      return {
-        variantId: cartItem.variantId,
-        vendorId: variant.product.vendorId,
-        quantity: cartItem.qty,
-        unitPrice,
-      };
-    });
-    const subtotal = lineItems.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0);
-    const threshold = await getSetting("free_shipping_threshold");
-    const fee = await getSetting("shipping_fee");
-    const shippingFee = subtotal >= threshold ? 0 : fee;
-    const total = subtotal + shippingFee;
+    const cart = await resolveCart();
+    if (!cart.ok) return { success: false, error: cart.error };
+    const { lines, pricing } = cart;
 
-    // 1) Create the PENDING order + PENDING transaction up front (audit anchor).
-    const order = await prisma.order.create({
-      data: {
-        customerId: customerProfile.id,
-        addressId: input.addressId,
-        status: "PENDING",
-        subtotal,
-        shippingFee,
-        total,
-        discount: 0,
-        paymentMethod: "CARD",
-        notes: input.notes ?? null,
-        items: {
-          create: lineItems.map((l) => ({
-            variantId: l.variantId,
-            vendorId: l.vendorId,
-            quantity: l.quantity,
-            unitPrice: l.unitPrice,
-          })),
+    // 1) Reserve stock + create the PENDING order + PENDING transaction atomically (audit anchor).
+    const order = await prisma.$transaction(async (tx) => {
+      await reserveStockTx(tx, stockLines(lines));
+      return tx.order.create({
+        data: {
+          customerId: customerProfile!.id,
+          addressId: input.addressId,
+          status: "PENDING",
+          subtotal: pricing.subtotal,
+          shippingFee: pricing.shippingFee,
+          total: pricing.total,
+          discount: money(0),
+          paymentMethod: "CARD",
+          notes: input.notes ?? null,
+          items: { create: orderItemsCreate(lines) },
+          paymentTransactions: {
+            create: { method: "CARD", status: "PENDING", amount: pricing.total, currency: "AED" },
+          },
         },
-        paymentTransactions: {
-          create: { method: "CARD", status: "PENDING", amount: total, currency: "AED" },
-        },
-      },
-      include: { paymentTransactions: { select: { id: true }, take: 1 } },
+        include: { paymentTransactions: { select: { id: true }, take: 1 } },
+      });
     });
 
     // 2) Create the gateway payment.
     const gateway = getGateway("CARD");
     const result = await gateway.createPayment({
-      amount: total,
+      amount: Number(pricing.total),
       currency: "AED",
       orderId: order.id,
       customerEmail: user.emailAddresses[0]?.emailAddress ?? "",
-      description: `Luna order — ${lineItems.length} item(s)`,
+      description: `Luna order — ${lines.length} item(s)`,
       metadata: { orderId: order.id },
     });
 
     if (result.status === "failed") {
-      await prisma.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } });
-      await prisma.paymentTransaction.updateMany({
-        where: { orderId: order.id, status: "PENDING" },
-        data: { status: "FAILED" },
+      // Release the reservation — the order never became payable.
+      await prisma.$transaction(async (tx) => {
+        await releaseStockTx(tx, stockLines(lines));
+        await tx.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } });
+        await tx.paymentTransaction.updateMany({
+          where: { orderId: order.id, status: "PENDING" },
+          data: { status: "FAILED" },
+        });
       });
       return { success: false, error: result.error };
     }
@@ -268,15 +353,23 @@ export async function initiateCardPayment(input: {
         orderId: order.id,
         externalRef: result.externalRef,
       });
-      jar.delete("luna_cart");
-      revalidatePath("/cart");
-      revalidatePath("/orders");
+      await clearCartAndRevalidate();
       return { success: true, orderId: order.id, captured: true };
     }
 
     // Live Stripe: hand the client secret back for the Payment Element.
     return { success: true, orderId: order.id, clientSecret: result.clientSecret };
   } catch (err) {
+    if (isDomainError(err)) {
+      console.warn("[initiateCardPayment] domain error", err.code);
+      return {
+        success: false,
+        error:
+          err.code === "INSUFFICIENT_INVENTORY"
+            ? "Sorry — one or more items just sold out. Please review your bag."
+            : "We couldn't start your payment. Please try again.",
+      };
+    }
     console.error("[initiateCardPayment]", err);
     return { success: false, error: "Something went wrong. Please try again." };
   }
@@ -309,10 +402,7 @@ export async function syncOrderPayment(orderId: string): Promise<{ status: strin
 
     const updated = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
     if (updated?.status === "CONFIRMED") {
-      const jar = await cookies();
-      jar.delete("luna_cart");
-      revalidatePath("/cart");
-      revalidatePath("/orders");
+      await clearCartAndRevalidate();
     }
     return { status: updated?.status ?? order.status };
   } catch (err) {

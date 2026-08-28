@@ -1,4 +1,4 @@
-import { prisma } from "@e-luna/db";
+import { prisma, releaseStockTx } from "@e-luna/db";
 import type { WebhookResult } from "./gateway";
 
 /**
@@ -26,12 +26,20 @@ export async function applyPaymentResult(result: WebhookResult): Promise<void> {
       }),
     ]);
   } else if (result.kind === "payment_failed") {
-    await prisma.$transaction([
-      prisma.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } }),
-      prisma.paymentTransaction.updateMany({
+    // Release the inventory reserved when the PENDING order was created. The
+    // `order.status === "PENDING"` guard above makes this run at most once, so
+    // stock is never double-released on webhook re-delivery.
+    const items = await prisma.orderItem.findMany({
+      where: { orderId: order.id },
+      select: { variantId: true, quantity: true },
+    });
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } });
+      await tx.paymentTransaction.updateMany({
         where: { orderId: order.id, status: "PENDING" },
         data: { status: "FAILED" },
-      }),
-    ]);
+      });
+      await releaseStockTx(tx, items);
+    });
   }
 }
