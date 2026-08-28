@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# Which workspace app to build: customer | vendor | admin
+# Which workspace app to build: customer | vendor | admin | supplier
 ARG APP=customer
 
 # ---- base: pnpm + turbo ----

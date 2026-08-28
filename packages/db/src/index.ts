@@ -8,3 +8,4 @@ export * from "./money";
 export * from "./inventory";
 export * from "./wallet";
 export * from "./order-state";
+export * from "./health";
