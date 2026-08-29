@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma, money } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
 
 const RETURN_WINDOW_MS = 14 * 86_400_000;
@@ -54,7 +54,7 @@ export async function requestReturn(
         variantId: item.variantId,
         status: "REQUESTED",
         reason: reason.trim(),
-        refundAmount: Number(item.unitPrice) * item.quantity,
+        refundAmount: money(item.unitPrice).mul(item.quantity),
         isRestocked: false,
       },
     });

@@ -1,6 +1,7 @@
 import { Prisma, type LedgerEntryType } from "@prisma/client";
 import { prisma } from "./client";
 import { money, round2, type Money } from "./money";
+import { InvalidAmountError } from "./errors";
 
 type Tx = Prisma.TransactionClient;
 type Client = Tx | typeof prisma;
@@ -93,6 +94,37 @@ export async function computeVendorBalance(
     paidOut: round2(paidOut),
     available,
   };
+}
+
+export type RefundBreakdown = {
+  gross: Money; // total returned to the customer for the item
+  commission: Money; // platform commission reversed
+  net: Money; // vendor net revenue reversed (gross − commission)
+};
+
+/**
+ * Split a refund into the vendor's net reversal and the platform's commission
+ * reversal, and enforce that the refund cannot exceed what was captured for the
+ * item. Pure/Decimal so it is unit-tested independently of the server action.
+ *
+ * @throws InvalidAmountError if the refund exceeds the captured item value or is non-positive.
+ */
+export function computeRefundBreakdown(
+  grossRefund: Prisma.Decimal.Value,
+  capturedItemValue: Prisma.Decimal.Value,
+  commissionRate: Prisma.Decimal.Value,
+): RefundBreakdown {
+  const gross = money(grossRefund);
+  const captured = money(capturedItemValue);
+  if (gross.lte(0)) throw new InvalidAmountError(`Refund must be positive: ${gross.toString()}`);
+  if (gross.gt(captured)) {
+    throw new InvalidAmountError(
+      `Refund ${gross.toString()} exceeds captured item value ${captured.toString()}`,
+    );
+  }
+  const commission = round2(gross.mul(money(commissionRate)));
+  const net = round2(gross).minus(commission);
+  return { gross: round2(gross), commission, net };
 }
 
 export type CreatePayoutResult =

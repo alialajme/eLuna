@@ -1,7 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, recomputeOrderStatus, assertPaymentTransition, appendLedgerEntry } from "@e-luna/db";
+import {
+  prisma,
+  recomputeOrderStatus,
+  assertPaymentTransition,
+  appendLedgerEntry,
+  computeRefundBreakdown,
+  money,
+} from "@e-luna/db";
 import { getGateway } from "@e-luna/payments";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
@@ -19,7 +26,7 @@ async function resolveVendorId(): Promise<{ vendorId?: string; error?: string }>
 type OwnedReturn = {
   id: string;
   refundAmount: unknown;
-  orderItem: { id: string; orderId: string; variantId: string; quantity: number };
+  orderItem: { id: string; orderId: string; variantId: string; quantity: number; unitPrice: unknown };
 };
 
 async function loadOwnedReturn(
@@ -35,7 +42,7 @@ async function loadOwnedReturn(
         status: true,
         refundAmount: true,
         orderItem: {
-          select: { id: true, orderId: true, variantId: true, quantity: true, vendorId: true },
+          select: { id: true, orderId: true, variantId: true, quantity: true, unitPrice: true, vendorId: true },
         },
       },
     })
@@ -52,6 +59,7 @@ async function loadOwnedReturn(
         orderId: ret.orderItem.orderId,
         variantId: ret.orderItem.variantId,
         quantity: ret.orderItem.quantity,
+        unitPrice: ret.orderItem.unitPrice,
       },
     },
   };
@@ -119,6 +127,24 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
   if (!order) return { success: false, error: "Order not found" };
   const tx = order.paymentTransactions[0] ?? null;
 
+  // Bound the refund to what was captured for the item and split it into the
+  // vendor's net reversal + the platform's commission reversal. Throws (caught)
+  // if the stored refundAmount somehow exceeds the item's captured value.
+  const vendor = await prisma.vendor
+    .findUnique({ where: { id: a.vendorId }, select: { commissionRate: true } })
+    .catch(() => null);
+  const capturedItemValue = money(String(orderItem.unitPrice)).mul(orderItem.quantity);
+  let breakdown;
+  try {
+    breakdown = computeRefundBreakdown(
+      String(refundAmount),
+      capturedItemValue,
+      vendor?.commissionRate ?? "0.15",
+    );
+  } catch {
+    return { success: false, error: "Refund amount exceeds the captured item value" };
+  }
+
   // Only issue a real (money-moving) refund when the payment was actually
   // captured. An uncaptured payment (e.g. a COD order whose cash was never
   // collected, or a card intent that never settled) has taken no money, so we
@@ -129,7 +155,7 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
   if (captured && tx) {
     // Money first — abort with no state change if the gateway refund fails.
     const gw = getGateway(order.paymentMethod);
-    const refund = await gw.refund({ externalRef: tx.externalRef ?? "", amount: Number(refundAmount) });
+    const refund = await gw.refund({ externalRef: tx.externalRef ?? "", amount: Number(breakdown.gross) });
     if (!refund.success) return { success: false, error: refund.error ?? "Refund failed" };
   }
 
@@ -156,14 +182,23 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
           where: { id: tx.id },
           data: { status: target },
         });
-        // Immutable audit entry for the money returned to the customer.
+        // Immutable audit entries: reverse the vendor's net revenue and the
+        // platform's commission for the refunded item.
         await appendLedgerEntry(dbtx, {
           vendorId: a.vendorId!,
           entryType: "REFUND",
-          amount: -Number(refundAmount),
+          amount: breakdown.net.negated(),
           orderId: orderItem.orderId,
           orderItemId: orderItem.id,
-          note: "Refund issued for returned item",
+          note: "Vendor net revenue reversed on refund",
+        });
+        await appendLedgerEntry(dbtx, {
+          vendorId: a.vendorId!,
+          entryType: "COMMISSION",
+          amount: breakdown.commission.negated(),
+          orderId: orderItem.orderId,
+          orderItemId: orderItem.id,
+          note: "Platform commission reversed on refund",
         });
       }
     });
