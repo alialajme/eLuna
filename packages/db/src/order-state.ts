@@ -1,4 +1,4 @@
-import type { OrderStatus, PaymentStatus } from "@prisma/client";
+import type { OrderStatus, PaymentStatus, PayoutStatus } from "@prisma/client";
 import { InvalidStateTransitionError } from "./errors";
 
 /**
@@ -50,5 +50,26 @@ export function canTransitionPayment(from: PaymentStatus, to: PaymentStatus): bo
 export function assertPaymentTransition(from: PaymentStatus, to: PaymentStatus): void {
   if (!canTransitionPayment(from, to)) {
     throw new InvalidStateTransitionError("Payment", from, to);
+  }
+}
+
+/**
+ * Payout lifecycle policy. COMPLETED and FAILED are terminal — a completed
+ * payout can never silently revert (which would let its amount be paid twice).
+ */
+export const PAYOUT_TRANSITIONS: Record<PayoutStatus, readonly PayoutStatus[]> = {
+  PENDING: ["PROCESSING", "COMPLETED", "FAILED"],
+  PROCESSING: ["COMPLETED", "FAILED"],
+  COMPLETED: [],
+  FAILED: [],
+};
+
+export function canTransitionPayout(from: PayoutStatus, to: PayoutStatus): boolean {
+  return from === to || PAYOUT_TRANSITIONS[from].includes(to);
+}
+
+export function assertPayoutTransition(from: PayoutStatus, to: PayoutStatus): void {
+  if (!canTransitionPayout(from, to)) {
+    throw new InvalidStateTransitionError("Payout", from, to);
   }
 }

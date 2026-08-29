@@ -1,7 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, type PayoutStatus } from "@e-luna/db";
+import {
+  prisma,
+  type PayoutStatus,
+  createVendorPayout,
+  appendLedgerEntry,
+  assertPayoutTransition,
+  isDomainError,
+} from "@e-luna/db";
 import { getAuthUser } from "@e-luna/auth";
 
 type ActionResult = { success: true } | { error: string };
@@ -16,65 +23,21 @@ async function requireAdmin(): Promise<{ ok: true } | ActionResult> {
   return { ok: true };
 }
 
-async function computeAvailableBalance(vendorId: string): Promise<number> {
-  // Fetch delivered order items and completed payouts in parallel.
-  const [items, payouts] = await Promise.all([
-    prisma.orderItem
-      .findMany({
-        where: { vendorId, fulfillmentStatus: "DELIVERED" },
-        select: { unitPrice: true, quantity: true },
-      })
-      .catch(() => []),
-    prisma.payout
-      .findMany({
-        where: { vendorId, status: "COMPLETED" },
-        select: { amount: true },
-      })
-      .catch(() => []),
-  ]);
-
-  // Fetch vendor commission rate.
-  const vendor = await prisma.vendor
-    .findUnique({ where: { id: vendorId }, select: { commissionRate: true } })
-    .catch(() => null);
-
-  const commissionRate = Number(vendor?.commissionRate ?? 0.15);
-  const grossRevenue = items.reduce(
-    (sum, i) => sum + Number(i.unitPrice) * i.quantity,
-    0
-  );
-  const netEarned = grossRevenue - grossRevenue * commissionRate;
-  const paidOut = payouts.reduce((sum, p) => sum + Number(p.amount), 0);
-  return Math.max(0, netEarned - paidOut);
-}
-
 export async function createPayout(vendorId: string): Promise<ActionResult> {
   const auth = await requireAdmin();
   if ("error" in auth) return auth;
 
-  // Fetch vendor and verify IBAN on file.
   const vendor = await prisma.vendor
     .findUnique({ where: { id: vendorId }, select: { ibanNumber: true } })
     .catch(() => null);
   if (!vendor) return { error: "Vendor not found" };
   if (!vendor.ibanNumber) return { error: "Vendor has no IBAN on file" };
 
-  // Compute available balance server-side; never trust client amount.
-  const availableBalance = await computeAvailableBalance(vendorId);
-  if (availableBalance <= 0) {
-    return { error: "No balance available to pay out" };
-  }
-
   try {
-    await prisma.payout.create({
-      data: {
-        vendorId,
-        amount: availableBalance,
-        currency: "AED",
-        ibanNumber: vendor.ibanNumber,
-        status: "PENDING",
-      },
-    });
+    // Race-safe, Decimal, reserved-aware payout creation lives in @e-luna/db so
+    // the concurrency guarantee is unit-tested and this action stays thin.
+    const result = await createVendorPayout(vendorId, vendor.ibanNumber);
+    if (!result.ok) return { error: "No balance available to pay out" };
     revalidatePath("/payouts");
     return { success: true };
   } catch (err) {
@@ -85,19 +48,44 @@ export async function createPayout(vendorId: string): Promise<ActionResult> {
 async function setPayoutStatus(
   id: string,
   status: PayoutStatus,
-  setProcessedAt: boolean
+  setProcessedAt: boolean,
 ): Promise<ActionResult> {
   const auth = await requireAdmin();
   if ("error" in auth) return auth;
 
   try {
-    await prisma.payout.update({
-      where: { id },
-      data: setProcessedAt ? { status, processedAt: new Date() } : { status },
+    await prisma.$transaction(async (tx) => {
+      const current = await tx.payout.findUnique({
+        where: { id },
+        select: { status: true, vendorId: true, amount: true },
+      });
+      if (!current) throw new Error("NOT_FOUND");
+      // Reject illegal transitions (e.g. COMPLETED -> PROCESSING) so a settled
+      // payout can never revert and be paid again.
+      assertPayoutTransition(current.status, status);
+
+      await tx.payout.update({
+        where: { id },
+        data: setProcessedAt ? { status, processedAt: new Date() } : { status },
+      });
+
+      // Money actually leaves the platform on COMPLETED — post the immutable
+      // debit to the financial ledger inside the same transaction.
+      if (status === "COMPLETED") {
+        await appendLedgerEntry(tx, {
+          vendorId: current.vendorId,
+          entryType: "PAYOUT",
+          amount: current.amount.negated(),
+          payoutId: id,
+          note: "Payout completed",
+        });
+      }
     });
     revalidatePath("/payouts");
     return { success: true };
   } catch (err) {
+    if (err instanceof Error && err.message === "NOT_FOUND") return { error: "Payout not found" };
+    if (isDomainError(err)) return { error: "That payout status change isn't allowed." };
     return { error: err instanceof Error ? err.message : "Update failed" };
   }
 }

@@ -40,6 +40,55 @@ export async function makeVariant(stock: number, unitPrice = "100.00") {
   return { variantId: variant.id, vendorId: vendor.id, productId: product.id };
 }
 
+/** Create an ACTIVE vendor (with IBAN + commission rate) — no products. */
+export async function makeVendorOnly(commissionRate = "0.15") {
+  const userId = uid("vusr");
+  await prisma.user.create({ data: { id: userId, email: `${userId}@test.local`, role: "VENDOR" } });
+  const vendor = await prisma.vendor.create({
+    data: {
+      userId,
+      storeName: "Balance Store",
+      storeSlug: uid("store"),
+      status: "ACTIVE",
+      commissionRate,
+      ibanNumber: "AE070331234567890123456",
+    },
+  });
+  return { vendorId: vendor.id, userId };
+}
+
+/** Create a customer + address + product + variant + order with one line item for `vendorId`. */
+export async function makeSale(
+  vendorId: string,
+  unitPrice: string,
+  quantity: number,
+  fulfillmentStatus: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "RETURNED" = "DELIVERED",
+) {
+  const { userId, profileId } = await makeCustomer();
+  const address = await prisma.address.create({
+    data: { userId, fullName: "Test", phone: "0500000000", addressLine1: "1 St", city: "Dubai" },
+  });
+  const product = await prisma.product.create({
+    data: { vendorId, title: "P", slug: uid("prod"), price: unitPrice, category: "everyday", status: "ACTIVE" },
+  });
+  const variant = await prisma.productVariant.create({
+    data: { productId: product.id, size: "M", color: "Black", sku: uid("sku"), stock: 100, price: unitPrice },
+  });
+  const total = (Number(unitPrice) * quantity).toFixed(2);
+  const order = await prisma.order.create({
+    data: {
+      customerId: profileId,
+      addressId: address.id,
+      status: "DELIVERED",
+      subtotal: total,
+      total,
+      paymentMethod: "CARD",
+      items: { create: { variantId: variant.id, vendorId, quantity, unitPrice, fulfillmentStatus } },
+    },
+  });
+  return { orderId: order.id, variantId: variant.id };
+}
+
 export async function stockOf(variantId: string): Promise<number> {
   const v = await prisma.productVariant.findUniqueOrThrow({ where: { id: variantId }, select: { stock: true } });
   return v.stock;

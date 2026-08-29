@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, recomputeOrderStatus, assertPaymentTransition } from "@e-luna/db";
+import { prisma, recomputeOrderStatus, assertPaymentTransition, appendLedgerEntry } from "@e-luna/db";
 import { getGateway } from "@e-luna/payments";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
@@ -155,6 +155,15 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
         await dbtx.paymentTransaction.update({
           where: { id: tx.id },
           data: { status: target },
+        });
+        // Immutable audit entry for the money returned to the customer.
+        await appendLedgerEntry(dbtx, {
+          vendorId: a.vendorId!,
+          entryType: "REFUND",
+          amount: -Number(refundAmount),
+          orderId: orderItem.orderId,
+          orderItemId: orderItem.id,
+          note: "Refund issued for returned item",
         });
       }
     });

@@ -18,6 +18,7 @@ export default defineConfig({
         "src/inventory.ts": { statements: 95, branches: 85, functions: 100, lines: 95 },
         "src/wallet.ts": { statements: 95, branches: 85, functions: 100, lines: 95 },
         "src/order-state.ts": { statements: 95, branches: 90, functions: 100, lines: 95 },
+        "src/ledger.ts": { statements: 90, branches: 85, functions: 100, lines: 90 },
         "src/errors.ts": { statements: 90, branches: 80, functions: 90, lines: 90 },
       },
     },

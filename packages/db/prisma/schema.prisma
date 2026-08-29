@@ -139,6 +139,17 @@ enum PayoutStatus {
   FAILED
 }
 
+// Immutable marketplace financial ledger. Append-only record of money movements
+// (signed `amount`: credit positive, debit negative). Never updated/deleted —
+// corrections are new reversing/adjustment rows.
+enum LedgerEntryType {
+  SALE // vendor net revenue accrued from a delivered order item
+  COMMISSION // platform commission taken from a sale
+  REFUND // reversal of vendor revenue when an order item is refunded
+  PAYOUT // funds paid out to a vendor
+  ADJUSTMENT // manual correction
+}
+
 enum ReturnStatus {
   REQUESTED
   APPROVED
@@ -256,6 +267,7 @@ model Vendor {
   shipments      Shipment[]
   materialOrders MaterialOrder[]
   orderInvoices  OrderInvoice[]
+  ledgerEntries  LedgerEntry[]
 
   @@index([status])
 }
@@ -652,6 +664,30 @@ model Payout {
 
   @@index([vendorId])
   @@index([status])
+}
+
+// Append-only marketplace financial ledger (see LedgerEntryType). Rows are
+// immutable — never UPDATE or DELETE. `amount` is signed (credit +, debit −).
+// Operational IDs are stored as plain strings so historical entries survive
+// deletion of the referenced order/payout (audit integrity).
+model LedgerEntry {
+  id          String          @id @default(cuid())
+  vendorId    String
+  entryType   LedgerEntryType
+  amount      Decimal         @db.Decimal(10, 2) // signed
+  currency    String          @default("AED")
+  orderId     String?
+  orderItemId String?
+  payoutId    String?
+  note        String?
+  createdAt   DateTime        @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+
+  @@index([vendorId])
+  @@index([entryType])
+  @@index([payoutId])
+  @@index([orderId])
 }
 
 // ─────────────────────────────────────────────
