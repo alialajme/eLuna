@@ -82,5 +82,5 @@ jobs:
       - name: Run tests with coverage
         run: pnpm --filter @e-luna/db test:coverage
 
-      - name: Run package unit tests (@e-luna/auth)
-        run: pnpm --filter @e-luna/auth test
+      - name: Run package unit tests (@e-luna/auth, @e-luna/observability)
+        run: pnpm --filter @e-luna/auth --filter @e-luna/observability test

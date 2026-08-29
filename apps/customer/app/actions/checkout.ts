@@ -14,6 +14,7 @@ import {
   type DomainError,
 } from "@e-luna/db";
 import { safeCurrentUser } from "../lib/auth";
+import { logger } from "@e-luna/observability";
 import { getGateway, providerAvailable } from "@e-luna/payments";
 import { parseCart } from "../lib/cart-utils";
 import { hasStripe } from "@e-luna/payments";
@@ -256,10 +257,10 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     };
   } catch (err) {
     if (isDomainError(err)) {
-      console.warn("[placeOrder] domain error", err.code);
+      logger.warn("placeOrder domain error", { action: "placeOrder", code: err.code });
       return { success: false, error: friendlyDomainMessage(err) };
     }
-    console.error("[placeOrder]", err);
+    logger.error("placeOrder failed", { action: "placeOrder", err: String(err) });
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }
@@ -361,7 +362,7 @@ export async function initiateCardPayment(input: {
     return { success: true, orderId: order.id, clientSecret: result.clientSecret };
   } catch (err) {
     if (isDomainError(err)) {
-      console.warn("[initiateCardPayment] domain error", err.code);
+      logger.warn("initiateCardPayment domain error", { action: "initiateCardPayment", code: err.code });
       return {
         success: false,
         error:
@@ -370,7 +371,7 @@ export async function initiateCardPayment(input: {
             : "We couldn't start your payment. Please try again.",
       };
     }
-    console.error("[initiateCardPayment]", err);
+    logger.error("initiateCardPayment failed", { action: "initiateCardPayment", err: String(err) });
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }
@@ -406,7 +407,7 @@ export async function syncOrderPayment(orderId: string): Promise<{ status: strin
     }
     return { status: updated?.status ?? order.status };
   } catch (err) {
-    console.error("[syncOrderPayment]", err);
+    logger.error("syncOrderPayment failed", { action: "syncOrderPayment", orderId, err: String(err) });
     return { status: "ERROR" };
   }
 }

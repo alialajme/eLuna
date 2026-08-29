@@ -75,6 +75,9 @@ importers:
       '@e-luna/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@e-luna/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
       '@e-luna/payments':
         specifier: workspace:*
         version: link:../../packages/payments
@@ -363,6 +366,21 @@ importers:
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
+
+  packages/observability:
+    devDependencies:
+      '@e-luna/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@20.19.43)
 
   packages/payments:
     dependencies:
