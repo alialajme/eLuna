@@ -130,6 +130,26 @@ Branch `hardening/observability` (stacked on security); commit `5cf46f6`.
 Deferred (documented): incremental rollout of the logger to the other apps/shared packages;
 OpenTelemetry/Application Insights exporter + traces for checkout/payment/webhook/payout flows.
 
+## Phase 4 status (§23/§24/§33–34 reliability) — CORE COMPLETE
+
+Branch `hardening/reliability` (stacked on observability); commit `e6645da`.
+- **§23 Error model** — typed taxonomy (Validation/Authentication/Authorization/NotFound/Conflict/
+  PaymentProvider/Configuration on top of the existing domain errors) + `httpStatusForError()` and
+  `toSafeMessage()` (safe, non-leaking) for consistent API responses.
+- **§24 Provider resilience** — `withTimeout` (bounds waiting on a hung provider) + `withRetry`
+  (bounded exponential backoff + full jitter, opt-in `shouldRetry`, idempotent-only). Injectable
+  clock/sleep.
+- **§33–34 Transactional outbox** — `OutboxEvent` + `appendOutboxEvent` (same tx as the state change)
+  + `processOutbox` worker: atomic `UPDATE … FOR UPDATE SKIP LOCKED` claim → PROCESSING (visibility
+  timeout), idempotent handler, backoff-retry → FAILED. Producer wired into `applyPaymentResult`
+  (emits `payment.captured` + `order.confirmed` transactionally).
+- **75 tests total** (db 61 + auth 5 + observability 9). Proven: outbox never double-processes under
+  concurrent workers.
+
+Deferred (documented): a running outbox dispatcher process/cron + real event consumers
+(notifications, invoicing, analytics); apply `withTimeout`/`withRetry` at the Stripe/courier network
+boundaries; adopt the error taxonomy across all API routes.
+
 ## Deferred to later phases
 - F7 refund guard, financial ledger (§10), payouts hardening (§11), full refund/return audit (§12).
 - Rate limiting, audit log, security headers, observability, outbox, K8s securityContext, ADRs/threat-model/DR docs.
