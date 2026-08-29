@@ -71,6 +71,26 @@ Proven invariants (real Postgres, no mocks):
 - Inventory: `stock=3` + 100 concurrent buyers → exactly 3 sold, 97 rejected, final stock 0 (never negative).
 - Wallet: `AED 100` + 10 concurrent `AED 80` debits → exactly 1 succeeds, balance 20, one immutable DEBIT ledger row.
 
+## Phase 2 status (§10/§11) — CORE COMPLETE
+
+Commit `be793f4` on `hardening/p0-financial-correctness`:
+- **§10 Financial ledger** — immutable `LedgerEntry` (+ `LedgerEntryType`, append-only, signed);
+  `appendLedgerEntry`. PAYOUT posted on completion; REFUND posted on captured-payment refund.
+- **§11 Payouts** — fixed a real **double-payout bug**: `computeVendorBalance` (centralized,
+  Decimal, subtracts in-flight PENDING/PROCESSING payouts too) replaces the duplicated float logic
+  in both the action and the payouts page; `createVendorPayout` uses `SELECT … FOR UPDATE` to
+  serialize; `assertPayoutTransition` makes COMPLETED/FAILED terminal.
+
+Verification: workspace `tsc` exit 0 · admin+vendor lint clean · **34 tests pass** (+7). New
+invariant proven: concurrent `createVendorPayout` → exactly one payout, balance never double-paid.
+
+Remaining in §12 (refund/return) — deferred:
+- Bound `Return.refundAmount` ≤ item captured value; cumulative-refund ≤ captured across partials.
+- Commission adjustment entries on refund; refund-status vs return-status separation review.
+- Make the ledger *authoritative* by posting SALE/COMMISSION accrual entries at delivery (needs
+  delivery-path test coverage first) — today balance is computed operationally + ledger is the
+  money-movement audit trail.
+
 ## Deferred to later phases
 - F7 refund guard, financial ledger (§10), payouts hardening (§11), full refund/return audit (§12).
 - Rate limiting, audit log, security headers, observability, outbox, K8s securityContext, ADRs/threat-model/DR docs.
