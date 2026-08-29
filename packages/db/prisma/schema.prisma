@@ -711,6 +711,33 @@ model AuditLog {
   @@index([createdAt])
 }
 
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+// Transactional outbox (§33–34). A domain event is written in the SAME
+// transaction as the state change that produced it, so "DB committed + event
+// lost" cannot happen. A worker later publishes PENDING events and marks them
+// PROCESSED. `availableAt` gates retry backoff; the worker claims rows with
+// FOR UPDATE SKIP LOCKED so multiple workers don't process the same event.
+model OutboxEvent {
+  id          String       @id @default(cuid())
+  type        String // e.g. "order.confirmed", "payment.captured"
+  payload     Json         @default("{}")
+  status      OutboxStatus @default(PENDING)
+  attempts    Int          @default(0)
+  error       String?
+  availableAt DateTime     @default(now())
+  createdAt   DateTime     @default(now())
+  processedAt DateTime?
+
+  @@index([status, availableAt])
+  @@index([type])
+}
+
 // ─────────────────────────────────────────────
 // SOCIAL & ENGAGEMENT
 // ─────────────────────────────────────────────

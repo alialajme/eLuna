@@ -10,7 +10,14 @@ export type DomainErrorCode =
   | "INSUFFICIENT_INVENTORY"
   | "INSUFFICIENT_FUNDS"
   | "INVALID_STATE_TRANSITION"
-  | "INVALID_AMOUNT";
+  | "INVALID_AMOUNT"
+  | "VALIDATION"
+  | "AUTHENTICATION"
+  | "AUTHORIZATION"
+  | "NOT_FOUND"
+  | "CONFLICT"
+  | "PAYMENT_PROVIDER"
+  | "CONFIGURATION";
 
 export class DomainError extends Error {
   readonly code: DomainErrorCode;
@@ -69,6 +76,87 @@ export class InvalidAmountError extends DomainError {
   }
 }
 
+export class ValidationError extends DomainError {
+  constructor(message: string) {
+    super("VALIDATION", message);
+  }
+}
+
+export class AuthenticationError extends DomainError {
+  constructor(message = "Authentication required") {
+    super("AUTHENTICATION", message);
+  }
+}
+
+export class AuthorizationError extends DomainError {
+  constructor(message = "Not authorized") {
+    super("AUTHORIZATION", message);
+  }
+}
+
+export class NotFoundError extends DomainError {
+  constructor(entity = "Resource") {
+    super("NOT_FOUND", `${entity} not found`);
+  }
+}
+
+export class ConflictError extends DomainError {
+  constructor(message: string) {
+    super("CONFLICT", message);
+  }
+}
+
+export class PaymentProviderError extends DomainError {
+  constructor(message: string) {
+    super("PAYMENT_PROVIDER", message);
+  }
+}
+
+export class ConfigurationError extends DomainError {
+  constructor(message: string) {
+    super("CONFIGURATION", message);
+  }
+}
+
 export function isDomainError(e: unknown): e is DomainError {
   return e instanceof DomainError;
+}
+
+// Map an error code to an HTTP status. Central so API routes stay consistent.
+const STATUS_BY_CODE: Record<DomainErrorCode, number> = {
+  VALIDATION: 400,
+  INVALID_AMOUNT: 400,
+  AUTHENTICATION: 401,
+  AUTHORIZATION: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  INVALID_STATE_TRANSITION: 409,
+  INSUFFICIENT_INVENTORY: 409,
+  INSUFFICIENT_FUNDS: 402,
+  PAYMENT_PROVIDER: 502,
+  CONFIGURATION: 500,
+};
+
+export function httpStatusForError(e: unknown): number {
+  return isDomainError(e) ? STATUS_BY_CODE[e.code] : 500;
+}
+
+// Safe, non-leaking user-facing message per code. Never returns raw internals /
+// stack traces / provider responses. Falls back to a generic message.
+const SAFE_MESSAGE_BY_CODE: Record<DomainErrorCode, string> = {
+  VALIDATION: "Some of the submitted data is invalid.",
+  INVALID_AMOUNT: "That amount isn't valid.",
+  AUTHENTICATION: "Please sign in to continue.",
+  AUTHORIZATION: "You don't have permission to do that.",
+  NOT_FOUND: "We couldn't find what you were looking for.",
+  CONFLICT: "That action conflicts with the current state. Please refresh and retry.",
+  INVALID_STATE_TRANSITION: "That change isn't allowed from the current state.",
+  INSUFFICIENT_INVENTORY: "Sorry — one or more items just sold out.",
+  INSUFFICIENT_FUNDS: "Your balance is too low for this.",
+  PAYMENT_PROVIDER: "The payment provider is temporarily unavailable. Please try again.",
+  CONFIGURATION: "Something went wrong. Please try again.",
+};
+
+export function toSafeMessage(e: unknown): string {
+  return isDomainError(e) ? SAFE_MESSAGE_BY_CODE[e.code] : "Something went wrong. Please try again.";
 }

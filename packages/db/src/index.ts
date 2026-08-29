@@ -11,3 +11,5 @@ export * from "./order-state";
 export * from "./health";
 export * from "./ledger";
 export * from "./audit";
+export * from "./resilience";
+export * from "./outbox";
