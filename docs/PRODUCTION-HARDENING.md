@@ -84,12 +84,17 @@ Commit `be793f4` on `hardening/p0-financial-correctness`:
 Verification: workspace `tsc` exit 0 · admin+vendor lint clean · **34 tests pass** (+7). New
 invariant proven: concurrent `createVendorPayout` → exactly one payout, balance never double-paid.
 
-Remaining in §12 (refund/return) — deferred:
-- Bound `Return.refundAmount` ≤ item captured value; cumulative-refund ≤ captured across partials.
-- Commission adjustment entries on refund; refund-status vs return-status separation review.
+**§12 refund/return — CORE COMPLETE** (commit `f1218da`):
+- `computeRefundBreakdown` bounds refund ≤ captured item value (throws on over-refund/non-positive)
+  and splits gross into vendor-net + platform-commission reversals; refund posts REFUND (−net) +
+  COMMISSION (−commission) ledger entries. `requestReturn.refundAmount` now Decimal.
+- Cumulative bound holds structurally (one active return per item; item→RETURNED once).
+- Tests +6 (40 total): commission split, Decimal exactness, over-refund/non-positive rejection.
+
+Still deferred (documented, not hidden):
 - Make the ledger *authoritative* by posting SALE/COMMISSION accrual entries at delivery (needs
-  delivery-path test coverage first) — today balance is computed operationally + ledger is the
-  money-movement audit trail.
+  delivery-path test coverage first) — today balance is operational + ledger is the money-movement
+  audit trail. Refund/return E2E through the Clerk-coupled server action (core math is unit-tested).
 
 ## Deferred to later phases
 - F7 refund guard, financial ledger (§10), payouts hardening (§11), full refund/return audit (§12).
