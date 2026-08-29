@@ -96,6 +96,26 @@ Still deferred (documented, not hidden):
   delivery-path test coverage first) — today balance is operational + ledger is the money-movement
   audit trail. Refund/return E2E through the Clerk-coupled server action (core math is unit-tested).
 
+## Phase 3 status (§16–§20) — CORE COMPLETE
+
+Branch `hardening/security` (off the financial branch); commit `e9f0607`.
+- **§16 Authorization** — full audit of all 26 server actions + API routes: auth + resource-ownership
+  scoping is already consistent across all personas; **no horizontal privilege escalation found**.
+  No rewrite of correct code (per §49). Result recorded here as the evidence.
+- **§20 Audit log** — immutable `AuditLog` + `writeAuditLog` (transactional) / `auditSafe`
+  (best-effort) with secret/PII key redaction. Wired into admin payout create/complete/fail, vendor
+  status changes, vendor refunds (atomic with the action). +4 tests.
+- **§18 Security headers** — shared `@e-luna/config/security` (HSTS, nosniff, X-Frame-Options DENY,
+  Referrer-Policy, Permissions-Policy, CSP frame-ancestors/base-uri/object-src) wired into all 4 apps.
+- **§19 Rate limiting** — storage-agnostic `RateLimiter` + in-memory sliding window (Redis-swappable)
+  + `rateLimitOr429` (fails open). Applied to the AI endpoints (chat, payment-help, delivery-help,
+  vendor + supplier assistant). +5 tests.
+- CI now runs `@e-luna/auth` unit tests alongside `@e-luna/db`. **49 tests total.**
+
+Deferred (documented): **§17 MFA** — `getAuthUser` already reads MFA state from trusted Clerk claims
+and per-app middleware enforces it; step-up-auth for payout approval is a follow-up. Nonce-based CSP
+`script-src` (needs per-request middleware + runtime testing). Redis-backed limiter for multi-replica.
+
 ## Deferred to later phases
 - F7 refund guard, financial ledger (§10), payouts hardening (§11), full refund/return audit (§12).
 - Rate limiting, audit log, security headers, observability, outbox, K8s securityContext, ADRs/threat-model/DR docs.
