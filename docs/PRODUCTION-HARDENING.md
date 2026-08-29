@@ -116,6 +116,20 @@ Deferred (documented): **§17 MFA** — `getAuthUser` already reads MFA state fr
 and per-app middleware enforces it; step-up-auth for payout approval is a follow-up. Nonce-based CSP
 `script-src` (needs per-request middleware + runtime testing). Redis-backed limiter for multi-replica.
 
+## Phase 5 status (§21 observability) — FOUNDATION COMPLETE
+
+Branch `hardening/observability` (stacked on security); commit `5cf46f6`.
+- New `@e-luna/observability`: dependency-free structured JSON logger (level filtering, `child()`
+  context binding for correlationId/orderId/paymentId/…, secret/PII redaction) + correlation-id
+  helpers (reuse inbound `x-correlation-id` or mint). OTel/App Insights exporter can wrap `write`
+  without touching call sites.
+- Reference adoption: customer checkout actions + Stripe webhook now emit structured logs
+  (correlation id on the webhook) instead of `console.*`.
+- CI runs the `@e-luna/observability` suite. **58 tests total** (44 db + 5 auth + 9 observability).
+
+Deferred (documented): incremental rollout of the logger to the other apps/shared packages;
+OpenTelemetry/Application Insights exporter + traces for checkout/payment/webhook/payout flows.
+
 ## Deferred to later phases
 - F7 refund guard, financial ledger (§10), payouts hardening (§11), full refund/return audit (§12).
 - Rate limiting, audit log, security headers, observability, outbox, K8s securityContext, ADRs/threat-model/DR docs.
