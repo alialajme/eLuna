@@ -8,6 +8,7 @@ import {
   appendLedgerEntry,
   computeRefundBreakdown,
   money,
+  writeAuditLog,
 } from "@e-luna/db";
 import { getGateway } from "@e-luna/payments";
 import { safeCurrentUser } from "../lib/auth";
@@ -201,6 +202,21 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
           note: "Platform commission reversed on refund",
         });
       }
+
+      // Immutable audit trail of the refund, atomic with it.
+      await writeAuditLog(dbtx, {
+        actorRole: "VENDOR",
+        action: "refund.issued",
+        targetType: "Return",
+        targetId: id,
+        metadata: {
+          vendorId: a.vendorId!,
+          orderId: orderItem.orderId,
+          orderItemId: orderItem.id,
+          gross: breakdown.gross.toString(),
+          moneyMoved: captured,
+        },
+      });
     });
     await recomputeOrderStatus(orderItem.orderId);
     revalidatePath("/returns");

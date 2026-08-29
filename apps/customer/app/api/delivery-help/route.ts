@@ -1,7 +1,10 @@
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { prisma } from "@e-luna/db";
 import { runLogisticsAgent, persistOnFinish } from "@e-luna/ai";
+import { createInMemoryRateLimiter, rateLimitOr429 } from "@e-luna/auth";
 import type { CoreMessage } from "ai";
+
+const limiter = createInMemoryRateLimiter({ windowMs: 60_000, max: 20 });
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +17,9 @@ export async function POST(req: Request) {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    const limited = await rateLimitOr429(limiter, `delivery-help:${user.id}`);
+    if (limited) return limited;
 
     const profile = await prisma.customerProfile
       .findUnique({ where: { userId: user.id }, select: { id: true } })

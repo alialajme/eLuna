@@ -7,12 +7,16 @@
     "./server": "./src/server.ts",
     "./middleware": "./src/middleware.ts"
   },
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "@clerk/nextjs": "^5.0.0"
   },
   "devDependencies": {
     "@e-luna/config": "workspace:*",
     "next": "15.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^2.1.0"
   }
 }

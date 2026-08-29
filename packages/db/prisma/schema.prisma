@@ -690,6 +690,27 @@ model LedgerEntry {
   @@index([orderId])
 }
 
+// Immutable security/audit log. Append-only record of sensitive actions (admin
+// operations, payout/refund/vendor approvals, status & role changes, and
+// suspicious authorization failures). Never UPDATE or DELETE. Store only
+// non-sensitive metadata — never card data, secrets, tokens, or passwords.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String? // Clerk user id of the actor (null for system/anonymous)
+  actorRole  String? // role at time of action
+  action     String // e.g. "payout.completed", "vendor.approved", "authz.denied"
+  targetType String? // e.g. "Payout", "Vendor", "Order"
+  targetId   String?
+  metadata   Json     @default("{}")
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}
+
 // ─────────────────────────────────────────────
 // SOCIAL & ENGAGEMENT
 // ─────────────────────────────────────────────

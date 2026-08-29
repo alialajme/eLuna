@@ -8,19 +8,22 @@ import {
   appendLedgerEntry,
   assertPayoutTransition,
   isDomainError,
+  writeAuditLog,
+  auditSafe,
 } from "@e-luna/db";
 import { getAuthUser } from "@e-luna/auth";
 
 type ActionResult = { success: true } | { error: string };
+type AdminActor = { userId: string; role: string | null };
 
-async function requireAdmin(): Promise<{ ok: true } | ActionResult> {
+async function requireAdmin(): Promise<{ ok: true; actor: AdminActor } | { error: string }> {
   // Defense-in-depth: verify the ADMIN role in the action itself, not just in
   // middleware. Server actions are directly-invocable POST endpoints, so route
   // gating alone would leave these updates open to any authenticated user.
   const user = await getAuthUser();
   if (!user) return { error: "Unauthorized" };
   if (user.role !== "ADMIN") return { error: "Forbidden" };
-  return { ok: true };
+  return { ok: true, actor: { userId: user.userId, role: user.role } };
 }
 
 export async function createPayout(vendorId: string): Promise<ActionResult> {
@@ -38,6 +41,14 @@ export async function createPayout(vendorId: string): Promise<ActionResult> {
     // the concurrency guarantee is unit-tested and this action stays thin.
     const result = await createVendorPayout(vendorId, vendor.ibanNumber);
     if (!result.ok) return { error: "No balance available to pay out" };
+    await auditSafe({
+      actorId: auth.actor.userId,
+      actorRole: auth.actor.role,
+      action: "payout.created",
+      targetType: "Payout",
+      targetId: result.payoutId,
+      metadata: { vendorId, amount: result.amount.toString() },
+    });
     revalidatePath("/payouts");
     return { success: true };
   } catch (err) {
@@ -80,6 +91,16 @@ async function setPayoutStatus(
           note: "Payout completed",
         });
       }
+
+      // Immutable audit trail of the admin action, atomic with the change.
+      await writeAuditLog(tx, {
+        actorId: auth.actor.userId,
+        actorRole: auth.actor.role,
+        action: `payout.${status.toLowerCase()}`,
+        targetType: "Payout",
+        targetId: id,
+        metadata: { vendorId: current.vendorId, amount: current.amount.toString() },
+      });
     });
     revalidatePath("/payouts");
     return { success: true };

@@ -10,3 +10,4 @@ export * from "./wallet";
 export * from "./order-state";
 export * from "./health";
 export * from "./ledger";
+export * from "./audit";

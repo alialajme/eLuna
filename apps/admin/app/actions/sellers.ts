@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, type VendorStatus } from "@e-luna/db";
+import { prisma, type VendorStatus, writeAuditLog } from "@e-luna/db";
 import { getAuthUser } from "@e-luna/auth";
 
 type ActionResult = { success: true } | { error: string };
@@ -18,7 +18,18 @@ async function setVendorStatus(
   if (user.role !== "ADMIN") return { error: "Forbidden" };
 
   try {
-    await prisma.vendor.update({ where: { id }, data: { status } });
+    await prisma.$transaction(async (tx) => {
+      await tx.vendor.update({ where: { id }, data: { status } });
+      // Immutable audit trail of the vendor-status change, atomic with it.
+      await writeAuditLog(tx, {
+        actorId: user.userId,
+        actorRole: user.role,
+        action: `vendor.status.${status.toLowerCase()}`,
+        targetType: "Vendor",
+        targetId: id,
+        metadata: { status },
+      });
+    });
     revalidatePath("/");
     revalidatePath("/sellers");
     revalidatePath("/sellers/approvals");
