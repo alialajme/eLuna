@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, recomputeOrderStatus } from "@e-luna/db";
+import { prisma, recomputeOrderStatus, assertPaymentTransition } from "@e-luna/db";
 import { getGateway } from "@e-luna/payments";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
@@ -111,7 +111,7 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
       where: { id: orderItem.orderId },
       select: {
         paymentMethod: true,
-        paymentTransactions: { select: { id: true, externalRef: true }, take: 1 },
+        paymentTransactions: { select: { id: true, externalRef: true, status: true }, take: 1 },
         items: { select: { id: true, fulfillmentStatus: true } },
       },
     })
@@ -119,10 +119,19 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
   if (!order) return { success: false, error: "Order not found" };
   const tx = order.paymentTransactions[0] ?? null;
 
-  // Money first — abort with no state change if the gateway refund fails.
-  const gw = getGateway(order.paymentMethod);
-  const refund = await gw.refund({ externalRef: tx?.externalRef ?? "", amount: Number(refundAmount) });
-  if (!refund.success) return { success: false, error: refund.error ?? "Refund failed" };
+  // Only issue a real (money-moving) refund when the payment was actually
+  // captured. An uncaptured payment (e.g. a COD order whose cash was never
+  // collected, or a card intent that never settled) has taken no money, so we
+  // process the return WITHOUT calling the gateway and WITHOUT flipping the
+  // payment to REFUNDED — refunding money that was never taken is a bug.
+  const captured = tx?.status === "CAPTURED" || tx?.status === "PARTIALLY_REFUNDED";
+
+  if (captured && tx) {
+    // Money first — abort with no state change if the gateway refund fails.
+    const gw = getGateway(order.paymentMethod);
+    const refund = await gw.refund({ externalRef: tx.externalRef ?? "", amount: Number(refundAmount) });
+    if (!refund.success) return { success: false, error: refund.error ?? "Refund failed" };
+  }
 
   const allReturned = order.items.every(
     (i) => i.id === orderItem.id || i.fulfillmentStatus === "RETURNED",
@@ -138,10 +147,14 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
           data: { stock: { increment: orderItem.quantity } },
         });
       }
-      if (tx) {
+      if (captured && tx) {
+        const target = allReturned ? "REFUNDED" : "PARTIALLY_REFUNDED";
+        // Defense-in-depth: reject an illegal payment transition (e.g. a double
+        // refund) rather than silently corrupting the financial record.
+        assertPaymentTransition(tx.status, target);
         await dbtx.paymentTransaction.update({
           where: { id: tx.id },
-          data: { status: allReturned ? "REFUNDED" : "PARTIALLY_REFUNDED" },
+          data: { status: target },
         });
       }
     });
