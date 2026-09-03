@@ -63,7 +63,7 @@ a migration strategy, and end-to-end/performance test coverage.
 | Integration Architecture | 8 | credential-gated, fail-closed |
 | Scalability | 6 | monolith fine; in-mem RL, no running dispatcher, single region |
 | Cloud Infrastructure | 7 | AKS/KeyVault/HA; backup/WAF/migration-Job gaps |
-| DevSecOps | 6 | tests/parity/gitleaks; no SAST/dep/container scan or build gate |
+| DevSecOps | 7 | tests/parity/gitleaks + CodeQL & Trivy (deps/IaC) configured; still no `next build` gate or live image scan; first scan run pending triage |
 | Reliability | 7 | outbox, resilience utils, health; dispatcher not running |
 | Observability | 6 | logger + correlation built + partial adoption; no OTel export |
 | Automated Testing | 6 | 75 strong unit/integration; no E2E; <90% global |
@@ -81,7 +81,9 @@ a migration strategy, and end-to-end/performance test coverage.
 
 ## Security results
 - **Secret scan (gitleaks):** clean.
-- **SAST / dependency-vuln / container scan:** ❌ not configured — cannot report results.
+- **SAST (CodeQL) + dependency/secret & IaC-misconfig scan (Trivy):** 🟡 now configured in
+  `.github/workflows/security.yml` (SARIF → Security tab). First run's findings still need triage;
+  a live container-image scan at build time remains a follow-up.
 - **Authorization:** manual audit of all 26 server actions + API routes — no horizontal privilege
   escalation. AI tool authorization is server-scoped and read-only.
 
@@ -92,8 +94,9 @@ build-time env + Prisma generate) and should run in CI as a gate (see readiness)
 
 ## Remaining risks
 - **P0:** none open in the financial/inventory core.
-- **P1:** CI security scanning absent (SAST/dep/container); DR backup retention/geo not explicitly
-  configured and no tested restore drill; rate limiting is per-instance (no Redis/WAF).
+- **P1:** CI security scanning configured (CodeQL + Trivy) but its first-run findings are untriaged
+  and a live image scan is still missing; DR backup retention/geo not explicitly configured and no
+  tested restore drill; rate limiting is per-instance (no Redis/WAF).
 - **P2:** `db push` instead of migration history + a dedicated migration Job; ledger not yet
   balance-authoritative (SALE/COMMISSION accrual); no E2E/perf coverage; CSP lacks `script-src`;
   observability rollout partial + no OTel/App Insights export; outbox dispatcher not yet running.
