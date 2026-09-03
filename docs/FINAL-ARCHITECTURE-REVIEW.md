@@ -9,13 +9,16 @@ PRs (#1 financial correctness, #2 security, #3 observability, #4 reliability) pl
 e-Luna is a well-structured modular monolith whose **financial, payment, and inventory core is now
 production-grade and proven** — the highest-risk correctness properties (no oversell, no wallet
 double-spend, no double payout, idempotent payments, bounded refunds) are enforced in the database
-transaction layer and verified by real-Postgres concurrency tests. Remaining gaps are in
-**operational maturity**: CI security scanning, DR backup configuration, distributed rate limiting,
-a migration strategy, and end-to-end/performance test coverage.
+transaction layer and verified by real-Postgres concurrency tests. The operational-maturity
+conditions from the first pass have largely been implemented — CI security scanning, DR backup
+config, a single-executor migration mechanism, and distributed rate limiting + WAF are all now in
+code/config. Remaining gaps are **validation steps that need a live environment** (a DR restore
+drill; cluster-enabling the opt-in migration Job and Front Door) plus **end-to-end/performance test
+coverage**.
 
-- **Overall architecture score: 7.6 / 10**
-- **Production readiness score: 7 / 10**
-- **Decision: PRODUCTION APPROVED WITH CONDITIONS** (see end).
+- **Overall architecture score: 7.7 / 10**
+- **Production readiness score: 7.5 / 10**
+- **Decision: PRODUCTION APPROVED WITH CONDITIONS** (conditions now mostly implemented; see end).
 
 ## Before vs after
 
@@ -56,12 +59,12 @@ a migration strategy, and end-to-end/performance test coverage.
 | Architecture Design | 8 | clean modular monolith, service seams, ADRs |
 | Code Organization | 8 | domain logic in `@e-luna/db`; thin actions |
 | Data Architecture | 8 | Decimal, ledgers, FKs/`Restrict`, indexes; `db push` not migrations |
-| Security | 7 | strong authz/secrets/headers; no CI scanning, in-mem RL, no `script-src` CSP |
+| Security | 8 | strong authz/secrets/headers + CI scanning + Redis RL + WAF; `script-src` CSP still open |
 | Payment Architecture | 9 | fail-closed, idempotent, order-first |
 | Financial Integrity | 9 | ledger + Decimal + proven invariants; accrual deferred |
 | Inventory Integrity | 9 | atomic reservation proven; no time-expiry model |
 | Integration Architecture | 8 | credential-gated, fail-closed |
-| Scalability | 6 | monolith fine; in-mem RL, no running dispatcher, single region |
+| Scalability | 7 | monolith fine; distributed RL now cross-instance; no running outbox dispatcher, single region |
 | Cloud Infrastructure | 8 | AKS/KeyVault/Zone-HA + 35d geo-redundant backup + single-executor migration Job; WAF + tested restore drill outstanding |
 | DevSecOps | 7 | tests/parity/gitleaks + CodeQL & Trivy (deps/IaC) configured; still no `next build` gate or live image scan; first scan run pending triage |
 | Reliability | 7 | outbox, resilience utils, health; dispatcher not running |
@@ -96,7 +99,8 @@ build-time env + Prisma generate) and should run in CI as a gate (see readiness)
 - **P0:** none open in the financial/inventory core.
 - **P1:** CI security scanning configured (CodeQL + Trivy) but its first-run findings are untriaged
   and a live image scan is still missing; DR backup retention/geo now configured but the restore
-  drill is untested; rate limiting is per-instance (no Redis/WAF).
+  drill is untested; distributed rate limiting + Front Door/WAF implemented but need cluster
+  validation (provision Redis/`REDIS_URL`; wire the Front Door origin).
 - **P2:** migration Job added (ADR-0007) but disabled pending cluster validation + a committed
   migration history (`migrate deploy` cutover); ledger not yet balance-authoritative (SALE/COMMISSION
   accrual); no E2E/perf coverage; CSP lacks `script-src`; observability rollout partial + no
@@ -109,7 +113,9 @@ build-time env + Prisma generate) and should run in CI as a gate (see readiness)
 
 The core commerce engine (payments, wallet, inventory, orders, payouts, refunds, ledger) is
 production-grade, fail-closed, and proven under concurrency — it is safe to process real money and
-stock. Full production launch is gated on the **P1** conditions: enable CI security scanning,
-configure + drill database DR (backup retention/geo, restore test), move rate limiting to a
-distributed backend behind a WAF, and adopt a real migration strategy. The **P2/P3** items should
-follow shortly after but do not, by themselves, block a controlled launch.
+stock. The **P1** conditions have now largely been implemented in code/config — CI security scanning
+(CodeQL + Trivy), DR backups (35-day PITR + geo-redundant), a single-executor migration mechanism,
+and distributed rate limiting + Front Door/WAF. What remains before an unconditional sign-off are the
+**validation steps that require a live environment**: triage the first security-scan run, perform a
+DR restore drill, and cluster-enable + validate the opt-in migration Job and Front Door. E2E/
+performance coverage (**P2**) should follow but does not, by itself, block a controlled launch.

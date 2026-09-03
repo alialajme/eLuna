@@ -8,7 +8,7 @@ without evidence in the repo. Legend: ✅ PASS · 🟡 PARTIAL · ❌ FAIL/NOT D
 | **Architecture** | ✅ | Modular monolith, domain logic in `@e-luna/db`; ADRs in `docs/adr`; diagrams in `docs/architecture` |
 | **Security — authz** | ✅ | Role + ownership re-checked in every server action; audit found no HPE |
 | **Security — headers** | 🟡 | HSTS/nosniff/frame-ancestors/Referrer/Permissions on all apps; CSP has no `script-src` yet |
-| **Security — rate limiting** | 🟡 | In-memory limiter on AI endpoints; Redis-backed + WAF outstanding |
+| **Security — rate limiting** | 🟡 | Redis-backed limiter on AI endpoints (in-memory fallback) + Azure Front Door/WAF Bicep (managed rules + per-IP rate limit); cluster validation + Front Door origin wiring outstanding |
 | **Security — secrets** | ✅ | Key Vault CSI + workload identity; gitleaks; redaction in logger/audit |
 | **Security — scanning** | 🟡 | CodeQL (SAST) + Trivy (deps/secrets + IaC misconfig) configured in `security.yml`; gitleaks for secrets. First-run results pending triage; live image scan still at build time |
 | **IAM / auth** | ✅ | Clerk per-app; roles from trusted claims; MFA policy; admin defense-in-depth |
@@ -35,7 +35,8 @@ without evidence in the repo. Legend: ✅ PASS · 🟡 PARTIAL · ❌ FAIL/NOT D
    remediate CRITICAL/HIGH, and add a live container-image scan at build time.
 2. 🟡 DR: backup retention (35d) + geo-redundant backup now configured; **run a restore drill** to
    validate RPO/RTO.
-3. 🟡 Rate limiting: Redis-backed limiter + WAF for multi-replica.
+3. 🟡 Rate limiting: Redis-backed limiter + Front Door/WAF Bicep now implemented; **validate in a
+   cluster** (provision Redis + `REDIS_URL`, deploy Front Door with the ingress origin).
 4. 🟡 DB: single-executor migration Job added (ADR-0007); **enable + validate in a cluster and cut
    over to a committed migration history (`migrate deploy`)** — stop relying on `db push` in prod.
 
