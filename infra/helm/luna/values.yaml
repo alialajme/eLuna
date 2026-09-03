@@ -50,3 +50,15 @@ autoscaling:
   minReplicas: 2
   maxReplicas: 6
   targetCPUUtilizationPercentage: 70
+
+# Single-executor DB migration (pre-install/pre-upgrade Helm hook Job, §44).
+# Disabled by default: enable once the `migrator` image is built + pushed and the
+# Job has been validated against a cluster. Uses the same image.tag as the apps.
+migration:
+  enabled: false
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
+  # Default applies the current schema. Switch to a migrate-deploy command once a
+  # committed Prisma migration history exists (see docs/adr/0007-database-migrations.md):
+  #   ["pnpm","--filter","@e-luna/db","exec","prisma","migrate","deploy"]
+  command: ["pnpm", "--filter", "@e-luna/db", "exec", "prisma", "db", "push", "--skip-generate"]

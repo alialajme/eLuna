@@ -13,7 +13,7 @@ transaction layer and verified by real-Postgres concurrency tests. Remaining gap
 **operational maturity**: CI security scanning, DR backup configuration, distributed rate limiting,
 a migration strategy, and end-to-end/performance test coverage.
 
-- **Overall architecture score: 7.5 / 10**
+- **Overall architecture score: 7.6 / 10**
 - **Production readiness score: 7 / 10**
 - **Decision: PRODUCTION APPROVED WITH CONDITIONS** (see end).
 
@@ -62,7 +62,7 @@ a migration strategy, and end-to-end/performance test coverage.
 | Inventory Integrity | 9 | atomic reservation proven; no time-expiry model |
 | Integration Architecture | 8 | credential-gated, fail-closed |
 | Scalability | 6 | monolith fine; in-mem RL, no running dispatcher, single region |
-| Cloud Infrastructure | 7 | AKS/KeyVault/HA; backup/WAF/migration-Job gaps |
+| Cloud Infrastructure | 8 | AKS/KeyVault/Zone-HA + 35d geo-redundant backup + single-executor migration Job; WAF + tested restore drill outstanding |
 | DevSecOps | 7 | tests/parity/gitleaks + CodeQL & Trivy (deps/IaC) configured; still no `next build` gate or live image scan; first scan run pending triage |
 | Reliability | 7 | outbox, resilience utils, health; dispatcher not running |
 | Observability | 6 | logger + correlation built + partial adoption; no OTel export |
@@ -95,11 +95,12 @@ build-time env + Prisma generate) and should run in CI as a gate (see readiness)
 ## Remaining risks
 - **P0:** none open in the financial/inventory core.
 - **P1:** CI security scanning configured (CodeQL + Trivy) but its first-run findings are untriaged
-  and a live image scan is still missing; DR backup retention/geo not explicitly configured and no
-  tested restore drill; rate limiting is per-instance (no Redis/WAF).
-- **P2:** `db push` instead of migration history + a dedicated migration Job; ledger not yet
-  balance-authoritative (SALE/COMMISSION accrual); no E2E/perf coverage; CSP lacks `script-src`;
-  observability rollout partial + no OTel/App Insights export; outbox dispatcher not yet running.
+  and a live image scan is still missing; DR backup retention/geo now configured but the restore
+  drill is untested; rate limiting is per-instance (no Redis/WAF).
+- **P2:** migration Job added (ADR-0007) but disabled pending cluster validation + a committed
+  migration history (`migrate deploy` cutover); ledger not yet balance-authoritative (SALE/COMMISSION
+  accrual); no E2E/perf coverage; CSP lacks `script-src`; observability rollout partial + no
+  OTel/App Insights export; outbox dispatcher not yet running.
 - **P3:** abandoned-card inventory hold has no time-expiry; upload validation to formalize.
 
 ## Production decision

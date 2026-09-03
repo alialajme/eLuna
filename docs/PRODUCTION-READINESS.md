@@ -20,22 +20,24 @@ without evidence in the repo. Legend: ✅ PASS · 🟡 PARTIAL · ❌ FAIL/NOT D
 | **Payouts** | ✅ | Race-safe (`FOR UPDATE`), reserved-aware Decimal balance, terminal transitions, audited |
 | **Financial ledger** | 🟡 | Immutable ledger for movements; SALE/COMMISSION accrual (authoritative balance) deferred |
 | **Integrations** | ✅ | All credential-gated & fail-closed (payments/courier/einvoice); Simulated fallbacks non-prod-only |
-| **Database** | 🟡 | Decimal money, FKs, `Restrict` on financial rows, indexes; schema applied via `db push` — a migration history/Job is a follow-up |
+| **Database** | 🟡 | Decimal money, FKs, `Restrict` on financial rows, indexes; single-executor migration Job added (ADR-0007, disabled pending cluster validation); committed migration history + `migrate deploy` cutover still to do |
 | **Infrastructure** | 🟡 | AKS Helm (4 apps, securityContext, HPA/PDB), Key Vault, Zone-redundant PG; Front Door/WAF + backup config outstanding |
 | **CI/CD** | 🟡 | Install/lint/typecheck/tests(+coverage)/gitleaks/deploy-parity + CodeQL & Trivy (deps/IaC); still missing a production `next build` gate and live image scan |
 | **Observability** | 🟡 | Structured logger + correlation IDs; adopted in checkout/webhook; broad rollout + OTel/App Insights export outstanding |
 | **Health/readiness** | ✅ | Split `/api/health/{live,ready}` (DB-checked) on all apps; wired to probes |
 | **Testing** | 🟡 | 75 unit/integration tests incl. real-DB concurrency proofs; **no app/E2E tests; global 90% target not met** |
 | **Performance** | ❌ | No load/perf tests or baselines captured yet |
-| **Disaster recovery** | 🟡 | Zone-redundant HA + default PITR; explicit backup retention/geo + tested restore drill outstanding (see DR doc) |
+| **Disaster recovery** | 🟡 | Zone-redundant HA + 35-day PITR + geo-redundant backup now configured; tested restore drill + paired-region runbook outstanding (see DR doc) |
 | **Documentation** | ✅ | Architecture, ADRs, threat model, DR, this checklist, hardening log, final review |
 
 ## Blocking for production (must fix)
 1. 🟡 CI security scanning — CodeQL + Trivy now configured (`security.yml`); triage the first run and
    remediate CRITICAL/HIGH, and add a live container-image scan at build time.
-2. 🟡 DR: set explicit backup retention + geo-redundant backup; run a restore drill.
+2. 🟡 DR: backup retention (35d) + geo-redundant backup now configured; **run a restore drill** to
+   validate RPO/RTO.
 3. 🟡 Rate limiting: Redis-backed limiter + WAF for multi-replica.
-4. 🟡 DB: introduce migration history + a dedicated migration Job (stop relying on `db push` in prod).
+4. 🟡 DB: single-executor migration Job added (ADR-0007); **enable + validate in a cluster and cut
+   over to a committed migration history (`migrate deploy`)** — stop relying on `db push` in prod.
 
 ## Strongly recommended before scale
 - App/E2E test coverage (Playwright) for the critical journeys; drive coverage toward target.

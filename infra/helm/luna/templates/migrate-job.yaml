@@ -1,0 +1,54 @@
+{{- if .Values.migration.enabled }}
+# Single-executor schema migration (§44). Runs as a Helm pre-install/pre-upgrade
+# hook BEFORE the app Deployments update, so replicas never race the migration.
+# Disabled by default — enable once the migrator image is built/pushed and the
+# Job has been validated against a cluster (see docs/adr/0007-database-migrations.md).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: luna-migrate
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migration.backoffLimit | default 2 }}
+  activeDeadlineSeconds: {{ .Values.migration.activeDeadlineSeconds | default 600 }}
+  template:
+    metadata:
+      labels:
+        app: luna-migrate
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: migrate
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}/migrator:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities: { drop: ["ALL"] }
+          {{- with .Values.migration.command }}
+          command: {{ . | toJson }}
+          {{- end }}
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+          envFrom:
+            - secretRef: { name: luna-migrate-secrets }
+          resources: {{ toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes: { secretProviderClass: luna-spc }
+{{- end }}
