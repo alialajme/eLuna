@@ -66,6 +66,72 @@ export function createInMemoryRateLimiter(opts: InMemoryRateLimiterOptions): Rat
 }
 
 /**
+ * Minimal Redis surface the distributed limiter needs. `ioredis` and `node-redis`
+ * both satisfy this, so we don't hard-depend on a specific client.
+ */
+export interface RedisLike {
+  incr(key: string): Promise<number>;
+  pexpire(key: string, ms: number): Promise<unknown>;
+}
+
+export type RedisRateLimiterOptions = {
+  windowMs: number;
+  max: number;
+  /** key namespace prefix */
+  prefix?: string;
+  now?: () => number;
+};
+
+/**
+ * Distributed fixed-window limiter backed by Redis. Correct across app replicas
+ * because `INCR` is atomic server-side: all instances increment the same
+ * per-window counter. The first increment in a window sets the TTL. Use this in
+ * production (multi-replica) instead of the in-memory limiter.
+ */
+export function createRedisRateLimiter(redis: RedisLike, opts: RedisRateLimiterOptions): RateLimiter {
+  const { windowMs, max } = opts;
+  const prefix = opts.prefix ?? "ratelimit";
+  const now = opts.now ?? Date.now;
+
+  return {
+    async limit(key: string): Promise<RateLimitResult> {
+      const t = now();
+      const windowIndex = Math.floor(t / windowMs);
+      const redisKey = `${prefix}:${key}:${windowIndex}`;
+      const count = await redis.incr(redisKey);
+      if (count === 1) await redis.pexpire(redisKey, windowMs);
+      const reset = (windowIndex + 1) * windowMs;
+      return { success: count <= max, remaining: Math.max(0, max - count), reset };
+    },
+  };
+}
+
+// Process-wide limiter for the AI endpoints. Redis-backed when REDIS_URL is set
+// (authoritative across replicas), else the in-memory floor. Built once, lazily,
+// so ioredis is only loaded when actually configured.
+let aiLimiter: Promise<RateLimiter> | undefined;
+
+export function getAiRateLimiter(): Promise<RateLimiter> {
+  if (!aiLimiter) aiLimiter = buildAiLimiter();
+  return aiLimiter;
+}
+
+async function buildAiLimiter(): Promise<RateLimiter> {
+  const url = process.env.REDIS_URL;
+  const windowMs = 60_000;
+  const max = 20;
+  if (!url) return createInMemoryRateLimiter({ windowMs, max });
+  try {
+    const { default: Redis } = await import("ioredis");
+    const client = new Redis(url);
+    return createRedisRateLimiter(client as unknown as RedisLike, { windowMs, max, prefix: "ai" });
+  } catch (e) {
+    console.error("[ratelimit] Redis init failed, falling back to in-memory", e);
+    return createInMemoryRateLimiter({ windowMs, max });
+  }
+}
+
+/**
  * Enforce a limit and, if exceeded, return a ready-to-send 429 Response;
  * otherwise return null so the caller proceeds. Fails OPEN (returns null) if the
  * limiter itself errors — availability over strictness for non-critical paths.

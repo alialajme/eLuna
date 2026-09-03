@@ -1,12 +1,8 @@
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { prisma } from "@e-luna/db";
 import { runPaymentAgent, persistOnFinish } from "@e-luna/ai";
-import { createInMemoryRateLimiter, rateLimitOr429 } from "@e-luna/auth";
+import { getAiRateLimiter, rateLimitOr429 } from "@e-luna/auth";
 import type { CoreMessage } from "ai";
-
-// Per-instance limiter for this expensive AI endpoint (see @e-luna/auth ratelimit
-// notes — swap for a Redis-backed RateLimiter in multi-replica production).
-const limiter = createInMemoryRateLimiter({ windowMs: 60_000, max: 20 });
 
 export async function POST(req: Request) {
   try {
@@ -20,7 +16,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const limited = await rateLimitOr429(limiter, `payment-help:${user.id}`);
+    const limited = await rateLimitOr429(await getAiRateLimiter(), `payment-help:${user.id}`);
     if (limited) return limited;
 
     const profile = await prisma.customerProfile

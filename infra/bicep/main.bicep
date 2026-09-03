@@ -13,6 +13,12 @@ param pgAdminUser string = 'lunaadmin'
 @secure()
 param pgAdminPassword string
 
+@description('Deploy Azure Front Door + WAF in front of the ingress (second step — needs the ingress public host)')
+param deployFrontDoor bool = false
+
+@description('Public FQDN/IP of the AKS ingress LoadBalancer (required when deployFrontDoor=true)')
+param ingressHostName string = ''
+
 var rgName = '${prefix}-rg'
 var tags = { project: 'e-luna', managedBy: 'bicep' }
 
@@ -63,6 +69,16 @@ module postgres 'modules/postgres.bicep' = {
     vnetId: network.outputs.vnetId
     adminUser: pgAdminUser
     adminPassword: pgAdminPassword
+  }
+}
+
+module frontdoor 'modules/frontdoor.bicep' = if (deployFrontDoor) {
+  scope: rg
+  name: 'frontdoor'
+  params: {
+    prefix: prefix
+    tags: tags
+    originHostName: ingressHostName
   }
 }
 

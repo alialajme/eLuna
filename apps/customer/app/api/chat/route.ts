@@ -1,11 +1,8 @@
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { prisma } from "@e-luna/db";
 import { runShoppingAgent, persistOnFinish } from "@e-luna/ai";
-import { createInMemoryRateLimiter, rateLimitOr429 } from "@e-luna/auth";
+import { getAiRateLimiter, rateLimitOr429 } from "@e-luna/auth";
 import type { CoreMessage } from "ai";
-
-// Guest-tolerant endpoint: limit by user when signed in, else by client IP.
-const limiter = createInMemoryRateLimiter({ windowMs: 60_000, max: 30 });
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +14,7 @@ export async function POST(req: Request) {
     const user = await currentUser();
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const limited = await rateLimitOr429(limiter, `chat:${user?.id ?? ip}`);
+    const limited = await rateLimitOr429(await getAiRateLimiter(), `chat:${user?.id ?? ip}`);
     if (limited) return limited;
 
     const sizeProfile = user

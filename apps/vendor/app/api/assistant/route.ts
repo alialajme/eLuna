@@ -1,10 +1,8 @@
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { runSellerAgent, persistOnFinish } from "@e-luna/ai";
-import { createInMemoryRateLimiter, rateLimitOr429 } from "@e-luna/auth";
+import { getAiRateLimiter, rateLimitOr429 } from "@e-luna/auth";
 import type { CoreMessage } from "ai";
-
-const limiter = createInMemoryRateLimiter({ windowMs: 60_000, max: 20 });
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +16,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const limited = await rateLimitOr429(limiter, `assistant:${user.id}`);
+    const limited = await rateLimitOr429(await getAiRateLimiter(), `assistant:${user.id}`);
     if (limited) return limited;
 
     const vendor = await getVendorByUserId(user.id);
