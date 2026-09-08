@@ -6,6 +6,7 @@ import { courierName, trackingUrl } from "@e-luna/ui/couriers";
 import { safeCurrentUser } from "../../../../lib/auth";
 import { getVendorByUserId } from "../../../../lib/vendor";
 import { CancelOrderButton } from "../../../components/CancelOrderButton";
+import { RequestReturnForm } from "../../../components/RequestReturnForm";
 
 export const metadata: Metadata = { title: "Order — Luna Vendor" };
 
@@ -14,6 +15,14 @@ type Props = { params: Promise<{ id: string }> };
 function label(s: string): string {
   return s.charAt(0) + s.slice(1).toLowerCase();
 }
+
+const RETURN_STATUS_CLASSES: Record<string, string> = {
+  REQUESTED: "bg-gold/20 text-gold",
+  APPROVED: "bg-gold/20 text-gold",
+  RECEIVED: "bg-gold/20 text-gold",
+  REFUNDED: "bg-sage/20 text-sage",
+  REJECTED: "bg-coral/10 text-coral",
+};
 
 export default async function MaterialOrderDetailPage({ params }: Props) {
   const { id } = await params;
@@ -26,11 +35,14 @@ export default async function MaterialOrderDetailPage({ params }: Props) {
   const order = await prisma.materialOrder
     .findUnique({
       where: { id },
-      include: { items: true, supplier: { select: { companyName: true } } },
+      include: { items: true, supplier: { select: { companyName: true } }, materialReturn: true },
     })
     .catch(() => null);
 
   if (!order || order.vendorId !== vendor.id) notFound();
+
+  const ret = order.materialReturn;
+  const canReturn = !ret && ["SHIPPED", "COMPLETED"].includes(order.status);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -96,7 +108,29 @@ export default async function MaterialOrderDetailPage({ params }: Props) {
         )
       )}
 
+      {ret && (
+        <div className="rounded-2xl border border-sand bg-ivory p-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-label text-mist">RETURN</p>
+            <span className={`rounded-full px-3 py-1 text-body-xs font-medium ${RETURN_STATUS_CLASSES[ret.status] ?? "bg-sand text-mist"}`}>
+              {label(ret.status)}
+            </span>
+          </div>
+          <p className="text-body-sm text-ink">{ret.reason}</p>
+          {ret.resolutionNote && (
+            <p className="text-body-xs text-mist">Supplier: {ret.resolutionNote}</p>
+          )}
+          {ret.status === "REFUNDED" && (
+            <p className="text-body-xs text-sage">
+              Refunded AED {Number(ret.refundAmount).toLocaleString("en-AE", { minimumFractionDigits: 2 })}
+              {ret.isRestocked ? " · restocked" : ""}
+            </p>
+          )}
+        </div>
+      )}
+
       {order.status === "PENDING" && <CancelOrderButton orderId={order.id} />}
+      {canReturn && <RequestReturnForm orderId={order.id} />}
     </div>
   );
 }

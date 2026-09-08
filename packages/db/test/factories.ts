@@ -98,3 +98,35 @@ export async function balanceOf(profileId: string): Promise<string> {
   const p = await prisma.customerProfile.findUniqueOrThrow({ where: { id: profileId }, select: { walletBalance: true } });
   return p.walletBalance.toString();
 }
+
+/** Create an ACTIVE supplier (with IBAN) — no materials. */
+export async function makeSupplierOnly(iban = "AE070331234567890999") {
+  const userId = uid("susr");
+  await prisma.user.create({ data: { id: userId, email: `${userId}@test.local`, role: "SUPPLIER" } });
+  const supplier = await prisma.supplier.create({
+    data: {
+      userId,
+      companyName: "Test Supplier",
+      companySlug: uid("supp"),
+      status: "ACTIVE",
+      materialTypes: ["Fabric"],
+      ibanNumber: iban,
+    },
+  });
+  return { supplierId: supplier.id, userId };
+}
+
+type MaterialOrderStatus = "PENDING" | "ACCEPTED" | "SHIPPED" | "COMPLETED" | "CANCELLED" | "REJECTED" | "REFUNDED";
+
+/** Create a MaterialOrder from a fresh vendor buyer to `supplierId`. */
+export async function makeMaterialOrder(
+  supplierId: string,
+  total: string,
+  status: MaterialOrderStatus = "COMPLETED",
+) {
+  const { vendorId } = await makeVendorOnly();
+  const order = await prisma.materialOrder.create({
+    data: { vendorId, supplierId, total, status },
+  });
+  return { orderId: order.id, vendorId };
+}
