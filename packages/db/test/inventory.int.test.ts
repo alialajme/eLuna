@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { prisma } from "../src/client";
 import { reserveStockTx, releaseStockTx } from "../src/inventory";
-import { InsufficientInventoryError } from "../src/errors";
+import { InsufficientInventoryError, InvalidAmountError } from "../src/errors";
 import { makeVariant, stockOf } from "./factories";
 
 describe("inventory reservation (integration, real Postgres)", () => {
@@ -9,6 +9,31 @@ describe("inventory reservation (integration, real Postgres)", () => {
     const { variantId } = await makeVariant(5);
     await prisma.$transaction((tx) => reserveStockTx(tx, [{ variantId, quantity: 2 }]));
     expect(await stockOf(variantId)).toBe(3);
+  });
+
+  it("rejects a non-positive or non-integer reserve quantity", async () => {
+    const { variantId } = await makeVariant(5);
+    await expect(
+      prisma.$transaction((tx) => reserveStockTx(tx, [{ variantId, quantity: 0 }])),
+    ).rejects.toBeInstanceOf(InvalidAmountError);
+    await expect(
+      prisma.$transaction((tx) => reserveStockTx(tx, [{ variantId, quantity: 1.5 }])),
+    ).rejects.toBeInstanceOf(InvalidAmountError);
+    expect(await stockOf(variantId)).toBe(5); // untouched
+  });
+
+  it("reports available 0 when the variant does not exist", async () => {
+    await expect(
+      prisma.$transaction((tx) =>
+        reserveStockTx(tx, [{ variantId: "does-not-exist", quantity: 1 }]),
+      ),
+    ).rejects.toMatchObject({ available: 0 });
+  });
+
+  it("release skips non-positive lines (no-op)", async () => {
+    const { variantId } = await makeVariant(4);
+    await prisma.$transaction((tx) => releaseStockTx(tx, [{ variantId, quantity: 0 }]));
+    expect(await stockOf(variantId)).toBe(4); // unchanged by the skipped line
   });
 
   it("throws InsufficientInventoryError and rolls back when stock is short", async () => {

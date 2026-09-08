@@ -36,6 +36,48 @@ describe("wallet (integration, real Postgres)", () => {
     ).rejects.toBeInstanceOf(InvalidAmountError);
   });
 
+  it("persists orderId + reference on the debit ledger row", async () => {
+    const { profileId } = await makeCustomer(100);
+    await prisma.$transaction((tx) =>
+      debitWalletTx(tx, {
+        customerProfileId: profileId,
+        amount: 10,
+        orderId: null,
+        reference: "REF-123",
+      }),
+    );
+    // orderId passed as null exercises the non-default path; reference is set.
+    const row = await prisma.walletTransaction.findFirstOrThrow({ where: { customerProfileId: profileId } });
+    expect(row.reference).toBe("REF-123");
+    expect(row.orderId).toBeNull();
+  });
+
+  it("reports available 0 when the customer profile does not exist", async () => {
+    await expect(
+      prisma.$transaction((tx) =>
+        debitWalletTx(tx, { customerProfileId: "does-not-exist", amount: 5 }),
+      ),
+    ).rejects.toMatchObject({ available: "0" });
+  });
+
+  it("defaults credit type to CREDIT and stores reference", async () => {
+    const { profileId } = await makeCustomer(0);
+    await prisma.$transaction((tx) =>
+      creditWalletTx(tx, { customerProfileId: profileId, amount: 25, reference: "TOPUP-1" }),
+    );
+    const row = await prisma.walletTransaction.findFirstOrThrow({ where: { customerProfileId: profileId } });
+    expect(row.type).toBe("CREDIT"); // no `type` passed → default
+    expect(row.reference).toBe("TOPUP-1");
+    expect(await balanceOf(profileId)).toBe("25");
+  });
+
+  it("rejects a non-positive credit", async () => {
+    const { profileId } = await makeCustomer(10);
+    await expect(
+      prisma.$transaction((tx) => creditWalletTx(tx, { customerProfileId: profileId, amount: 0 })),
+    ).rejects.toBeInstanceOf(InvalidAmountError);
+  });
+
   it("credits (refund) and appends a ledger row", async () => {
     const { profileId } = await makeCustomer(20);
     await prisma.$transaction((tx) =>
