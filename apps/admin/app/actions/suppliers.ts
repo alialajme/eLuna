@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma, type SupplierStatus } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { getAuthUser, syncClerkRole } from "@e-luna/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -17,7 +17,18 @@ async function setSupplierStatus(
   if (user.role !== "ADMIN") return { error: "Forbidden" };
 
   try {
-    await prisma.supplier.update({ where: { id }, data: { status } });
+    const supplier = await prisma.supplier.update({
+      where: { id },
+      data: { status },
+      select: { userId: true },
+    });
+
+    // On approval, sync role + supplierId into Clerk so the supplier's session
+    // claim grants access to their OS. Best-effort; never blocks the DB write.
+    if (status === "ACTIVE") {
+      await syncClerkRole(supplier.userId, { role: "SUPPLIER", supplierId: id });
+    }
+
     revalidatePath("/");
     revalidatePath("/suppliers");
     revalidatePath("/suppliers/approvals");

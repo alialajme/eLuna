@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@e-luna/db";
+import { syncClerkRole } from "@e-luna/auth";
 import { safeCurrentUser } from "../lib/auth";
 
 export async function createVendor(
@@ -41,14 +42,20 @@ export async function createVendor(
       update: { role: "VENDOR" },
     });
 
-    await prisma.vendor.create({
+    const vendor = await prisma.vendor.create({
       data: {
         userId: user.id,
         storeName: trimmedName,
         storeSlug: trimmedSlug,
         status: "PENDING",
       },
+      select: { id: true },
     });
+
+    // Push role + vendorId into Clerk so the session claim reflects it. Status
+    // stays PENDING (they land on /pending until an admin approves); the role
+    // lets the app route them there instead of treating them as a stranger.
+    await syncClerkRole(user.id, { role: "VENDOR", vendorId: vendor.id });
 
     return { success: true };
   } catch (err) {
