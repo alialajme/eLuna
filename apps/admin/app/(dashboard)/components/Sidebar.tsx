@@ -7,9 +7,8 @@ import { SignOutButton } from "@clerk/nextjs";
 const NAV_ITEMS = [
   { icon: "📊", label: "Overview", href: "/" },
   { icon: "🔑", label: "Users & Access", href: "/users" },
-  { icon: "🏬", label: "Sellers", href: "/sellers" },
-  { icon: "✅", label: "Approvals", href: "/sellers/approvals" },
-  { icon: "🧵", label: "Suppliers", href: "/suppliers/approvals" },
+  { icon: "🏬", label: "Vendors", href: "/sellers" },
+  { icon: "🧵", label: "Suppliers", href: "/suppliers" },
   { icon: "📋", label: "Orders", href: "/orders" },
   { icon: "🛍️", label: "Products", href: "/products" },
   { icon: "🏷️", label: "Categories", href: "/categories" },
@@ -40,9 +39,9 @@ export function Sidebar() {
             href === "/"
               ? pathname === "/"
               : href === "/sellers"
-                ? (pathname === "/sellers" ||
-                    (pathname.startsWith("/sellers/") &&
-                      pathname !== "/sellers/approvals"))
+                ? pathname === "/sellers" || pathname.startsWith("/sellers/")
+                : href === "/suppliers"
+                ? pathname === "/suppliers" || pathname.startsWith("/suppliers/")
                 : href === "/orders"
                   ? pathname === "/orders" || pathname.startsWith("/orders/")
                   : href === "/products"
