@@ -4,6 +4,8 @@ import {
   assertOrderTransition,
   canTransitionPayment,
   assertPaymentTransition,
+  canTransitionPayout,
+  assertPayoutTransition,
 } from "../src/order-state";
 import { InvalidStateTransitionError } from "../src/errors";
 
@@ -70,5 +72,36 @@ describe("payment state machine", () => {
   it("assertPaymentTransition throws typed error on invalid", () => {
     expect(() => assertPaymentTransition("FAILED", "CAPTURED")).toThrow(InvalidStateTransitionError);
     expect(() => assertPaymentTransition("PENDING", "CAPTURED")).not.toThrow();
+  });
+});
+
+describe("payout state machine", () => {
+  it("allows valid forward transitions and identity", () => {
+    expect(canTransitionPayout("PENDING", "PROCESSING")).toBe(true);
+    expect(canTransitionPayout("PENDING", "COMPLETED")).toBe(true);
+    expect(canTransitionPayout("PROCESSING", "COMPLETED")).toBe(true);
+    expect(canTransitionPayout("PROCESSING", "FAILED")).toBe(true);
+    expect(canTransitionPayout("PENDING", "PENDING")).toBe(true); // idempotent
+  });
+
+  it("treats COMPLETED and FAILED as terminal (no revert → can't pay twice)", () => {
+    expect(canTransitionPayout("COMPLETED", "PROCESSING")).toBe(false);
+    expect(canTransitionPayout("COMPLETED", "PENDING")).toBe(false);
+    expect(canTransitionPayout("FAILED", "PROCESSING")).toBe(false);
+  });
+
+  it("assertPayoutTransition throws typed error on invalid", () => {
+    expect(() => assertPayoutTransition("COMPLETED", "PROCESSING")).toThrow(InvalidStateTransitionError);
+    try {
+      assertPayoutTransition("COMPLETED", "PROCESSING");
+    } catch (e) {
+      expect(e).toBeInstanceOf(InvalidStateTransitionError);
+      if (e instanceof InvalidStateTransitionError) {
+        expect(e.entity).toBe("Payout");
+        expect(e.from).toBe("COMPLETED");
+        expect(e.to).toBe("PROCESSING");
+      }
+    }
+    expect(() => assertPayoutTransition("PENDING", "COMPLETED")).not.toThrow();
   });
 });
