@@ -6,6 +6,13 @@ import { SupplierActions } from "../../components/SupplierActions";
 
 export const metadata: Metadata = { title: "Supplier Approvals — Luna Ops" };
 
+const LICENSE_BADGE: Record<string, { className: string; label: string }> = {
+  VERIFIED: { className: "bg-sage/20 text-sage", label: "Licence verified" },
+  PENDING: { className: "bg-gold/20 text-gold", label: "Licence pending" },
+  REJECTED: { className: "bg-coral/10 text-coral", label: "Licence rejected" },
+  UNVERIFIED: { className: "bg-sand text-mist", label: "Licence not verified" },
+};
+
 export default async function SupplierApprovalsPage() {
   const user = await safeCurrentUser();
   if (!user) redirect("/");
@@ -40,6 +47,19 @@ export default async function SupplierApprovalsPage() {
                       Supplies: {s.materialTypes.join(", ")}
                     </p>
                   )}
+                  <div className="mt-2 flex items-center gap-2">
+                    {(() => {
+                      const b = LICENSE_BADGE[s.tradeLicenseStatus] ?? LICENSE_BADGE.UNVERIFIED!;
+                      return (
+                        <span className={`rounded-full px-2.5 py-0.5 text-body-xs font-medium ${b.className}`}>
+                          {b.label}
+                        </span>
+                      );
+                    })()}
+                    {s.tradeLicenseNumber && (
+                      <span className="text-body-xs text-mist font-mono">{s.tradeLicenseNumber}</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <SupplierActions supplierId={s.id} status={s.status} />

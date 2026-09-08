@@ -70,6 +70,13 @@ enum MaterialReturnStatus {
   REFUNDED
 }
 
+enum TradeLicenseStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
 enum InvoiceStatus {
   DRAFT
   ISSUED
@@ -295,6 +302,12 @@ model Supplier {
   ibanNumber    String?
   trn           String?
   mfaVerifiedAt DateTime?
+  // UAE trade-licence verification (credential-gated registry integration).
+  tradeLicenseNumber     String?
+  tradeLicenseStatus     TradeLicenseStatus @default(UNVERIFIED)
+  tradeLicenseExpiry     DateTime?
+  tradeLicenseVerifiedAt DateTime?
+  tradeLicenseRef        String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
