@@ -116,7 +116,7 @@ export async function makeSupplierOnly(iban = "AE070331234567890999") {
   return { supplierId: supplier.id, userId };
 }
 
-type MaterialOrderStatus = "PENDING" | "ACCEPTED" | "SHIPPED" | "COMPLETED" | "CANCELLED" | "REJECTED";
+type MaterialOrderStatus = "PENDING" | "ACCEPTED" | "SHIPPED" | "COMPLETED" | "CANCELLED" | "REJECTED" | "REFUNDED";
 
 /** Create a MaterialOrder from a fresh vendor buyer to `supplierId`. */
 export async function makeMaterialOrder(

@@ -78,3 +78,21 @@ describe("createSupplierPayout (integration)", () => {
     expect(payouts[0].amount.toString()).toBe("500");
   });
 });
+
+describe("refunded orders reverse earnings (returns/RMA)", () => {
+  it("drops a REFUNDED order's total from earned/available", async () => {
+    const { supplierId } = await makeSupplierOnly();
+    const { orderId } = await makeMaterialOrder(supplierId, "300.00", "COMPLETED");
+    await makeMaterialOrder(supplierId, "100.00", "COMPLETED");
+
+    const before = await computeSupplierBalance(supplierId);
+    expect(before.earned.toString()).toBe("400");
+
+    // A completed return refunds the order → MaterialOrder flips to REFUNDED.
+    await prisma.materialOrder.update({ where: { id: orderId }, data: { status: "REFUNDED" } });
+
+    const after = await computeSupplierBalance(supplierId);
+    expect(after.earned.toString()).toBe("100");
+    expect(after.available.toString()).toBe("100");
+  });
+});

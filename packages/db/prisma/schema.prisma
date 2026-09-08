@@ -59,6 +59,15 @@ enum MaterialOrderStatus {
   COMPLETED
   CANCELLED
   REJECTED
+  REFUNDED
+}
+
+enum MaterialReturnStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  RECEIVED
+  REFUNDED
 }
 
 enum InvoiceStatus {
@@ -265,9 +274,10 @@ model Vendor {
   payouts        Payout[]
   studioUploads  StudioUpload[]
   shipments      Shipment[]
-  materialOrders MaterialOrder[]
-  orderInvoices  OrderInvoice[]
-  ledgerEntries  LedgerEntry[]
+  materialOrders  MaterialOrder[]
+  orderInvoices   OrderInvoice[]
+  ledgerEntries   LedgerEntry[]
+  materialReturns MaterialReturn[]
 
   @@index([status])
 }
@@ -295,6 +305,7 @@ model Supplier {
   dropshipProducts  Product[]         @relation("SupplierDropshipProducts")
   customerShipments Shipment[]        @relation("SupplierCustomerShipments")
   payouts           SupplierPayout[]
+  materialReturns   MaterialReturn[]
 
   @@index([status])
 }
@@ -340,15 +351,46 @@ model MaterialOrder {
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
 
-  vendor   Vendor              @relation(fields: [vendorId], references: [id])
-  supplier Supplier            @relation(fields: [supplierId], references: [id])
-  items    MaterialOrderItem[]
-  invoice  MaterialInvoice?
+  vendor         Vendor              @relation(fields: [vendorId], references: [id])
+  supplier       Supplier            @relation(fields: [supplierId], references: [id])
+  items          MaterialOrderItem[]
+  invoice        MaterialInvoice?
+  materialReturn MaterialReturn?
 
   @@index([vendorId])
   @@index([supplierId])
   @@index([supplierId, status])
   @@index([vendorId, status])
+}
+
+// Buyer-initiated return/RMA on a fulfilled material order. Order-level (one per
+// order) — material orders are single-line quick orders today. The buying vendor
+// requests; the selling supplier approves → receives → refunds. On REFUNDED the
+// parent MaterialOrder flips to REFUNDED, which drops its total from the
+// supplier's `earned` balance (see computeSupplierBalance). No payment moved
+// (PO-record model — wholesale settlement is offline), so `refundAmount` is a
+// bookkeeping snapshot of the reversed order total.
+model MaterialReturn {
+  id             String               @id @default(cuid())
+  orderId        String               @unique
+  vendorId       String
+  supplierId     String
+  status         MaterialReturnStatus @default(REQUESTED)
+  reason         String
+  quantity       Int
+  refundAmount   Decimal              @db.Decimal(10, 2)
+  isRestocked    Boolean              @default(false)
+  resolutionNote String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  order    MaterialOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  vendor   Vendor        @relation(fields: [vendorId], references: [id])
+  supplier Supplier      @relation(fields: [supplierId], references: [id])
+
+  @@index([supplierId])
+  @@index([vendorId])
+  @@index([supplierId, status])
 }
 
 model MaterialOrderItem {

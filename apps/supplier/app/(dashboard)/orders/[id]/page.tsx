@@ -27,7 +27,12 @@ export default async function IncomingOrderDetailPage({ params }: Props) {
   const order = await prisma.materialOrder
     .findUnique({
       where: { id },
-      include: { items: true, vendor: { select: { storeName: true } }, invoice: { select: { id: true } } },
+      include: {
+        items: true,
+        vendor: { select: { storeName: true } },
+        invoice: { select: { id: true } },
+        materialReturn: { select: { status: true, reason: true } },
+      },
     })
     .catch(() => null);
 
@@ -116,6 +121,16 @@ export default async function IncomingOrderDetailPage({ params }: Props) {
       ) : canInvoice ? (
         <IssueInvoiceButton orderId={order.id} hasTrn={!!trnRecord?.trn} />
       ) : null}
+
+      {order.materialReturn && (
+        <div className="rounded-2xl border border-sand bg-ivory p-5 space-y-1">
+          <p className="text-label text-mist mb-1">RETURN · {label(order.materialReturn.status)}</p>
+          <p className="text-body-sm text-ink">{order.materialReturn.reason}</p>
+          <Link href="/returns" className="text-body-sm text-gold hover:underline">
+            Manage in Returns →
+          </Link>
+        </div>
+      )}
 
       <OrderActions orderId={order.id} status={order.status} />
     </div>
