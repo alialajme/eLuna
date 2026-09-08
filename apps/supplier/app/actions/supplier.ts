@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@e-luna/db";
+import { syncClerkRole } from "@e-luna/auth";
 import { safeCurrentUser } from "../lib/auth";
 import { sanitizeMaterialTypes } from "../lib/materials";
 
@@ -54,7 +55,7 @@ export async function createSupplier(
       update: { role: "SUPPLIER" },
     });
 
-    await prisma.supplier.create({
+    const supplier = await prisma.supplier.create({
       data: {
         userId: user.id,
         companyName: trimmedName,
@@ -62,7 +63,12 @@ export async function createSupplier(
         materialTypes: cleanTypes,
         status: "PENDING",
       },
+      select: { id: true },
     });
+
+    // Push role + supplierId into Clerk so the session claim reflects it (status
+    // stays PENDING → /pending until an admin approves).
+    await syncClerkRole(user.id, { role: "SUPPLIER", supplierId: supplier.id });
 
     return { success: true };
   } catch (err) {

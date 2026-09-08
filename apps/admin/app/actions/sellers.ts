@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma, type VendorStatus, writeAuditLog } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { getAuthUser, syncClerkRole } from "@e-luna/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -18,8 +18,12 @@ async function setVendorStatus(
   if (user.role !== "ADMIN") return { error: "Forbidden" };
 
   try {
-    await prisma.$transaction(async (tx) => {
-      await tx.vendor.update({ where: { id }, data: { status } });
+    const vendor = await prisma.$transaction(async (tx) => {
+      const v = await tx.vendor.update({
+        where: { id },
+        data: { status },
+        select: { userId: true },
+      });
       // Immutable audit trail of the vendor-status change, atomic with it.
       await writeAuditLog(tx, {
         actorId: user.userId,
@@ -29,7 +33,16 @@ async function setVendorStatus(
         targetId: id,
         metadata: { status },
       });
+      return v;
     });
+
+    // On approval, sync the role + vendorId into Clerk so the vendor's session
+    // claim grants access to their OS. (Suspend/reject leave the claim alone —
+    // the app gates those by the DB status.) Best-effort; never blocks the DB write.
+    if (status === "ACTIVE") {
+      await syncClerkRole(vendor.userId, { role: "VENDOR", vendorId: id });
+    }
+
     revalidatePath("/");
     revalidatePath("/sellers");
     revalidatePath("/sellers/approvals");
