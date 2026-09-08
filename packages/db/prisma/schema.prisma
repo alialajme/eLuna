@@ -294,6 +294,7 @@ model Supplier {
   invoices          MaterialInvoice[]
   dropshipProducts  Product[]         @relation("SupplierDropshipProducts")
   customerShipments Shipment[]        @relation("SupplierCustomerShipments")
+  payouts           SupplierPayout[]
 
   @@index([status])
 }
@@ -663,6 +664,26 @@ model Payout {
   vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Restrict)
 
   @@index([vendorId])
+  @@index([status])
+}
+
+// Wholesale payouts to suppliers for fulfilled material orders. Mirrors Payout
+// (no commission — supplier sales are wholesale). Immutable history (Restrict).
+model SupplierPayout {
+  id          String       @id @default(cuid())
+  supplierId  String
+  amount      Decimal      @db.Decimal(10, 2)
+  currency    String       @default("AED")
+  status      PayoutStatus @default(PENDING)
+  ibanNumber  String
+  reference   String?
+  processedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+
+  @@index([supplierId])
   @@index([status])
 }
 

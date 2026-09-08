@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { icon: "🛍️", label: "Products", href: "/products" },
   { icon: "🏷️", label: "Categories", href: "/categories" },
   { icon: "💸", label: "Payouts", href: "/payouts" },
+  { icon: "🧶", label: "Supplier Payouts", href: "/supplier-payouts" },
   { icon: "⚖️", label: "Commissions", href: "/commissions" },
   { icon: "📈", label: "Analytics", href: "/analytics" },
   { icon: "👥", label: "Customers", href: "/customers" },
