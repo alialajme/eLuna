@@ -1,6 +1,7 @@
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { prisma } from "@e-luna/db";
 import { runShoppingAgent, persistOnFinish } from "@e-luna/ai";
+import { getAiRateLimiter, rateLimitOr429 } from "@e-luna/auth";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -11,6 +12,10 @@ export async function POST(req: Request) {
     };
 
     const user = await currentUser();
+
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const limited = await rateLimitOr429(await getAiRateLimiter(), `chat:${user?.id ?? ip}`);
+    if (limited) return limited;
 
     const sizeProfile = user
       ? await prisma.sizeProfile.findFirst({

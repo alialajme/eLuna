@@ -122,11 +122,32 @@ enum PaymentStatus {
   PARTIALLY_REFUNDED
 }
 
+// Immutable Luna Wallet ledger. Every balance movement is one append-only row;
+// balance history is never mutated — corrections are new REVERSAL/ADJUSTMENT rows.
+enum WalletTxnType {
+  CREDIT // funds added (top-up, cashback, refund credit)
+  DEBIT // funds spent (checkout)
+  REFUND // funds returned to wallet from a refunded order
+  REVERSAL // reverses a prior DEBIT (e.g. cancelled order)
+  ADJUSTMENT // manual admin correction
+}
+
 enum PayoutStatus {
   PENDING
   PROCESSING
   COMPLETED
   FAILED
+}
+
+// Immutable marketplace financial ledger. Append-only record of money movements
+// (signed `amount`: credit positive, debit negative). Never updated/deleted —
+// corrections are new reversing/adjustment rows.
+enum LedgerEntryType {
+  SALE // vendor net revenue accrued from a delivered order item
+  COMMISSION // platform commission taken from a sale
+  REFUND // reversal of vendor revenue when an order item is refunded
+  PAYOUT // funds paid out to a vendor
+  ADJUSTMENT // manual correction
 }
 
 enum ReturnStatus {
@@ -188,11 +209,12 @@ model CustomerProfile {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sizeProfile SizeProfile?
-  orders      Order[]
-  wishlists   Wishlist[]
-  reviews     Review[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sizeProfile        SizeProfile?
+  orders             Order[]
+  wishlists          Wishlist[]
+  reviews            Review[]
+  walletTransactions WalletTransaction[]
 }
 
 model SizeProfile {
@@ -245,6 +267,7 @@ model Vendor {
   shipments      Shipment[]
   materialOrders MaterialOrder[]
   orderInvoices  OrderInvoice[]
+  ledgerEntries  LedgerEntry[]
 
   @@index([status])
 }
@@ -602,6 +625,28 @@ model PaymentTransaction {
   @@index([status])
 }
 
+// Append-only wallet ledger. Rows are never updated or deleted (financial audit
+// trail). `balanceAfter` snapshots the wallet balance immediately after this
+// movement so the ledger is self-verifying and reconcilable against
+// CustomerProfile.walletBalance.
+model WalletTransaction {
+  id                String        @id @default(cuid())
+  customerProfileId String
+  type              WalletTxnType
+  amount            Decimal       @db.Decimal(10, 2) // always positive; `type` carries the sign
+  balanceAfter      Decimal       @db.Decimal(10, 2)
+  orderId           String? // set for DEBIT/REFUND/REVERSAL tied to an order
+  reference         String? // idempotency / external correlation
+  note              String?
+  createdAt         DateTime      @default(now())
+
+  customer CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Restrict)
+
+  @@index([customerProfileId])
+  @@index([orderId])
+  @@index([type])
+}
+
 model Payout {
   id          String       @id @default(cuid())
   vendorId    String
@@ -619,6 +664,78 @@ model Payout {
 
   @@index([vendorId])
   @@index([status])
+}
+
+// Append-only marketplace financial ledger (see LedgerEntryType). Rows are
+// immutable — never UPDATE or DELETE. `amount` is signed (credit +, debit −).
+// Operational IDs are stored as plain strings so historical entries survive
+// deletion of the referenced order/payout (audit integrity).
+model LedgerEntry {
+  id          String          @id @default(cuid())
+  vendorId    String
+  entryType   LedgerEntryType
+  amount      Decimal         @db.Decimal(10, 2) // signed
+  currency    String          @default("AED")
+  orderId     String?
+  orderItemId String?
+  payoutId    String?
+  note        String?
+  createdAt   DateTime        @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+
+  @@index([vendorId])
+  @@index([entryType])
+  @@index([payoutId])
+  @@index([orderId])
+}
+
+// Immutable security/audit log. Append-only record of sensitive actions (admin
+// operations, payout/refund/vendor approvals, status & role changes, and
+// suspicious authorization failures). Never UPDATE or DELETE. Store only
+// non-sensitive metadata — never card data, secrets, tokens, or passwords.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String? // Clerk user id of the actor (null for system/anonymous)
+  actorRole  String? // role at time of action
+  action     String // e.g. "payout.completed", "vendor.approved", "authz.denied"
+  targetType String? // e.g. "Payout", "Vendor", "Order"
+  targetId   String?
+  metadata   Json     @default("{}")
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+// Transactional outbox (§33–34). A domain event is written in the SAME
+// transaction as the state change that produced it, so "DB committed + event
+// lost" cannot happen. A worker later publishes PENDING events and marks them
+// PROCESSED. `availableAt` gates retry backoff; the worker claims rows with
+// FOR UPDATE SKIP LOCKED so multiple workers don't process the same event.
+model OutboxEvent {
+  id          String       @id @default(cuid())
+  type        String // e.g. "order.confirmed", "payment.captured"
+  payload     Json         @default("{}")
+  status      OutboxStatus @default(PENDING)
+  attempts    Int          @default(0)
+  error       String?
+  availableAt DateTime     @default(now())
+  createdAt   DateTime     @default(now())
+  processedAt DateTime?
+
+  @@index([status, availableAt])
+  @@index([type])
 }
 
 // ─────────────────────────────────────────────

@@ -6,7 +6,8 @@
     "./eslint": "./eslint/index.js",
     "./tsconfig/base": "./tsconfig/base.json",
     "./tsconfig/nextjs": "./tsconfig/nextjs.json",
-    "./tailwind": "./tailwind/index.ts"
+    "./tailwind": "./tailwind/index.ts",
+    "./security": { "types": "./security/headers.d.ts", "default": "./security/headers.mjs" }
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",

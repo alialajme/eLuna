@@ -37,6 +37,9 @@ apps:
   - name: admin
     host: ops.luna.ae
     replicas: 2
+  - name: supplier
+    host: supply.luna.ae
+    replicas: 2
 
 resources:
   requests:

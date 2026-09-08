@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma, type PayoutStatus } from "@e-luna/db";
+import { prisma, type PayoutStatus, computeVendorBalance } from "@e-luna/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { StatusFilter } from "../components/StatusFilter";
 import { PayoutActions } from "../components/PayoutActions";
@@ -42,17 +42,11 @@ export default async function PayoutsPage({ searchParams }: Props) {
 
   const raw = (await searchParams).status ?? "all";
 
-  const [vendors, deliveredItems, payouts] = await Promise.all([
+  const [vendors, payouts] = await Promise.all([
     prisma.vendor
       .findMany({
         where: { status: "ACTIVE" },
         select: { id: true, storeName: true, ibanNumber: true, commissionRate: true },
-      })
-      .catch(() => []),
-    prisma.orderItem
-      .findMany({
-        where: { fulfillmentStatus: "DELIVERED" },
-        select: { vendorId: true, unitPrice: true, quantity: true },
       })
       .catch(() => []),
     prisma.payout
@@ -63,30 +57,23 @@ export default async function PayoutsPage({ searchParams }: Props) {
       .catch(() => []),
   ]);
 
-  const grossByVendor = new Map<string, number>();
-  for (const item of deliveredItems) {
-    grossByVendor.set(
-      item.vendorId,
-      (grossByVendor.get(item.vendorId) ?? 0) + Number(item.unitPrice) * item.quantity
-    );
-  }
-  const paidByVendor = new Map<string, number>();
-  for (const p of payouts) {
-    if (p.status === "COMPLETED") {
-      paidByVendor.set(p.vendorId, (paidByVendor.get(p.vendorId) ?? 0) + Number(p.amount));
-    }
-  }
-
-  const owed = vendors
-    .map((v) => {
-      const gross = grossByVendor.get(v.id) ?? 0;
-      const rate = Number(v.commissionRate ?? 0.15);
-      const netEarned = gross - gross * rate;
-      const paidOut = paidByVendor.get(v.id) ?? 0;
-      const availableBalance = Math.max(0, netEarned - paidOut);
-      return { ...v, netEarned, paidOut, availableBalance };
-    })
-    .filter((v) => v.availableBalance > 0);
+  // Balance is computed by the single shared, Decimal, reserved-aware helper
+  // (same source of truth as createPayout) so the UI and the action agree:
+  // a vendor with an in-flight PENDING payout drops off the "owed" list, which
+  // prevents the admin from creating a duplicate payout.
+  const owedAll = await Promise.all(
+    vendors.map(async (v) => {
+      const b = await computeVendorBalance(v.id);
+      return {
+        ...v,
+        netEarned: Number(b.netEarned),
+        paidOut: Number(b.paidOut),
+        reserved: Number(b.reserved),
+        availableBalance: Number(b.available),
+      };
+    }),
+  );
+  const owed = owedAll.filter((v) => v.availableBalance > 0);
 
   const history = VALID.includes(raw as PayoutStatus)
     ? payouts.filter((p) => p.status === raw)

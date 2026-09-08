@@ -1,6 +1,7 @@
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { prisma } from "@e-luna/db";
 import { runLogisticsAgent, persistOnFinish } from "@e-luna/ai";
+import { getAiRateLimiter, rateLimitOr429 } from "@e-luna/auth";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -14,6 +15,9 @@ export async function POST(req: Request) {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    const limited = await rateLimitOr429(await getAiRateLimiter(), `delivery-help:${user.id}`);
+    if (limited) return limited;
 
     const profile = await prisma.customerProfile
       .findUnique({ where: { userId: user.id }, select: { id: true } })

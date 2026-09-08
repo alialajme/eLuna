@@ -1,6 +1,7 @@
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 import { runSupplierAgent, persistOnFinish } from "@e-luna/ai";
+import { getAiRateLimiter, rateLimitOr429 } from "@e-luna/auth";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -14,6 +15,9 @@ export async function POST(req: Request) {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    const limited = await rateLimitOr429(await getAiRateLimiter(), `assistant:${user.id}`);
+    if (limited) return limited;
 
     const supplier = await getSupplierByUserId(user.id);
     if (!supplier) {

@@ -36,7 +36,7 @@ jobs:
 
       - name: Build & push images (ACR)
         run: |
-          for app in customer vendor admin; do
+          for app in customer vendor admin supplier; do
             az acr build \
               --registry "$ACR_NAME" \
               --image "$IMAGE_REPO/$app:${{ steps.tag.outputs.value }}" \

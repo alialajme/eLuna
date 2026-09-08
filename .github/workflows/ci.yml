@@ -34,8 +34,53 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter @e-luna/db db:generate
 
+      - name: Deploy-parity guard (all apps deployed + health probes)
+        run: node scripts/check-deploy-parity.mjs
+
       - name: Lint
         run: pnpm lint
 
       - name: Type check
         run: pnpm --filter "@e-luna/*" exec tsc --noEmit
+
+  test:
+    name: Tests (unit + integration)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: eluna_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/eluna_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @e-luna/db db:generate
+
+      - name: Push schema to test database
+        run: pnpm --filter @e-luna/db exec prisma db push --skip-generate
+
+      - name: Run tests with coverage
+        run: pnpm --filter @e-luna/db test:coverage
+
+      - name: Run package unit tests (@e-luna/auth, @e-luna/observability)
+        run: pnpm --filter @e-luna/auth --filter @e-luna/observability test
