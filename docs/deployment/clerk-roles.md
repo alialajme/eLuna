@@ -69,6 +69,25 @@ what `getAuthUser()` reads. Do this for **each** app's Clerk instance
 
 Suppliers follow the identical path on `supply.luna.ae` + `/suppliers/approvals`.
 
+## Admin-provisioned partners ("Add vendor / Add supplier")
+
+Instead of waiting for self-signup, an admin can provision a contracted partner
+from **Vendors / Suppliers → Add** (`createVendorAccount` / `createSupplierAccount`):
+
+1. Admin submits email + store/company details → the DB account is created
+   **ACTIVE** (User keyed by a placeholder `inv_…` id) and `invitePartner()` sends
+   a Clerk email invitation carrying `publicMetadata: { role, vendorId/supplierId }`.
+2. The invitee accepts, sets a password, and Clerk creates their real user already
+   carrying the role claim.
+3. **Reconciliation:** the `user.created` webhook (below) matches the new Clerk user
+   to the pre-created DB record **by email** and rebinds `User.id`/relations to the
+   real Clerk id. Until that webhook exists the placeholder record is visible and
+   manageable in admin (and, in the keyless demo, sign-in-able via the demo switch),
+   but a production login won't bind without it.
+
+Credential-gated: with no `CLERK_SECRET_KEY` the account is still created; only the
+invite email is skipped.
+
 ## Optional follow-up: `user.created` webhook
 
 Onboarding upserts the DB `User`, so vendors/suppliers get a row without a webhook.
