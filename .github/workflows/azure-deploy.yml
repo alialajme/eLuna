@@ -44,6 +44,13 @@ jobs:
               --file docker/Dockerfile .
           done
 
+      - name: Build & push migrator image (ACR)
+        run: |
+          az acr build \
+            --registry "$ACR_NAME" \
+            --image "$IMAGE_REPO/migrator:${{ steps.tag.outputs.value }}" \
+            --file docker/Dockerfile.migrate .
+
       - name: Get AKS credentials
         run: az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$AKS_NAME" --overwrite-existing
 

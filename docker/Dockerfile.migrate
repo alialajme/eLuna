@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+#
+# Migrator image (§44): a single, short-lived container that applies the database
+# schema BEFORE the app rollout, so multiple app replicas never race to migrate.
+# Run as a Helm pre-install/pre-upgrade hook Job (see templates/migrate-job.yaml).
+
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat openssl && corepack enable && corepack prepare pnpm@9.0.0 --activate
+WORKDIR /app
+
+# Isolate just the @e-luna/db package subset.
+FROM base AS pruner
+RUN pnpm add -g turbo@2
+COPY . .
+RUN turbo prune "@e-luna/db" --docker
+
+# Install deps (incl. prisma CLI devDep) + generate client.
+FROM base AS migrator
+COPY --from=pruner /app/out/json/ .
+RUN pnpm install --frozen-lockfile
+COPY --from=pruner /app/out/full/ .
+RUN pnpm --filter "@e-luna/db" exec prisma generate
+
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 migrator
+USER migrator
+
+# DATABASE_URL is injected at runtime (Key Vault CSI). Default applies the current
+# schema via `db push`; switch to `prisma migrate deploy` once a committed
+# migration history exists (see docs/adr/0007-database-migrations.md). The Helm
+# Job overrides this command via .Values.migration.command.
+CMD ["pnpm", "--filter", "@e-luna/db", "exec", "prisma", "db", "push", "--skip-generate"]

@@ -35,6 +35,13 @@ resource pg 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-preview' = {
     administratorLoginPassword: adminPassword
     storage: { storageSizeGB: 128 }
     highAvailability: { mode: 'ZoneRedundant' }
+    // DR: 35-day point-in-time restore + geo-redundant backup so a full-region
+    // loss is recoverable (see docs/DISASTER-RECOVERY.md). Zone-redundant HA
+    // above covers a single-zone failure automatically.
+    backup: {
+      backupRetentionDays: 35
+      geoRedundantBackup: 'Enabled'
+    }
     network: {
       delegatedSubnetResourceId: delegatedSubnetId
       privateDnsZoneArmResourceId: pgDnsZone.id
