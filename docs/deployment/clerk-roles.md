@@ -88,10 +88,30 @@ from **Vendors / Suppliers → Add** (`createVendorAccount` / `createSupplierAcc
 Credential-gated: with no `CLERK_SECRET_KEY` the account is still created; only the
 invite email is skipped.
 
-## Optional follow-up: `user.created` webhook
+## `user.created` / `user.updated` webhook (implemented)
 
-Onboarding upserts the DB `User`, so vendors/suppliers get a row without a webhook.
-If you want the DB `User` created for **every** Clerk signup (e.g. customers) at the
-moment of signup rather than lazily, add a Clerk `user.created` webhook
-(`svix`-verified) that upserts `User { id, email }`. Not required for the
-vendor/supplier role flow above.
+A signature-verified Clerk webhook keeps the DB `User` in step with Clerk and
+**completes the admin-provisioning loop** — it's what rebinds an invited partner's
+real Clerk account to the record the admin pre-created.
+
+- **Route:** `POST /api/webhooks/clerk` in the **vendor**, **supplier**, and
+  **customer** apps (each app's own Clerk instance points its webhook here).
+- **Verification:** `verifyClerkWebhook` (`@e-luna/auth`) — manual svix HMAC-SHA256
+  over `${svix-id}.${svix-timestamp}.${body}`, timing-safe, with a 5-minute replay
+  window. No `svix` dependency.
+- **Reconciliation:** `reconcileClerkUser` (`@e-luna/db`):
+  - If a `User` already exists for the event's email under a placeholder id
+    (`inv_…`, from `createVendorAccount`/`createSupplierAccount`), it **rebinds** the
+    Vendor/Supplier to the real Clerk id and drops the placeholder — so the
+    provisioned partner can log straight into their OS.
+  - Otherwise it **upserts by Clerk id** — creating the row for a normal signup
+    (e.g. a customer) and syncing email / role (`public_metadata.role`) /
+    `mfaEnabled` (`two_factor_enabled`). Idempotent on retries.
+- **Credential-gated:** no `CLERK_WEBHOOK_SECRET` (local/demo) → the route is a
+  no-op (returns 200).
+
+### Operator setup (per app / Clerk instance)
+
+1. Clerk dashboard → **Webhooks** → add endpoint `https://<app-domain>/api/webhooks/clerk`.
+2. Subscribe to `user.created` and `user.updated`.
+3. Copy the endpoint's **Signing Secret** into that app's `CLERK_WEBHOOK_SECRET`.
