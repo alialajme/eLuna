@@ -3,6 +3,7 @@ import Link from "next/link";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
 import { Sidebar } from "./components/Sidebar";
+import { OnboardingBanner } from "./components/OnboardingBanner";
 import { LunaChatWidget } from "@e-luna/ui";
 
 export default async function DashboardLayout({
@@ -47,7 +48,10 @@ export default async function DashboardLayout({
           <p className="font-display text-display-sm text-ink">{supplier.companyName}</p>
           <span className="text-body-sm text-mist">Supplier OS</span>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">
+          {!supplier.ibanNumber && <OnboardingBanner />}
+          {children}
+        </main>
       </div>
       <LunaChatWidget
         apiPath="/api/assistant"

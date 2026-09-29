@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { VendorActions } from "../../components/VendorActions";
+import { OnboardingBanner } from "../../components/OnboardingBanner";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -36,7 +37,9 @@ export default async function SellerDetailPage({ params }: Props) {
   const user = await safeCurrentUser();
   if (!user) redirect("/");
 
-  const vendor = await prisma.vendor.findUnique({ where: { id } }).catch(() => null);
+  const vendor = await prisma.vendor
+    .findUnique({ where: { id }, include: { user: { select: { mfaEnabled: true } } } })
+    .catch(() => null);
   if (!vendor) redirect("/sellers");
 
   const orderItems = await prisma.orderItem
@@ -87,6 +90,8 @@ export default async function SellerDetailPage({ params }: Props) {
           {statusLabel}
         </span>
       </div>
+
+      <OnboardingBanner ibanMissing={!vendor.ibanNumber} mfaMissing={!vendor.user.mfaEnabled} />
 
       {/* Actions */}
       <div className="rounded-lg border border-sand bg-white p-4">

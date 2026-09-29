@@ -4,6 +4,7 @@ import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 import { TrnForm } from "../components/TrnForm";
 import { TradeLicenseForm } from "../components/TradeLicenseForm";
+import { IbanForm } from "../components/IbanForm";
 import { hasTradeLicenseRegistry } from "../../lib/trade-license/config";
 
 export const metadata: Metadata = { title: "Settings — Luna Supplier" };
@@ -19,7 +20,7 @@ export default async function SettingsPage() {
   const record = await prisma.supplier
     .findUnique({
       where: { id: supplier.id },
-      select: { trn: true, tradeLicenseNumber: true, tradeLicenseStatus: true, tradeLicenseExpiry: true },
+      select: { trn: true, ibanNumber: true, tradeLicenseNumber: true, tradeLicenseStatus: true, tradeLicenseExpiry: true },
     })
     .catch(() => null);
   const registryConnected = hasTradeLicenseRegistry();
@@ -45,6 +46,16 @@ export default async function SettingsPage() {
             Invoices are issued locally. Connect a UAE FTA / Peppol Access Point to transmit them to the tax authority.
           </p>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-sand bg-ivory p-6 space-y-4">
+        <div>
+          <h3 className="font-display text-display-sm text-ink">Payout details</h3>
+          <p className="text-body-sm text-mist">
+            Operations pay you to this IBAN. It&apos;s also required before you can publish materials.
+          </p>
+        </div>
+        <IbanForm currentIban={record?.ibanNumber ?? ""} />
       </section>
 
       <section className="rounded-2xl border border-sand bg-ivory p-6 space-y-4">

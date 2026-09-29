@@ -4,6 +4,7 @@ import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
+import { OnboardingBanner } from "./components/OnboardingBanner";
 import { LunaChatWidget } from "@e-luna/ui";
 
 export default async function DashboardLayout({
@@ -46,7 +47,10 @@ export default async function DashboardLayout({
       <Sidebar storeName={vendor.storeName} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar storeName={vendor.storeName} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">
+          {!vendor.ibanNumber && <OnboardingBanner />}
+          {children}
+        </main>
       </div>
       <LunaChatWidget
         apiPath="/api/assistant"

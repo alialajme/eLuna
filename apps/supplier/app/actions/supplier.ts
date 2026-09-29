@@ -1,8 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@e-luna/db";
 import { syncClerkRole } from "@e-luna/auth";
 import { safeCurrentUser } from "../lib/auth";
+import { getSupplierByUserId } from "../lib/supplier";
 import { sanitizeMaterialTypes } from "../lib/materials";
 
 export async function createSupplier(
@@ -82,5 +84,29 @@ export async function createSupplier(
       return { success: false, error: "That supplier URL is already taken" };
     }
     return { success: false, error: "Something went wrong" };
+  }
+}
+
+export async function updateSupplierIBAN(
+  iban: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await safeCurrentUser();
+    if (!user) return { success: false, error: "Not signed in" };
+    const supplier = await getSupplierByUserId(user.id);
+    if (!supplier) return { success: false, error: "Supplier not found" };
+
+    const trimmed = iban.replace(/\s/g, "");
+    if (!/^AE\d{21}$/.test(trimmed)) {
+      return { success: false, error: "Please enter a valid UAE IBAN (e.g. AE07 0331 2345 6789 0123 456)" };
+    }
+
+    await prisma.supplier.update({ where: { id: supplier.id }, data: { ibanNumber: trimmed } });
+    revalidatePath("/settings");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err) {
+    console.error("[updateSupplierIBAN]", err);
+    return { success: false, error: "Could not save IBAN" };
   }
 }

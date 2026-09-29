@@ -23,7 +23,7 @@ export type MaterialData = {
 
 const VALID_UNITS = new Set<string>(MATERIAL_UNITS.map((u) => u.value));
 
-type ActiveSupplier = { id: string };
+type ActiveSupplier = { id: string; ibanNumber: string | null };
 
 // Resolves the signed-in user's supplier and requires it to be ACTIVE.
 async function resolveActiveSupplier(): Promise<
@@ -34,7 +34,7 @@ async function resolveActiveSupplier(): Promise<
   const supplier = await getSupplierByUserId(user.id);
   if (!supplier) return { error: "Not a supplier" };
   if (supplier.status !== "ACTIVE") return { error: "Your supplier account is not active" };
-  return { supplier: { id: supplier.id } };
+  return { supplier: { id: supplier.id, ibanNumber: supplier.ibanNumber ?? null } };
 }
 
 // Returns a normalized MaterialData or an error string.
@@ -85,6 +85,12 @@ export async function createMaterial(
   if ("error" in checked) return { success: false, error: checked.error };
   const data = checked.data;
 
+  // Onboarding gate: a material can't go live until the supplier has a payout
+  // IBAN on file. Drafts are allowed.
+  if (data.status === "ACTIVE" && !auth.supplier.ibanNumber) {
+    return { success: false, error: "Add your payout IBAN in Settings before publishing materials." };
+  }
+
   try {
     const slug = await generateSlug(data.name);
     const material = await prisma.material.create({
@@ -129,6 +135,11 @@ export async function updateMaterial(
     .catch(() => null);
   if (!existing || existing.supplierId !== auth.supplier.id) {
     return { success: false, error: "Not found" };
+  }
+
+  // Onboarding gate: no going live without a payout IBAN (drafts are fine).
+  if (data.status === "ACTIVE" && !auth.supplier.ibanNumber) {
+    return { success: false, error: "Add your payout IBAN in Settings before publishing materials." };
   }
 
   try {

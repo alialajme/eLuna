@@ -97,6 +97,12 @@ export async function createProduct(
   const ds = await resolveDropshipSupplierId(data.dropshipSupplierId);
   if ("error" in ds) return { success: false, error: ds.error };
 
+  // Onboarding gate: a product can't go live to customers until the vendor has a
+  // payout IBAN on file. They can still save it as a draft.
+  if (data.status === "ACTIVE" && !vendor.ibanNumber) {
+    return { success: false, error: "Add your payout IBAN in Settings before publishing products." };
+  }
+
   try {
     const slug = await generateSlug(title);
     const titleSlug = slugify(title);
@@ -170,6 +176,11 @@ export async function updateProduct(
   }
   const ds = await resolveDropshipSupplierId(data.dropshipSupplierId);
   if ("error" in ds) return { success: false, error: ds.error };
+
+  // Onboarding gate: no going live without a payout IBAN (drafts are fine).
+  if (data.status === "ACTIVE" && !vendor.ibanNumber) {
+    return { success: false, error: "Add your payout IBAN in Settings before publishing products." };
+  }
 
   try {
     const existing = await prisma.product.findUnique({
