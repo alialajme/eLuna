@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@e-luna/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { SupplierActions } from "../../components/SupplierActions";
+import { OnboardingBanner } from "../../components/OnboardingBanner";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -43,7 +44,9 @@ export default async function SupplierDetailPage({ params }: Props) {
   const user = await safeCurrentUser();
   if (!user) redirect("/");
 
-  const supplier = await prisma.supplier.findUnique({ where: { id } }).catch(() => null);
+  const supplier = await prisma.supplier
+    .findUnique({ where: { id }, include: { user: { select: { mfaEnabled: true } } } })
+    .catch(() => null);
   if (!supplier) redirect("/suppliers");
 
   // Wholesale sales fulfilled by this supplier (COMPLETED material orders).
@@ -73,6 +76,8 @@ export default async function SupplierDetailPage({ params }: Props) {
           {statusLabel}
         </span>
       </div>
+
+      <OnboardingBanner ibanMissing={!supplier.ibanNumber} mfaMissing={!supplier.user.mfaEnabled} />
 
       {/* Actions */}
       <div className="rounded-lg border border-sand bg-white p-4">
