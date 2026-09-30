@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
+import { AyvanaLogo } from "@ayvana/ui";
 
 const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -74,8 +75,8 @@ export async function Nav() {
     <header className="sticky top-0 z-30 border-b border-sand bg-ivory/95 backdrop-blur-sm">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
         {/* Logo */}
-        <Link href="/" className="font-display text-display-md font-bold tracking-widest text-ink">
-          AYVANA
+        <Link href="/" aria-label="AYVANA home">
+          <AyvanaLogo />
         </Link>
 
         {/* Centre links — hidden on mobile */}
