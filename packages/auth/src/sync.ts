@@ -36,7 +36,9 @@ export async function syncClerkRole(userId: string, meta: RoleMetadata): Promise
     if (meta.vendorId !== undefined) publicMetadata.vendorId = meta.vendorId;
     if (meta.supplierId !== undefined) publicMetadata.supplierId = meta.supplierId;
 
-    await clerkClient.users.updateUserMetadata(userId, { publicMetadata });
+    // Clerk v6: clerkClient is an async factory.
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(userId, { publicMetadata });
     return { synced: true };
   } catch (err) {
     console.error("[syncClerkRole] failed to update Clerk metadata", {

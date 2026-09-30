@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// Mock the Clerk backend client that sync.ts imports.
+// Mock the Clerk backend client that sync.ts imports. v6: clerkClient is an
+// async factory returning the client.
 const updateUserMetadata = vi.fn();
 vi.mock("@clerk/nextjs/server", () => ({
-  clerkClient: { users: { updateUserMetadata: (...args: unknown[]) => updateUserMetadata(...args) } },
+  clerkClient: async () => ({ users: { updateUserMetadata: (...args: unknown[]) => updateUserMetadata(...args) } }),
 }));
 
 import { syncClerkRole } from "../src/sync";

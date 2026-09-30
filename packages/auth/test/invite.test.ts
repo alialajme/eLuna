@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const createInvitation = vi.fn();
+// v6: clerkClient is an async factory returning the client.
 vi.mock("@clerk/nextjs/server", () => ({
-  clerkClient: { invitations: { createInvitation: (...a: unknown[]) => createInvitation(...a) } },
+  clerkClient: async () => ({ invitations: { createInvitation: (...a: unknown[]) => createInvitation(...a) } }),
 }));
 
 import { invitePartner } from "../src/invite";
