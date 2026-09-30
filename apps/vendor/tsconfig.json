@@ -1,5 +1,5 @@
 {
-  "extends": "@e-luna/config/tsconfig/nextjs",
+  "extends": "@ayvana/config/tsconfig/nextjs",
   "compilerOptions": {
     "paths": { "@/*": ["./*"] }
   },

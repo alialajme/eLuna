@@ -6,7 +6,7 @@
 
 **Architecture:** Three RSC routes under the existing `apps/admin/app/(dashboard)/` group (which already enforces the ADMIN role in its layout). Reuse the 6a patterns: status-filtered lists, status-badge maps, a hardened `"use server"` actions file, and a client actions component. Generalize the 6a `StatusFilter` to be reusable across sellers/orders/products. No schema changes.
 
-**Tech Stack:** Next.js 15 App Router (RSC + server actions), Prisma (`@e-luna/db`), Clerk auth (`getAuthUser` from `@e-luna/auth`), Tailwind (Warm Oud tokens).
+**Tech Stack:** Next.js 15 App Router (RSC + server actions), Prisma (`@ayvana/db`), Clerk auth (`getAuthUser` from `@ayvana/auth`), Tailwind (Warm Oud tokens).
 
 ---
 
@@ -30,7 +30,7 @@
 
 **Working dir:** `/Users/alialajme/Projects/Luna/e-luna`
 
-**DB:** `import { prisma } from "@e-luna/db"`. Enums (`OrderStatus`, `ProductStatus`) import from `@e-luna/db` (re-exports `@prisma/client`); if a `type` import errors, fall back to `@prisma/client`.
+**DB:** `import { prisma } from "@ayvana/db"`. Enums (`OrderStatus`, `ProductStatus`) import from `@ayvana/db` (re-exports `@prisma/client`); if a `type` import errors, fall back to `@prisma/client`.
 
 **Auth:** ADMIN role is enforced centrally by `(dashboard)/layout.tsx` (built in 6a) via `getAuthUser()`. Pages only need a null-user check with `safeCurrentUser()` from `../../lib/auth` (or `../../../lib/auth` at deeper nesting). Server actions independently re-check ADMIN via `getAuthUser()`.
 
@@ -190,7 +190,7 @@ Read the file. Add to the `PAGE_TITLES` record:
 
 Then update the fallback line so order detail shows "Order Detail". The current fallback is:
 ```tsx
-    (pathname.startsWith("/sellers/") ? "Seller Detail" : "Luna Ops");
+    (pathname.startsWith("/sellers/") ? "Seller Detail" : "AYVANA Ops");
 ```
 Change it to:
 ```tsx
@@ -198,7 +198,7 @@ Change it to:
       ? "Seller Detail"
       : pathname.startsWith("/orders/")
         ? "Order Detail"
-        : "Luna Ops";
+        : "AYVANA Ops";
 ```
 
 - [ ] **Step 3: TypeScript + lint check**
@@ -228,11 +228,11 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma, type OrderStatus } from "@e-luna/db";
+import { prisma, type OrderStatus } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { StatusFilter } from "../components/StatusFilter";
 
-export const metadata: Metadata = { title: "Orders — Luna Ops" };
+export const metadata: Metadata = { title: "Orders — AYVANA Ops" };
 
 const ORDER_STATUS_BADGE: Record<string, string> = {
   DELIVERED: "bg-sage/20 text-sage",
@@ -364,7 +364,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 
 type Props = { params: Promise<{ id: string }> };
@@ -381,7 +381,7 @@ const ORDER_STATUS_BADGE: Record<string, string> = {
 
 const PAYMENT_LABELS: Record<string, string> = {
   CARD: "Card",
-  LUNA_WALLET: "Luna Wallet",
+  LUNA_WALLET: "AYVANA Wallet",
   TABBY: "Tabby",
   TAMARA: "Tamara",
   CASH_ON_DELIVERY: "Cash on Delivery",
@@ -389,7 +389,7 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Order #${id.slice(-8).toUpperCase()} — Luna Ops` };
+  return { title: `Order #${id.slice(-8).toUpperCase()} — AYVANA Ops` };
 }
 
 function fmtAED(n: number): string {
@@ -619,8 +619,8 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, type ProductStatus } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { prisma, type ProductStatus } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -652,7 +652,7 @@ export async function reinstateProduct(id: string): Promise<ActionResult> {
 }
 ```
 
-**Note:** all exports are async functions; `setProductStatus` is non-exported (required by `"use server"`). If `type ProductStatus` from `@e-luna/db` errors, use `import { prisma } from "@e-luna/db"; import type { ProductStatus } from "@prisma/client";`.
+**Note:** all exports are async functions; `setProductStatus` is non-exported (required by `"use server"`). If `type ProductStatus` from `@ayvana/db` errors, use `import { prisma } from "@ayvana/db"; import type { ProductStatus } from "@prisma/client";`.
 
 - [ ] **Step 2: TypeScript + lint check**
 
@@ -682,7 +682,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/actions/prod
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { ProductStatus } from "@e-luna/db";
+import type { ProductStatus } from "@ayvana/db";
 import { rejectProduct, reinstateProduct } from "../../actions/products";
 
 type Props = {
@@ -745,7 +745,7 @@ export function ProductActions({ productId, status }: Props) {
 }
 ```
 
-**Note:** if `import type { ProductStatus } from "@e-luna/db"` errors, use `@prisma/client`.
+**Note:** if `import type { ProductStatus } from "@ayvana/db"` errors, use `@prisma/client`.
 
 - [ ] **Step 2: TypeScript + lint check**
 
@@ -773,12 +773,12 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma, type ProductStatus } from "@e-luna/db";
+import { prisma, type ProductStatus } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { StatusFilter } from "../components/StatusFilter";
 import { ProductActions } from "../components/ProductActions";
 
-export const metadata: Metadata = { title: "Products — Luna Ops" };
+export const metadata: Metadata = { title: "Products — AYVANA Ops" };
 
 const PRODUCT_STATUS_BADGE: Record<string, string> = {
   ACTIVE: "bg-sage/20 text-sage",

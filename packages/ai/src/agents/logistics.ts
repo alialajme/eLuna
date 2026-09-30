@@ -1,12 +1,12 @@
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const LOGISTICS_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Delivery Agent — a READ-ONLY delivery & returns helper for a Luna customer.
+You are the Delivery Agent — a READ-ONLY delivery & returns helper for a AYVANA customer.
 Use your tools to answer where an order is, when it should arrive, and whether an item can be returned.
 You do NOT ship, move, cancel, or return anything — never claim you have. To return an item, tell the
 customer to use the "Request return" button on the order page (delivered items only, within 14 days).

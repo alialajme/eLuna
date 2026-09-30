@@ -1,8 +1,8 @@
-# e-Luna Phase 1 — Foundation Implementation Plan
+# AYVANA Phase 1 — Foundation Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Scaffold the complete e-Luna Turborepo monorepo with three Next.js 15 apps (customer, vendor, admin), five shared packages (ui, db, ai, auth, config), full Prisma schema, Clerk MFA auth for all roles, Luna design tokens, and CI/CD on Vercel — ready for feature development.
+**Goal:** Scaffold the complete AYVANA Turborepo monorepo with three Next.js 15 apps (customer, vendor, admin), five shared packages (ui, db, ai, auth, config), full Prisma schema, Clerk MFA auth for all roles, AYVANA design tokens, and CI/CD on Vercel — ready for feature development.
 
 **Architecture:** Turborepo monorepo with `apps/customer`, `apps/vendor`, `apps/admin` each as independent Next.js 15 (App Router) deployments. Shared packages live in `packages/` and are consumed via workspace imports. Clerk handles auth and MFA across all apps via shared middleware in `packages/auth`. Prisma manages all database entities via `packages/db`.
 
@@ -21,7 +21,7 @@ e-luna/
 ├── .env.example
 │
 ├── apps/
-│   ├── customer/                         # luna.ae
+│   ├── customer/                         # ayvana.ae
 │   │   ├── package.json
 │   │   ├── next.config.ts
 │   │   ├── tailwind.config.ts
@@ -35,7 +35,7 @@ e-luna/
 │   │           ├── sign-in/[[...sign-in]]/page.tsx
 │   │           └── sign-up/[[...sign-up]]/page.tsx
 │   │
-│   ├── vendor/                           # sell.luna.ae
+│   ├── vendor/                           # sell.ayvana.ae
 │   │   ├── package.json
 │   │   ├── next.config.ts
 │   │   ├── tailwind.config.ts
@@ -49,7 +49,7 @@ e-luna/
 │   │           ├── sign-in/[[...sign-in]]/page.tsx
 │   │           └── onboarding/page.tsx  # Post-signup KYC entry point placeholder
 │   │
-│   └── admin/                            # ops.luna.ae
+│   └── admin/                            # ops.ayvana.ae
 │       ├── package.json
 │       ├── next.config.ts
 │       ├── tailwind.config.ts
@@ -70,7 +70,7 @@ e-luna/
     │   │   ├── base.json                # strict TypeScript base
     │   │   └── nextjs.json              # extends base, adds Next.js paths
     │   └── tailwind/
-    │       └── index.ts                 # shared Tailwind preset: Luna tokens, fonts, screens
+    │       └── index.ts                 # shared Tailwind preset: AYVANA tokens, fonts, screens
     │
     ├── ui/
     │   ├── package.json
@@ -82,7 +82,7 @@ e-luna/
     │       └── components/
     │           ├── RTLProvider.tsx      # dir="rtl" + Arabic font switcher
     │           ├── StatusBadge.tsx      # order/vendor/shipment status pill
-    │           └── LunaLogo.tsx         # wordmark SVG component
+    │           └── AyvanaLogo.tsx         # wordmark SVG component
     │
     ├── db/
     │   ├── package.json
@@ -98,7 +98,7 @@ e-luna/
     │   └── src/
     │       ├── index.ts                 # export roles, helpers
     │       ├── roles.ts                 # UserRole enum + role guards
-    │       └── middleware.ts            # createLunaMiddleware(role) factory
+    │       └── middleware.ts            # createAyvanaMiddleware(role) factory
     │
     └── ai/
         ├── package.json
@@ -271,7 +271,7 @@ git commit -m "chore: initialise e-luna turborepo monorepo"
 
 ```json
 {
-  "name": "@e-luna/config",
+  "name": "@ayvana/config",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -351,8 +351,8 @@ module.exports = {
 ```ts
 import type { Config } from "tailwindcss";
 
-// Luna "Moonlit Luxury" design tokens
-export const lunaPreset: Partial<Config> = {
+// AYVANA "Moonlit Luxury" design tokens
+export const ayvanaPreset: Partial<Config> = {
   theme: {
     extend: {
       colors: {
@@ -433,7 +433,7 @@ Replace the contents of `apps/customer/package.json`:
 
 ```json
 {
-  "name": "@e-luna/customer",
+  "name": "@ayvana/customer",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -444,15 +444,15 @@ Replace the contents of `apps/customer/package.json`:
   },
   "dependencies": {
     "@clerk/nextjs": "^5.0.0",
-    "@e-luna/ui": "workspace:*",
-    "@e-luna/auth": "workspace:*",
-    "@e-luna/db": "workspace:*",
+    "@ayvana/ui": "workspace:*",
+    "@ayvana/auth": "workspace:*",
+    "@ayvana/db": "workspace:*",
     "next": "15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -461,7 +461,7 @@ Replace the contents of `apps/customer/package.json`:
 }
 ```
 
-Repeat for `apps/vendor/package.json` (change name to `@e-luna/vendor`, port to 3001) and `apps/admin/package.json` (name `@e-luna/admin`, port to 3002).
+Repeat for `apps/vendor/package.json` (change name to `@ayvana/vendor`, port to 3001) and `apps/admin/package.json` (name `@ayvana/admin`, port to 3002).
 
 - [ ] **Step 3: Replace each app's `tsconfig.json` to extend shared config**
 
@@ -469,7 +469,7 @@ Repeat for `apps/vendor/package.json` (change name to `@e-luna/vendor`, port to 
 
 ```json
 {
-  "extends": "@e-luna/config/tsconfig/nextjs",
+  "extends": "@ayvana/config/tsconfig/nextjs",
   "compilerOptions": {
     "paths": { "@/*": ["./*"] }
   },
@@ -480,16 +480,16 @@ Repeat for `apps/vendor/package.json` (change name to `@e-luna/vendor`, port to 
 
 Apply the same to `apps/vendor/tsconfig.json` and `apps/admin/tsconfig.json`.
 
-- [ ] **Step 4: Replace each app's `tailwind.config.ts` to extend Luna preset**
+- [ ] **Step 4: Replace each app's `tailwind.config.ts` to extend AYVANA preset**
 
 `apps/customer/tailwind.config.ts`:
 
 ```ts
 import type { Config } from "tailwindcss";
-import { lunaPreset } from "@e-luna/config/tailwind";
+import { ayvanaPreset } from "@ayvana/config/tailwind";
 
 const config: Config = {
-  presets: [{ theme: lunaPreset.theme } as Config],
+  presets: [{ theme: ayvanaPreset.theme } as Config],
   content: [
     "./app/**/*.{ts,tsx}",
     "../../packages/ui/src/**/*.{ts,tsx}",
@@ -531,7 +531,7 @@ const ibmArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "Luna — The Gulf's AI-powered abaya marketplace",
+  title: "AYVANA — The Gulf's AI-powered abaya marketplace",
   description: "Discover abayas styled for you by AI",
 };
 
@@ -559,7 +559,7 @@ export default function CustomerHome() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink">
       <p className="font-display text-display-lg text-gold">
-        Luna Customer — coming soon
+        AYVANA Customer — coming soon
       </p>
     </main>
   );
@@ -573,7 +573,7 @@ export default function VendorHome() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink">
       <p className="font-display text-display-lg text-gold">
-        Luna Vendor OS — coming soon
+        AYVANA Vendor OS — coming soon
       </p>
     </main>
   );
@@ -587,7 +587,7 @@ export default function AdminHome() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink">
       <p className="font-display text-display-lg text-gold">
-        Luna Admin — coming soon
+        AYVANA Admin — coming soon
       </p>
     </main>
   );
@@ -615,7 +615,7 @@ Expected: three successful Next.js builds, no TypeScript errors.
 
 ```bash
 git add apps/
-git commit -m "chore: scaffold customer, vendor, admin Next.js 15 apps with Luna fonts and Tailwind tokens"
+git commit -m "chore: scaffold customer, vendor, admin Next.js 15 apps with AYVANA fonts and Tailwind tokens"
 ```
 
 ---
@@ -632,7 +632,7 @@ git commit -m "chore: scaffold customer, vendor, admin Next.js 15 apps with Luna
 
 ```json
 {
-  "name": "@e-luna/db",
+  "name": "@ayvana/db",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -647,7 +647,7 @@ git commit -m "chore: scaffold customer, vendor, admin Next.js 15 apps with Luna
     "@prisma/client": "^5.14.0"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "prisma": "^5.14.0",
     "typescript": "^5.4.0"
   }
@@ -658,7 +658,7 @@ git commit -m "chore: scaffold customer, vendor, admin Next.js 15 apps with Luna
 
 ```json
 {
-  "extends": "@e-luna/config/tsconfig/base",
+  "extends": "@ayvana/config/tsconfig/base",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src"
@@ -1051,7 +1051,7 @@ cp .env.example .env
 
 ```bash
 pnpm install
-pnpm --filter @e-luna/db db:generate
+pnpm --filter @ayvana/db db:generate
 ```
 
 Expected: `✔ Generated Prisma Client` in output.
@@ -1059,7 +1059,7 @@ Expected: `✔ Generated Prisma Client` in output.
 - [ ] **Step 7: Push schema to database**
 
 ```bash
-pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:push
 ```
 
 Expected: `Your database is now in sync with your Prisma schema.`
@@ -1096,7 +1096,7 @@ git commit -m "feat: add complete Prisma schema with all e-luna entities"
 
 ```json
 {
-  "name": "@e-luna/auth",
+  "name": "@ayvana/auth",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -1106,7 +1106,7 @@ git commit -m "feat: add complete Prisma schema with all e-luna entities"
     "@clerk/nextjs": "^5.0.0"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "next": "15.0.0",
     "typescript": "^5.4.0"
   },
@@ -1120,7 +1120,7 @@ git commit -m "feat: add complete Prisma schema with all e-luna entities"
 
 ```json
 {
-  "extends": "@e-luna/config/tsconfig/base",
+  "extends": "@ayvana/config/tsconfig/base",
   "compilerOptions": {
     "paths": {}
   },
@@ -1167,7 +1167,7 @@ import { getRoleFromMetadata } from "./roles";
  * Factory that returns a Clerk middleware scoped to a required role.
  * Public routes (sign-in, sign-up) are excluded from auth checks.
  */
-export function createLunaMiddleware(requiredRole: UserRole) {
+export function createAyvanaMiddleware(requiredRole: UserRole) {
   const isPublicRoute = createRouteMatcher([
     "/sign-in(.*)",
     "/sign-up(.*)",
@@ -1200,7 +1200,7 @@ export function createLunaMiddleware(requiredRole: UserRole) {
 - [ ] **Step 5: Create `packages/auth/src/index.ts`**
 
 ```ts
-export { createLunaMiddleware } from "./middleware";
+export { createAyvanaMiddleware } from "./middleware";
 export { getRoleFromMetadata, isAdmin, isCustomer, isVendor } from "./roles";
 export type { UserRole } from "./roles";
 ```
@@ -1208,9 +1208,9 @@ export type { UserRole } from "./roles";
 - [ ] **Step 6: Create `apps/customer/middleware.ts`**
 
 ```ts
-import { createLunaMiddleware } from "@e-luna/auth";
+import { createAyvanaMiddleware } from "@ayvana/auth";
 
-export default createLunaMiddleware("CUSTOMER");
+export default createAyvanaMiddleware("CUSTOMER");
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
@@ -1220,9 +1220,9 @@ export const config = {
 - [ ] **Step 7: Create `apps/vendor/middleware.ts`**
 
 ```ts
-import { createLunaMiddleware } from "@e-luna/auth";
+import { createAyvanaMiddleware } from "@ayvana/auth";
 
-export default createLunaMiddleware("VENDOR");
+export default createAyvanaMiddleware("VENDOR");
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
@@ -1232,9 +1232,9 @@ export const config = {
 - [ ] **Step 8: Create `apps/admin/middleware.ts`**
 
 ```ts
-import { createLunaMiddleware } from "@e-luna/auth";
+import { createAyvanaMiddleware } from "@ayvana/auth";
 
-export default createLunaMiddleware("ADMIN");
+export default createAyvanaMiddleware("ADMIN");
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
@@ -1356,14 +1356,14 @@ git commit -m "feat: add Clerk auth with role-scoped middleware and MFA configur
 - Create: `packages/ui/src/tokens.ts`
 - Create: `packages/ui/src/components/RTLProvider.tsx`
 - Create: `packages/ui/src/components/StatusBadge.tsx`
-- Create: `packages/ui/src/components/LunaLogo.tsx`
+- Create: `packages/ui/src/components/AyvanaLogo.tsx`
 - Create: `packages/ui/src/index.ts`
 
 - [ ] **Step 1: Create `packages/ui/package.json`**
 
 ```json
 {
-  "name": "@e-luna/ui",
+  "name": "@ayvana/ui",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -1373,7 +1373,7 @@ git commit -m "feat: add Clerk auth with role-scoped middleware and MFA configur
     "react": "^19.0.0"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "@types/react": "^19",
     "typescript": "^5.4.0"
   },
@@ -1387,7 +1387,7 @@ git commit -m "feat: add Clerk auth with role-scoped middleware and MFA configur
 
 ```json
 {
-  "extends": "@e-luna/config/tsconfig/base",
+  "extends": "@ayvana/config/tsconfig/base",
   "compilerOptions": {
     "jsx": "react-jsx",
     "paths": {}
@@ -1482,16 +1482,16 @@ export function StatusBadge({ status }: { status: StatusVariant }) {
 }
 ```
 
-- [ ] **Step 6: Create `packages/ui/src/components/LunaLogo.tsx`**
+- [ ] **Step 6: Create `packages/ui/src/components/AyvanaLogo.tsx`**
 
 ```tsx
-export function LunaLogo({ className = "" }: { className?: string }) {
+export function AyvanaLogo({ className = "" }: { className?: string }) {
   return (
     <span
       className={`font-display text-display-md tracking-tight text-gold ${className}`}
-      aria-label="Luna"
+      aria-label="AYVANA"
     >
-      Luna
+      AYVANA
     </span>
   );
 }
@@ -1502,22 +1502,22 @@ export function LunaLogo({ className = "" }: { className?: string }) {
 ```ts
 export { RTLProvider, useDirection } from "./components/RTLProvider";
 export { StatusBadge } from "./components/StatusBadge";
-export { LunaLogo } from "./components/LunaLogo";
+export { AyvanaLogo } from "./components/AyvanaLogo";
 export { colors } from "./tokens";
 export type { ColorToken } from "./tokens";
 ```
 
-- [ ] **Step 8: Import LunaLogo into each app's placeholder page to verify package resolution**
+- [ ] **Step 8: Import AyvanaLogo into each app's placeholder page to verify package resolution**
 
 Edit `apps/customer/app/page.tsx`:
 
 ```tsx
-import { LunaLogo } from "@e-luna/ui";
+import { AyvanaLogo } from "@ayvana/ui";
 
 export default function CustomerHome() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink">
-      <LunaLogo className="text-display-xl" />
+      <AyvanaLogo className="text-display-xl" />
     </main>
   );
 }
@@ -1531,13 +1531,13 @@ Apply the same import to `apps/vendor/app/page.tsx` and `apps/admin/app/page.tsx
 pnpm build
 ```
 
-Expected: all three apps build cleanly with `LunaLogo` rendering via `@e-luna/ui`.
+Expected: all three apps build cleanly with `AyvanaLogo` rendering via `@ayvana/ui`.
 
 - [ ] **Step 10: Commit**
 
 ```bash
 git add packages/ui apps/customer/app/page.tsx apps/vendor/app/page.tsx apps/admin/app/page.tsx
-git commit -m "feat: add UI package with Luna design tokens, RTLProvider, StatusBadge, LunaLogo"
+git commit -m "feat: add UI package with AYVANA design tokens, RTLProvider, StatusBadge, AyvanaLogo"
 ```
 
 ---
@@ -1553,7 +1553,7 @@ git commit -m "feat: add UI package with Luna design tokens, RTLProvider, Status
 
 ```json
 {
-  "name": "@e-luna/ai",
+  "name": "@ayvana/ai",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -1564,7 +1564,7 @@ git commit -m "feat: add UI package with Luna design tokens, RTLProvider, Status
     "@anthropic-ai/sdk": "^0.27.0"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "typescript": "^5.4.0"
   }
 }
@@ -1574,7 +1574,7 @@ git commit -m "feat: add UI package with Luna design tokens, RTLProvider, Status
 
 ```json
 {
-  "extends": "@e-luna/config/tsconfig/base",
+  "extends": "@ayvana/config/tsconfig/base",
   "compilerOptions": { "paths": {} },
   "include": ["src"]
 }
@@ -1701,15 +1701,15 @@ Expected: redirected to `http://localhost:3002/sign-in`.
 - [ ] **Step 5: Verify database connection**
 
 ```bash
-pnpm --filter @e-luna/db db:studio
+pnpm --filter @ayvana/db db:studio
 ```
 
 Expected: Prisma Studio opens at `http://localhost:5555` showing all tables (User, Vendor, CustomerProfile, SizeProfile, Product, Order, etc.) with zero rows.
 
-- [ ] **Step 6: Verify Luna fonts load on customer app**
+- [ ] **Step 6: Verify AYVANA fonts load on customer app**
 
 Sign in as a CUSTOMER in Clerk (create a test user via Clerk dashboard, set `publicMetadata: { role: "CUSTOMER" }`).  
-Open `http://localhost:3000` — should show "Luna" in Bodoni Moda font in gold on ink background.
+Open `http://localhost:3000` — should show "AYVANA" in Bodoni Moda font in gold on ink background.
 
 - [ ] **Step 7: Tag the foundation release and push**
 
@@ -1726,7 +1726,7 @@ With this plan complete, the following are ready:
 - `apps/customer`, `apps/vendor`, `apps/admin` — running, auth-protected, role-scoped
 - `packages/db` — full Prisma schema pushed to PostgreSQL
 - `packages/auth` — Clerk MFA middleware for all three roles
-- `packages/ui` — Luna design tokens and three base components
+- `packages/ui` — AYVANA design tokens and three base components
 - `packages/ai` — scaffolded for Phase 3
 - CI/CD — Vercel projects configured for all three apps
 

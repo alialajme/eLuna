@@ -1,15 +1,15 @@
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma, getSetting } from "@e-luna/db";
-import { neopayAvailable } from "@e-luna/payments";
-import { LunaChatWidget } from "@e-luna/ui";
+import { prisma, getSetting } from "@ayvana/db";
+import { neopayAvailable } from "@ayvana/payments";
+import { AyvanaChatWidget } from "@ayvana/ui";
 import { safeCurrentUser } from "../lib/auth";
 import { getCart } from "../actions/cart";
 import { CheckoutForm } from "./CheckoutForm";
 
 export const metadata: Metadata = {
-  title: "Checkout — Luna",
+  title: "Checkout — AYVANA",
 };
 
 
@@ -67,7 +67,7 @@ export default async function CheckoutPage() {
         itemCount={itemCount}
         neopayEnabled={neopayAvailable()}
       />
-      <LunaChatWidget
+      <AyvanaChatWidget
         apiPath="/api/payment-help"
         title="Payment Help"
         greeting="Ask about your wallet balance, a Tabby/Tamara split, or refund eligibility — I explain options; you complete payment with the button."

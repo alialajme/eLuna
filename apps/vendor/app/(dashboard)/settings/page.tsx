@@ -1,12 +1,12 @@
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { ProfileForm } from "./components/ProfileForm";
 import { IbanForm } from "./components/IbanForm";
 import { TrnForm } from "./components/TrnForm";
 
-export const metadata: Metadata = { title: "Settings — Luna Vendor" };
+export const metadata: Metadata = { title: "Settings — AYVANA Vendor" };
 
 export default async function SettingsPage() {
   const user = await safeCurrentUser();

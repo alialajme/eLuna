@@ -1,4 +1,4 @@
-// Shared HTTP security headers for all e-Luna Next.js apps.
+// Shared HTTP security headers for all AYVANA Next.js apps.
 //
 // Deliberately conservative on CSP: we lock down framing, base-uri and plugins
 // (clickjacking / base-tag / object injection) WITHOUT constraining script-src,

@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { ConfirmPaymentSync } from "../ConfirmPaymentSync";
 
 export const metadata: Metadata = {
-  title: "Order Confirmed — Luna",
+  title: "Order Confirmed — AYVANA",
 };
 
 type Props = { searchParams: Promise<{ orderId?: string }> };
@@ -103,7 +103,7 @@ export default async function OrderConfirmPage({ searchParams }: Props) {
           Order <span className="font-medium text-ink">#{order.id.slice(-8).toUpperCase()}</span>
         </p>
         <p className="mt-4 text-body-md text-gold">
-          ✦ Luna has notified your boutique. Your order is on its way.
+          ✦ AYVANA has notified your boutique. Your order is on its way.
         </p>
       </div>
 

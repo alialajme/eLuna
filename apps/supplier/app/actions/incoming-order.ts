@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
-import { getCourier } from "@e-luna/ui/couriers";
-import { getCourierGateway } from "@e-luna/courier";
+import { getCourier } from "@ayvana/ui/couriers";
+import { getCourierGateway } from "@ayvana/courier";
 
 type ActiveSupplier = { id: string };
 

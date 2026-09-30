@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { VendorActions } from "../../components/VendorActions";
 import { OnboardingBanner } from "../../components/OnboardingBanner";
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const vendor = await prisma.vendor
     .findUnique({ where: { id }, select: { storeName: true } })
     .catch(() => null);
-  return { title: `${vendor?.storeName ?? "Seller"} — Luna Ops` };
+  return { title: `${vendor?.storeName ?? "Seller"} — AYVANA Ops` };
 }
 
 function maskIban(iban: string): string {

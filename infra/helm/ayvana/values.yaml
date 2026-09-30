@@ -1,18 +1,18 @@
 # Global image settings
 image:
-  registry: elunaacr.azurecr.io
-  repository: e-luna
+  registry: ayvanaacr.azurecr.io
+  repository: e-ayvana
   tag: latest          # overridden by CI with the git SHA
   pullPolicy: IfNotPresent
 
 # Key Vault (Secrets Store CSI) settings
 keyVault:
-  name: eluna-kv
+  name: ayvana-kv
   tenantId: "00000000-0000-0000-0000-000000000000"   # set per tenant
   userAssignedIdentityClientId: ""                     # workload identity client id
 
 serviceAccount:
-  name: luna-workload-identity
+  name: ayvana-workload-identity
 
 # Secrets to mount as env (name in Key Vault == env var name)
 secrets:
@@ -29,16 +29,16 @@ ingress:
 # Per-app configuration
 apps:
   - name: customer
-    host: luna.ae
+    host: ayvana.ae
     replicas: 2
   - name: vendor
-    host: sell.luna.ae
+    host: sell.ayvana.ae
     replicas: 2
   - name: admin
-    host: ops.luna.ae
+    host: ops.ayvana.ae
     replicas: 2
   - name: supplier
-    host: supply.luna.ae
+    host: supply.ayvana.ae
     replicas: 2
 
 resources:
@@ -63,5 +63,5 @@ migration:
   activeDeadlineSeconds: 600
   # Default applies the current schema. Switch to a migrate-deploy command once a
   # committed Prisma migration history exists (see docs/adr/0007-database-migrations.md):
-  #   ["pnpm","--filter","@e-luna/db","exec","prisma","migrate","deploy"]
-  command: ["pnpm", "--filter", "@e-luna/db", "exec", "prisma", "db", "push", "--skip-generate"]
+  #   ["pnpm","--filter","@ayvana/db","exec","prisma","migrate","deploy"]
+  command: ["pnpm", "--filter", "@ayvana/db", "exec", "prisma", "db", "push", "--skip-generate"]

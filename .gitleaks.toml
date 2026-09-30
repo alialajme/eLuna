@@ -1,4 +1,4 @@
-# gitleaks config for e-Luna. Extends the built-in ruleset.
+# gitleaks config for AYVANA. Extends the built-in ruleset.
 # Docs: https://github.com/gitleaks/gitleaks
 [extend]
 useDefault = true

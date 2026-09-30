@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, getCategories } from "@e-luna/db";
+import { prisma, getCategories } from "@ayvana/db";
 import { slugify } from "../lib/slugify";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";

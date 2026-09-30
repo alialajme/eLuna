@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { archiveProduct } from "../../actions/product";
 
-export const metadata: Metadata = { title: "Products — Luna Vendor" };
+export const metadata: Metadata = { title: "Products — AYVANA Vendor" };
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Draft",

@@ -16,8 +16,8 @@
 
 - **No automated test suite.** Each task's "test" step = regenerate the Prisma client when the schema
   changed, then `tsc --noEmit` and `next lint` on the touched app(s). That is the quality gate.
-- Prisma: edit `packages/db/prisma/schema.prisma`, then `pnpm --filter @e-luna/db db:generate` +
-  `pnpm --filter @e-luna/db db:push`. The `@e-luna/db` barrel re-exports `prisma` + model/enum types.
+- Prisma: edit `packages/db/prisma/schema.prisma`, then `pnpm --filter @ayvana/db db:generate` +
+  `pnpm --filter @ayvana/db db:push`. The `@ayvana/db` barrel re-exports `prisma` + model/enum types.
   Local Postgres at `localhost:5432` (role `postgres` / db `eluna`).
 - Server actions return `{ success: boolean; error?: string }` (create also returns `id`).
 - Scoping ids (`vendorId`/`supplierId`) are ALWAYS resolved server-side from the Clerk session, never a
@@ -137,7 +137,7 @@ In `model Supplier`, add alongside the `materials Material[]` relation:
 
 Run:
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:generate && pnpm --filter @ayvana/db db:push
 ```
 Expected: generate succeeds; `db:push` prints "Your database is now in sync with your Prisma schema."
 
@@ -170,7 +170,7 @@ Create `apps/vendor/app/actions/sourcing.ts` with exactly:
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 
@@ -268,7 +268,7 @@ export async function cancelMaterialOrder(
 
 Run:
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit
+pnpm --filter @ayvana/vendor exec tsc --noEmit
 ```
 Expected: no errors. (`prisma.materialOrder` + the `material.supplier`/`material.moq`/`material.stock`
 fields exist after Task 1's generate. `getVendorByUserId` returns a `status` field.)
@@ -385,7 +385,7 @@ export function PlaceOrderForm({ materialId, moq, stock, unitPrice, unit }: Prop
 
 Run:
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit && pnpm --filter @e-luna/vendor lint
+pnpm --filter @ayvana/vendor exec tsc --noEmit && pnpm --filter @ayvana/vendor lint
 ```
 Expected: no type errors; lint clean.
 
@@ -409,9 +409,9 @@ git commit -m "feat(vendor): add PlaceOrderForm island"
 ```tsx
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
-export const metadata: Metadata = { title: "Sourcing — Luna Vendor" };
+export const metadata: Metadata = { title: "Sourcing — AYVANA Vendor" };
 
 const TYPES = [
   { label: "All", value: undefined },
@@ -444,7 +444,7 @@ export default async function SourcingPage({ searchParams }: Props) {
     <div className="max-w-5xl space-y-5">
       <div>
         <h2 className="font-display text-display-md text-ink">Sourcing</h2>
-        <p className="text-body-sm text-mist">Order fabrics, trims, and hardware from Luna suppliers.</p>
+        <p className="text-body-sm text-mist">Order fabrics, trims, and hardware from AYVANA suppliers.</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -503,7 +503,7 @@ export default async function SourcingPage({ searchParams }: Props) {
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { PlaceOrderForm } from "../../components/PlaceOrderForm";
 
 type Props = { params: Promise<{ id: string }> };
@@ -513,7 +513,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const material = await prisma.material
     .findUnique({ where: { id }, select: { name: true } })
     .catch(() => null);
-  return { title: material ? `${material.name} — Sourcing` : "Sourcing — Luna Vendor" };
+  return { title: material ? `${material.name} — Sourcing` : "Sourcing — AYVANA Vendor" };
 }
 
 export default async function SourcingMaterialPage({ params }: Props) {
@@ -574,7 +574,7 @@ export default async function SourcingMaterialPage({ params }: Props) {
 
 Run:
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit && pnpm --filter @e-luna/vendor lint
+pnpm --filter @ayvana/vendor exec tsc --noEmit && pnpm --filter @ayvana/vendor lint
 ```
 Expected: no type errors; lint clean. (The `<img>` uses the same `eslint-disable-next-line` convention as
 the rest of the repo for data/remote images.)
@@ -643,11 +643,11 @@ export function CancelOrderButton({ orderId }: { orderId: string }) {
 ```tsx
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 
-export const metadata: Metadata = { title: "My material orders — Luna Vendor" };
+export const metadata: Metadata = { title: "My material orders — AYVANA Vendor" };
 
 const STATUS_CLASSES: Record<string, string> = {
   PENDING: "bg-sand text-mist",
@@ -725,12 +725,12 @@ export default async function MyMaterialOrdersPage() {
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../../lib/auth";
 import { getVendorByUserId } from "../../../../lib/vendor";
 import { CancelOrderButton } from "../../../components/CancelOrderButton";
 
-export const metadata: Metadata = { title: "Order — Luna Vendor" };
+export const metadata: Metadata = { title: "Order — AYVANA Vendor" };
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -812,7 +812,7 @@ export default async function MaterialOrderDetailPage({ params }: Props) {
 
 Run:
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit && pnpm --filter @e-luna/vendor lint
+pnpm --filter @ayvana/vendor exec tsc --noEmit && pnpm --filter @ayvana/vendor lint
 ```
 Expected: no type errors; lint clean.
 
@@ -850,7 +850,7 @@ Change nothing else — the existing `isActive` logic (`href === "/" ? pathname 
 
 Run:
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit && pnpm --filter @e-luna/vendor lint
+pnpm --filter @ayvana/vendor exec tsc --noEmit && pnpm --filter @ayvana/vendor lint
 ```
 Expected: no type errors; lint clean.
 
@@ -875,7 +875,7 @@ Create `apps/supplier/app/actions/incoming-order.ts` with exactly:
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
 
@@ -1018,7 +1018,7 @@ export async function completeMaterialOrder(
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Expected: no errors. (`order.status` is the `MaterialOrderStatus` enum, compared against string literals —
 assignable. `prisma.materialOrder`/`tx.material.updateMany` exist after Task 1's generate.)
@@ -1118,7 +1118,7 @@ export function OrderActions({ orderId, status }: Props) {
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: no type errors; lint clean.
 
@@ -1142,11 +1142,11 @@ git commit -m "feat(supplier): add OrderActions fulfilment island"
 ```tsx
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 
-export const metadata: Metadata = { title: "Incoming orders — Luna Supplier" };
+export const metadata: Metadata = { title: "Incoming orders — AYVANA Supplier" };
 
 const STATUS_CLASSES: Record<string, string> = {
   PENDING: "bg-sand text-mist",
@@ -1251,12 +1251,12 @@ export default async function IncomingOrdersPage({ searchParams }: Props) {
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getSupplierByUserId } from "../../../lib/supplier";
 import { OrderActions } from "../../components/OrderActions";
 
-export const metadata: Metadata = { title: "Order — Luna Supplier" };
+export const metadata: Metadata = { title: "Order — AYVANA Supplier" };
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -1338,7 +1338,7 @@ export default async function IncomingOrderDetailPage({ params }: Props) {
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: no type errors; lint clean.
 
@@ -1434,7 +1434,7 @@ Leave the first (Materials) card and the supply-categories section unchanged.
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: no type errors; lint clean.
 
@@ -1453,7 +1453,7 @@ git commit -m "feat(supplier): promote Incoming Orders nav + live dashboard card
 
 Run:
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter "@e-luna/*" exec tsc --noEmit
+pnpm --filter @ayvana/db db:generate && pnpm --filter "@ayvana/*" exec tsc --noEmit
 ```
 Expected: no type errors across all packages/apps.
 

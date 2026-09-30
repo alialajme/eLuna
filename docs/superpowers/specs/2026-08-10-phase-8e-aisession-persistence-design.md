@@ -13,7 +13,7 @@ Give the AI agent mesh a memory layer: persist each chat agent's conversation pe
 - Shared `packages/ai/src/session.ts`: `loadAgentMessages`, `persistOnFinish`, `isAgentType`, `StoredMessage`.
 - Each `run*Agent` forwards an optional `onFinish` to `streamText`; each streaming route attaches persistence when a user is present.
 - `GET /api/ai-history` in both apps (customer + vendor).
-- `LunaChatWidget` gains an `agentType` prop that self-loads history on mount; the 4 mount points pass it.
+- `AyvanaChatWidget` gains an `agentType` prop that self-loads history on mount; the 4 mount points pass it.
 
 **Out of scope (deferred / YAGNI):**
 - Agent orchestration / cross-agent handoff / a single routing entry agent.
@@ -57,7 +57,7 @@ apps/customer/app/api/delivery-help/route.ts                    — attach persi
 apps/vendor/app/api/assistant/route.ts                          — attach persistOnFinish (SELLER)
 apps/customer/app/api/ai-history/route.ts                       — CREATE GET
 apps/vendor/app/api/ai-history/route.ts                         — CREATE GET
-packages/ui/src/components/LunaChatWidget.tsx                   — add agentType prop + mount-load via setMessages
+packages/ui/src/components/AyvanaChatWidget.tsx                   — add agentType prop + mount-load via setMessages
 apps/customer/app/layout.tsx                                    — Shopping widget agentType="SHOPPING"
 apps/customer/app/checkout/page.tsx                             — Payment widget agentType="PAYMENT"
 apps/customer/app/orders/layout.tsx                             — Delivery widget agentType="LOGISTICS"
@@ -71,7 +71,7 @@ apps/vendor/app/(dashboard)/layout.tsx                          — Seller widge
 ## Session module — `packages/ai/src/session.ts`
 
 ```ts
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
 export type StoredMessage = { id: string; role: "user" | "assistant"; content: string };
 
@@ -118,7 +118,7 @@ export function persistOnFinish(userId: string, agentType: AgentType, inputMessa
   };
 }
 ```
-Note: `messages: full` — a plain-object array is a valid Prisma `InputJsonValue`; if tsc objects, cast `full as unknown as Prisma.InputJsonValue` (import `Prisma` from `@e-luna/db`). `packages/ai/src/index.ts` adds: `export { loadAgentMessages, persistOnFinish, isAgentType } from "./session"; export type { StoredMessage } from "./session";`.
+Note: `messages: full` — a plain-object array is a valid Prisma `InputJsonValue`; if tsc objects, cast `full as unknown as Prisma.InputJsonValue` (import `Prisma` from `@ayvana/db`). `packages/ai/src/index.ts` adds: `export { loadAgentMessages, persistOnFinish, isAgentType } from "./session"; export type { StoredMessage } from "./session";`.
 
 ---
 
@@ -147,7 +147,7 @@ export async function runSellerAgent(
 
 ## Streaming routes — attach persistence
 
-Each imports `persistOnFinish` from `@e-luna/ai` and passes it in the agent options when a user is present:
+Each imports `persistOnFinish` from `@ayvana/ai` and passes it in the agent options when a user is present:
 - **chat** (`SHOPPING`, guest-tolerant): `onFinish: user ? persistOnFinish(user.id, "SHOPPING", messages) : undefined`.
 - **payment-help** (`PAYMENT`), **delivery-help** (`LOGISTICS`), **assistant** (`SELLER`): user is guaranteed (they 401 otherwise), so `onFinish: persistOnFinish(user.id, "<TYPE>", messages)`.
 
@@ -160,7 +160,7 @@ Each imports `persistOnFinish` from `@e-luna/ai` and passes it in the agent opti
 **Customer** (`apps/customer/app/api/ai-history/route.ts`):
 ```ts
 import { safeCurrentUser as currentUser } from "../../lib/auth";
-import { loadAgentMessages, isAgentType } from "@e-luna/ai";
+import { loadAgentMessages, isAgentType } from "@ayvana/ai";
 
 export async function GET(req: Request) {
   const agentType = new URL(req.url).searchParams.get("agentType") ?? "";
@@ -175,11 +175,11 @@ export async function GET(req: Request) {
 
 ---
 
-## Widget — `LunaChatWidget`
+## Widget — `AyvanaChatWidget`
 
 Add an optional `agentType` prop; destructure `setMessages` from `useChat`; load history once on mount.
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   // …existing…
   agentType?: string; // if set, load persisted history from /api/ai-history on mount
 };
@@ -227,16 +227,16 @@ useEffect(() => {
 
 No automated suite (repo-consistent). Per task:
 ```bash
-pnpm --filter @e-luna/db db:generate                                       # regen client after @@unique
+pnpm --filter @ayvana/db db:generate                                       # regen client after @@unique
 cd packages/ai && npx tsc --noEmit 2>&1                                     # clean
 cd packages/ui && npx tsc --noEmit 2>&1                                     # clean
 cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"    # clean
 cd apps/vendor   && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"    # clean
 # lint both apps
 ```
-Final task: repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit`.
+Final task: repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit`.
 
-**Operator note:** applying `@@unique` to the live DB is `pnpm --filter @e-luna/db db:push` (operator step). **Manual smoke** (running app + DB + `ANTHROPIC_API_KEY`): chat with an agent → reload → the conversation reappears (loaded via `/api/ai-history`); sign in as a different user → only their own history shows; guests get ephemeral chat.
+**Operator note:** applying `@@unique` to the live DB is `pnpm --filter @ayvana/db db:push` (operator step). **Manual smoke** (running app + DB + `ANTHROPIC_API_KEY`): chat with an agent → reload → the conversation reappears (loaded via `/api/ai-history`); sign in as a different user → only their own history shows; guests get ephemeral chat.
 
 ---
 

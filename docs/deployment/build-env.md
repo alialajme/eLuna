@@ -12,10 +12,10 @@ deployment secrets, not code. Set them in your CI/CD (GitHub Actions, Vercel, Az
 
 | Variable | customer | vendor | supplier | admin | Why (build-time) |
 |---|:---:|:---:|:---:|:---:|---|
-| `ANTHROPIC_API_KEY` | ✅ | ✅ | ✅ | — | `@e-luna/ai` `config.ts` **throws at import** if unset; the AI-agent routes (`/api/assistant`, `/api/ai-history`, `/api/chat`, `/api/*-help`) import it, so page-data collection fails. Admin has no `@e-luna/ai` dependency. |
+| `ANTHROPIC_API_KEY` | ✅ | ✅ | ✅ | — | `@ayvana/ai` `config.ts` **throws at import** if unset; the AI-agent routes (`/api/assistant`, `/api/ai-history`, `/api/chat`, `/api/*-help`) import it, so page-data collection fails. Admin has no `@ayvana/ai` dependency. |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | ✅ | ✅ | ✅ | ✅ | Clerk requires it "in production"; **inlined at build** (`NEXT_PUBLIC_`) and read while prerendering Clerk-wrapped pages (e.g. customer `/profile/size`, `/`). Must be a real, valid key — a malformed dummy fails inside Clerk's SSG init. |
 | `CLERK_SECRET_KEY` | ✅ | ✅ | ✅ | ✅ | Clerk server SDK init for any prerendered/collected route that calls `auth()`/`currentUser()`. |
-| `DATABASE_URL` | ✅ | ✅ | ✅ | ✅ | `@e-luna/db` Prisma client + any page/route that reads the DB during prerender/collection. Point it at a reachable Postgres (a build-time replica is fine). |
+| `DATABASE_URL` | ✅ | ✅ | ✅ | ✅ | `@ayvana/db` Prisma client + any page/route that reads the DB during prerender/collection. Point it at a reachable Postgres (a build-time replica is fine). |
 
 > Each app uses its **own** Clerk instance in production (separate publishable/secret keys per app — see the
 > persona-separation note in the root `.env.example`). Supplier/vendor/admin have no `.env.local` in the repo;
@@ -33,7 +33,7 @@ These gate real integrations; unset, the code uses a Simulated/scaffold path and
 
 ## Verifying a build locally without real secrets
 
-- **Compile + types + lint (no secrets needed):** `pnpm --filter "@e-luna/*" exec tsc --noEmit` and `pnpm lint`
+- **Compile + types + lint (no secrets needed):** `pnpm --filter "@ayvana/*" exec tsc --noEmit` and `pnpm lint`
   — these fully validate the code and are the CI gates that catch regressions.
 - **Full `next build`:** provide the four required vars above (a build-time DB replica + the app's real Clerk
   keys + an Anthropic key). `admin`, `supplier`, and `vendor` complete a full static build with just

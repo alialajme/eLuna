@@ -23,9 +23,9 @@ Make the shipment flow ready for real courier APIs: a `CourierGateway` abstracti
 ## Architecture
 
 ### Current state (verified)
-- Courier registry `@e-luna/ui/couriers` (id/name/`trackingUrl` deep-link; 5 UAE couriers).
+- Courier registry `@ayvana/ui/couriers` (id/name/`trackingUrl` deep-link; 5 UAE couriers).
 - `apps/vendor/app/actions/shipment.ts` — `createShipment({ orderId, courier, trackingNumber, estimatedDelivery? })`: validates `trackingNumber` non-empty + `getCourier(courier)`, gathers the vendor's `PENDING`/`PROCESSING` items (error if none), in a `$transaction` creates `Shipment` (`status:"IN_TRANSIT"`) + links items `SHIPPED`, `recomputeOrderStatus`. `markShipmentDelivered(shipmentId)`: auth + ownership + already-delivered guards → `$transaction` shipment `DELIVERED`+`deliveredAt`, items `DELIVERED`, `recomputeOrderStatus`. Both revalidate `/orders` + `/orders/[id]`.
-- `recomputeOrderStatus` in `apps/vendor/app/lib/order-status.ts`. `Shipment { courier String, trackingNumber String?, status ShipmentStatus, estimatedDelivery?, deliveredAt?, cost }`; `ShipmentStatus = CREATED|PICKED_UP|IN_TRANSIT|OUT_FOR_DELIVERY|DELIVERED|FAILED|RETURNED`. `@e-luna/db` re-exports `ShipmentStatus` type.
+- `recomputeOrderStatus` in `apps/vendor/app/lib/order-status.ts`. `Shipment { courier String, trackingNumber String?, status ShipmentStatus, estimatedDelivery?, deliveredAt?, cost }`; `ShipmentStatus = CREATED|PICKED_UP|IN_TRANSIT|OUT_FOR_DELIVERY|DELIVERED|FAILED|RETURNED`. `@ayvana/db` re-exports `ShipmentStatus` type.
 - Only the vendor app creates shipments; the customer tracking page reads `Shipment` status (no API call).
 
 ### Schema (additive, `db push`)
@@ -40,7 +40,7 @@ model Shipment {
 
 ### `CourierGateway` — `lib/courier/gateway.ts`
 ```ts
-import type { ShipmentStatus } from "@e-luna/db";
+import type { ShipmentStatus } from "@ayvana/db";
 
 export type CreateShipmentParams = {
   orderId: string;
@@ -136,7 +136,7 @@ docs/deployment/couriers.md                                       — operator g
 ## Shared status helper — `lib/courier/apply-status.ts`
 
 ```ts
-import { prisma, type ShipmentStatus } from "@e-luna/db";
+import { prisma, type ShipmentStatus } from "@ayvana/db";
 import { recomputeOrderStatus } from "../order-status";
 
 /** Idempotently apply a shipment status; DELIVERED also flips items + timestamps and recomputes the order. */
@@ -254,7 +254,7 @@ The tracking-number `<input>` becomes optional (placeholder "Tracking number (bl
 
 ## Testing
 
-No suite (repo-consistent). Per task: `pnpm --filter @e-luna/db db:generate` → `tsc --noEmit` (packages/db, vendor) → `next lint`. Final repo-wide `pnpm lint` + typecheck.
+No suite (repo-consistent). Per task: `pnpm --filter @ayvana/db db:generate` → `tsc --noEmit` (packages/db, vendor) → `next lint`. Final repo-wide `pnpm lint` + typecheck.
 
 **Simulated-fallback proof (must hold):** with no courier keys, `getCourierGateway("aramex")` → `SimulatedCourier`; `createShipment` receives `{ status:"manual" }` → requires the vendor's tracking number → the shipment is created exactly as in 7a. Nothing changes on deploy.
 

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { COURIERS } from "@e-luna/ui/couriers";
+import { COURIERS } from "@ayvana/ui/couriers";
 import {
   acceptMaterialOrder,
   rejectMaterialOrder,

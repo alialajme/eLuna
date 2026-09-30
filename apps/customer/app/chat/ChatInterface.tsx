@@ -2,7 +2,7 @@
 
 import { useChat } from "ai/react";
 import { useEffect, useRef } from "react";
-import { ChatMessage } from "@e-luna/ui";
+import { ChatMessage } from "@ayvana/ui";
 
 export function ChatInterface({
   sessionId,
@@ -19,7 +19,7 @@ export function ChatInterface({
       {
         id: "welcome",
         role: "assistant",
-        content: `Ahlan wa sahlan${userName ? `, ${userName}` : ""}! I'm Luna, your AI stylist. Tell me about an occasion, your style, or what you're looking for — I'll find the perfect abaya for you. ✨`,
+        content: `Ahlan wa sahlan${userName ? `, ${userName}` : ""}! I'm AYVANA, your AI stylist. Tell me about an occasion, your style, or what you're looking for — I'll find the perfect abaya for you. ✨`,
       },
     ],
   });
@@ -45,7 +45,7 @@ export function ChatInterface({
           {isLoading && (
             <div className="flex items-center gap-2 text-mist text-body-sm">
               <span className="animate-pulse text-gold">●</span>
-              <span>Luna is thinking…</span>
+              <span>AYVANA is thinking…</span>
             </div>
           )}
           {error && (
@@ -61,7 +61,7 @@ export function ChatInterface({
           <input
             value={input}
             onChange={handleInputChange}
-            placeholder="Ask Luna anything about abayas…"
+            placeholder="Ask AYVANA anything about abayas…"
             disabled={isLoading}
             className="flex-1 rounded-xl border border-sand bg-white px-4 py-3 text-body-md text-ink placeholder:text-mist focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold disabled:opacity-50"
           />
@@ -74,7 +74,7 @@ export function ChatInterface({
           </button>
         </form>
         <p className="mx-auto mt-2 max-w-2xl text-center text-body-xs text-mist">
-          Luna AI may make mistakes. Always verify sizing before purchasing.
+          AYVANA AI may make mistakes. Always verify sizing before purchasing.
         </p>
       </div>
     </div>

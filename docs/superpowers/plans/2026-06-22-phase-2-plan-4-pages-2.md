@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the Product Detail page, Vendor Boutique page, the AI Stylist full page, the `/api/chat` route handler, and integrate the LunaChatWidget into the layout.
+**Goal:** Build the Product Detail page, Vendor Boutique page, the AI Stylist full page, the `/api/chat` route handler, and integrate the AyvanaChatWidget into the layout.
 
-**Architecture:** Product detail uses RSC for content with client islands for gallery and size picker. Cart is a signed cookie (`luna_cart`) — a Server Action appends items. The chat route handler streams from `runShoppingAgent`. The full `/chat` page uses `useChat` + a `ChatInterface` client component. The `LunaChatWidget` in the root layout points to `/api/chat`.
+**Architecture:** Product detail uses RSC for content with client islands for gallery and size picker. Cart is a signed cookie (`ayvana_cart`) — a Server Action appends items. The chat route handler streams from `runShoppingAgent`. The full `/chat` page uses `useChat` + a `ChatInterface` client component. The `AyvanaChatWidget` in the root layout points to `/api/chat`.
 
-**Tech Stack:** Next.js 15 App Router · Prisma · Vercel AI SDK `useChat` · `@e-luna/ai` · cookies API · `@e-luna/ui`
+**Tech Stack:** Next.js 15 App Router · Prisma · Vercel AI SDK `useChat` · `@ayvana/ai` · cookies API · `@ayvana/ui`
 
 **Dependency:** Run after Plans 1, 2, and 3.
 
@@ -16,7 +16,7 @@
 
 | File | Action |
 |---|---|
-| `apps/customer/package.json` | Modify — add `@e-luna/ai` + `ai` deps |
+| `apps/customer/package.json` | Modify — add `@ayvana/ai` + `ai` deps |
 | `apps/customer/app/actions/cart.ts` | Create — Server Action for cart cookie |
 | `apps/customer/app/p/[slug]/page.tsx` | Create — Product Detail page |
 | `apps/customer/app/p/[slug]/ProductDetail.tsx` | Create — client island |
@@ -24,7 +24,7 @@
 | `apps/customer/app/api/chat/route.ts` | Create — streaming chat route handler |
 | `apps/customer/app/chat/page.tsx` | Create — AI Stylist full page |
 | `apps/customer/app/chat/ChatInterface.tsx` | Create — client chat component |
-| `apps/customer/app/layout.tsx` | Modify — add LunaChatWidget |
+| `apps/customer/app/layout.tsx` | Modify — add AyvanaChatWidget |
 
 ---
 
@@ -37,7 +37,7 @@
 
 ```json
 {
-  "name": "@e-luna/customer",
+  "name": "@ayvana/customer",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -48,17 +48,17 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^5.0.0",
-    "@e-luna/ai": "workspace:*",
-    "@e-luna/auth": "workspace:*",
-    "@e-luna/db": "workspace:*",
-    "@e-luna/ui": "workspace:*",
+    "@ayvana/ai": "workspace:*",
+    "@ayvana/auth": "workspace:*",
+    "@ayvana/db": "workspace:*",
+    "@ayvana/ui": "workspace:*",
     "ai": "^4.3.19",
     "next": "15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -87,7 +87,7 @@ pnpm install
 
 import { cookies } from "next/headers";
 
-const CART_COOKIE = "luna_cart";
+const CART_COOKIE = "ayvana_cart";
 const MAX_ITEMS = 20;
 
 export type CartItem = {
@@ -150,8 +150,8 @@ This is the client island — handles size selection, add to cart, gallery inter
 "use client";
 
 import { useState } from "react";
-import { ProductGallery, SizeSelector } from "@e-luna/ui";
-import type { SizeProfile } from "@e-luna/db";
+import { ProductGallery, SizeSelector } from "@ayvana/ui";
+import type { SizeProfile } from "@ayvana/db";
 import { addToCart } from "../../actions/cart";
 
 type Variant = {
@@ -237,11 +237,11 @@ export function ProductDetail({
           }}
         />
 
-        {/* Luna Fit strip */}
+        {/* AYVANA Fit strip */}
         {sizeProfile ? (
           recommendedSize ? (
             <div className="rounded-xl bg-ink px-4 py-3 text-body-sm text-ivory">
-              <span className="text-gold">◑</span> Luna thinks{" "}
+              <span className="text-gold">◑</span> AYVANA thinks{" "}
               <strong>{recommendedSize}</strong> fits you well based on your measurements.
             </div>
           ) : null
@@ -318,8 +318,8 @@ export function ProductDetail({
 ```tsx
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
-import { ProductCard } from "@e-luna/ui";
+import { prisma } from "@ayvana/db";
+import { ProductCard } from "@ayvana/ui";
 import { currentUser } from "@clerk/nextjs/server";
 import { ProductDetail } from "./ProductDetail";
 import type { Metadata } from "next";
@@ -333,7 +333,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
   if (!product) return { title: "Not Found" };
   return {
-    title: `${product.title} — ${product.vendor.storeName} on Luna`,
+    title: `${product.title} — ${product.vendor.storeName} on AYVANA`,
     description: product.description ?? undefined,
   };
 }
@@ -498,7 +498,7 @@ export default async function ProductDetailPage({ params }: Props) {
 - [ ] **Step 3: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
 ```
 
 - [ ] **Step 4: Commit**
@@ -520,8 +520,8 @@ git commit -m "feat: add product detail page with size selector and add-to-cart"
 ```tsx
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { prisma } from "@e-luna/db";
-import { FilterBar } from "@e-luna/ui";
+import { prisma } from "@ayvana/db";
+import { FilterBar } from "@ayvana/ui";
 import { currentUser } from "@clerk/nextjs/server";
 import { ProductGrid } from "../../components/ProductGrid";
 import { ProductGridSkeleton } from "../../components/ProductGridSkeleton";
@@ -542,8 +542,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const vendor = await prisma.vendor.findUnique({ where: { id: params.id } });
   if (!vendor) return { title: "Not Found" };
   return {
-    title: `${vendor.storeName} — Luna`,
-    description: `Shop abayas from ${vendor.storeName} on Luna`,
+    title: `${vendor.storeName} — AYVANA`,
+    description: `Shop abayas from ${vendor.storeName} on AYVANA`,
   };
 }
 
@@ -664,7 +664,7 @@ export default async function VendorBoutiquePage({ params, searchParams }: Props
         <div className="mt-4 flex items-center gap-2 rounded-xl border border-sand p-4 max-w-sm">
           <span className="text-gold">◑</span>
           <p className="text-body-sm text-mist">
-            Standard platform return policy applies to all Luna boutiques.
+            Standard platform return policy applies to all AYVANA boutiques.
           </p>
         </div>
       </section>
@@ -676,7 +676,7 @@ export default async function VendorBoutiquePage({ params, searchParams }: Props
 - [ ] **Step 2: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
 ```
 
 - [ ] **Step 3: Commit**
@@ -697,8 +697,8 @@ git commit -m "feat: add vendor boutique page"
 
 ```ts
 import { currentUser } from "@clerk/nextjs/server";
-import { prisma } from "@e-luna/db";
-import { runShoppingAgent } from "@e-luna/ai/shopping";
+import { prisma } from "@ayvana/db";
+import { runShoppingAgent } from "@ayvana/ai/shopping";
 import type { CoreMessage } from "ai";
 
 export const runtime = "nodejs";
@@ -776,7 +776,7 @@ export async function POST(req: Request) {
 import { useChat } from "ai/react";
 import { useEffect, useRef, useState } from "react";
 import type { Message } from "ai";
-import { ChatMessage } from "@e-luna/ui";
+import { ChatMessage } from "@ayvana/ui";
 
 const STARTER_PROMPTS = [
   "I'm looking for an abaya for a wedding next week",
@@ -816,7 +816,7 @@ export function ChatInterface() {
             <span className="text-gold text-lg">◑</span>
           </div>
           <div>
-            <h2 className="font-sans text-body-lg font-semibold text-ink">Luna AI Stylist</h2>
+            <h2 className="font-sans text-body-lg font-semibold text-ink">AYVANA AI Stylist</h2>
             <p className="text-body-sm text-mist">Your personal style advisor</p>
           </div>
         </div>
@@ -838,7 +838,7 @@ export function ChatInterface() {
               <span className="text-gold text-3xl">◑</span>
             </div>
             <div>
-              <h3 className="font-display text-display-md text-ink mb-2">مرحباً! I'm Luna.</h3>
+              <h3 className="font-display text-display-md text-ink mb-2">مرحباً! I'm AYVANA.</h3>
               <p className="text-body-md text-mist">Tell me your occasion and I'll find your perfect abaya.</p>
             </div>
             <div className="grid grid-cols-1 gap-2 w-full max-w-sm sm:grid-cols-2">
@@ -863,7 +863,7 @@ export function ChatInterface() {
           <div className="flex justify-start gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-gold">◑</div>
             <div className="rounded-2xl rounded-bl-sm bg-sand px-4 py-3 text-body-sm text-mist animate-pulse">
-              Luna is thinking…
+              AYVANA is thinking…
             </div>
           </div>
         )}
@@ -876,7 +876,7 @@ export function ChatInterface() {
           <input
             value={input}
             onChange={handleInputChange}
-            placeholder="Ask Luna about abayas, sizes, fabrics…"
+            placeholder="Ask AYVANA about abayas, sizes, fabrics…"
             className="flex-1 rounded-full border border-sand bg-white px-5 py-3 text-body-md text-ink placeholder:text-mist focus:outline-none focus:ring-1 focus:ring-gold"
             disabled={isLoading}
           />
@@ -900,13 +900,13 @@ export function ChatInterface() {
 ```tsx
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import Link from "next/link";
 import { ChatInterface } from "./ChatInterface";
 
 export const metadata = {
-  title: "Luna AI Stylist — luna.ae",
-  description: "Chat with Luna, your AI fashion advisor for the perfect abaya",
+  title: "AYVANA AI Stylist — ayvana.ae",
+  description: "Chat with AYVANA, your AI fashion advisor for the perfect abaya",
 };
 
 export default async function ChatPage() {
@@ -932,7 +932,7 @@ export default async function ChatPage() {
           {sizeProfile ? (
             <div className="rounded-xl border border-sand bg-ivory p-4">
               <p className="text-body-sm text-ink font-medium">Size {sizeProfile.usualSize}</p>
-              <p className="text-body-sm text-mist mt-1">Luna will recommend products that fit you.</p>
+              <p className="text-body-sm text-mist mt-1">AYVANA will recommend products that fit you.</p>
               <Link href="/profile/size" className="mt-3 block text-body-sm text-gold hover:underline">
                 Update measurements →
               </Link>
@@ -940,7 +940,7 @@ export default async function ChatPage() {
           ) : (
             <div className="rounded-xl border border-dashed border-sand bg-ivory p-4 text-center">
               <span className="text-2xl text-gold block mb-2">◑</span>
-              <p className="text-body-sm text-mist mb-3">Add your measurements so Luna can recommend the right size.</p>
+              <p className="text-body-sm text-mist mb-3">Add your measurements so AYVANA can recommend the right size.</p>
               <Link
                 href="/profile/size"
                 className="text-body-sm font-medium text-gold hover:underline"
@@ -974,7 +974,7 @@ export default async function ChatPage() {
 - [ ] **Step 3: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
 ```
 
 - [ ] **Step 4: Commit**
@@ -986,18 +986,18 @@ git commit -m "feat: add AI Stylist chat route handler and full page"
 
 ---
 
-## Task 7: Wire LunaChatWidget into Layout
+## Task 7: Wire AyvanaChatWidget into Layout
 
 **Files:**
 - Modify: `apps/customer/app/layout.tsx`
 
-- [ ] **Step 1: Add LunaChatWidget to layout.tsx**
+- [ ] **Step 1: Add AyvanaChatWidget to layout.tsx**
 
 ```tsx
 import type { Metadata } from "next";
 import { Bodoni_Moda, Hanken_Grotesk, IBM_Plex_Sans_Arabic } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { RTLProvider, LunaChatWidget } from "@e-luna/ui";
+import { RTLProvider, AyvanaChatWidget } from "@ayvana/ui";
 import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
 import "./globals.css";
@@ -1023,7 +1023,7 @@ const ibmArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "Luna — The Gulf's AI-powered abaya marketplace",
+  title: "AYVANA — The Gulf's AI-powered abaya marketplace",
   description: "Discover abayas styled for you by AI",
 };
 
@@ -1037,7 +1037,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main>{children}</main>
             <Footer />
             {/* Widget hides itself on /chat via usePathname() */}
-            <LunaChatWidget apiPath="/api/chat" />
+            <AyvanaChatWidget apiPath="/api/chat" />
           </RTLProvider>
         </body>
       </html>
@@ -1049,9 +1049,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - [ ] **Step 2: Final TypeScript check across all packages**
 
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
-pnpm --filter @e-luna/ui exec tsc --noEmit
-pnpm --filter @e-luna/ai exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
+pnpm --filter @ayvana/ui exec tsc --noEmit
+pnpm --filter @ayvana/ai exec tsc --noEmit
 pnpm lint
 ```
 
@@ -1069,14 +1069,14 @@ Check:
 3. `http://localhost:3000/browse/occasion` — pre-filtered to Occasion
 4. `http://localhost:3000/p/nidaa-signature-crepe-abaya` — product detail loads, size selector shows
 5. `http://localhost:3000/vendors/<nidaa-vendor-id>` — boutique header and product grid
-6. `http://localhost:3000/chat` — chat interface loads, Luna widget NOT shown (hidden on /chat)
-7. Navigate to `/browse` — Luna chat bubble appears bottom-right, click expands panel
+6. `http://localhost:3000/chat` — chat interface loads, AYVANA widget NOT shown (hidden on /chat)
+7. Navigate to `/browse` — AYVANA chat bubble appears bottom-right, click expands panel
 
 - [ ] **Step 4: Final commit**
 
 ```bash
 git add apps/customer/app/layout.tsx
-git commit -m "feat: wire LunaChatWidget into customer app layout"
+git commit -m "feat: wire AyvanaChatWidget into customer app layout"
 ```
 
 ---
@@ -1085,9 +1085,9 @@ git commit -m "feat: wire LunaChatWidget into customer app layout"
 
 - [ ] All 4 plans committed
 - [ ] `pnpm lint` passes
-- [ ] `pnpm --filter "@e-luna/*" exec tsc --noEmit` passes
+- [ ] `pnpm --filter "@ayvana/*" exec tsc --noEmit` passes
 - [ ] Seed ran successfully (Plan 1)
 - [ ] All 6 routes render without errors
-- [ ] Luna chat widget streams real AI responses
+- [ ] AYVANA chat widget streams real AI responses
 - [ ] Filter bar updates URL and re-renders product grid
-- [ ] Add to Bag button writes cart cookie (check DevTools → Application → Cookies → `luna_cart`)
+- [ ] Add to Bag button writes cart cookie (check DevTools → Application → Cookies → `ayvana_cart`)

@@ -29,10 +29,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Generate the Prisma client so @e-luna/db re-exports model types
+      # Generate the Prisma client so @ayvana/db re-exports model types
       # (e.g. SizeProfile); without this, tsc sees them as missing/any.
       - name: Generate Prisma client
-        run: pnpm --filter @e-luna/db db:generate
+        run: pnpm --filter @ayvana/db db:generate
 
       - name: Deploy-parity guard (all apps deployed + health probes)
         run: node scripts/check-deploy-parity.mjs
@@ -41,7 +41,7 @@ jobs:
         run: pnpm lint
 
       - name: Type check
-        run: pnpm --filter "@e-luna/*" exec tsc --noEmit
+        run: pnpm --filter "@ayvana/*" exec tsc --noEmit
 
   test:
     name: Tests (unit + integration)
@@ -52,7 +52,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: eluna_test
+          POSTGRES_DB: ayvana_test
         ports:
           - 5432:5432
         options: >-
@@ -61,7 +61,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/eluna_test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ayvana_test
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -74,16 +74,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm --filter @e-luna/db db:generate
+        run: pnpm --filter @ayvana/db db:generate
 
       - name: Push schema to test database
-        run: pnpm --filter @e-luna/db exec prisma db push --skip-generate
+        run: pnpm --filter @ayvana/db exec prisma db push --skip-generate
 
       - name: Run tests with coverage
-        run: pnpm --filter @e-luna/db test:coverage
+        run: pnpm --filter @ayvana/db test:coverage
 
-      - name: Run package unit tests (@e-luna/auth, @e-luna/observability)
-        run: pnpm --filter @e-luna/auth --filter @e-luna/observability test
+      - name: Run package unit tests (@ayvana/auth, @ayvana/observability)
+        run: pnpm --filter @ayvana/auth --filter @ayvana/observability test
 
   build:
     name: Production build
@@ -110,7 +110,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm --filter @e-luna/db db:generate
+        run: pnpm --filter @ayvana/db db:generate
 
       - name: Build all apps (production)
         run: pnpm turbo build

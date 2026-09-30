@@ -3,7 +3,7 @@ import { SignOutButton } from "@clerk/nextjs";
 import { safeCurrentUser } from "../lib/auth";
 
 export const metadata: Metadata = {
-  title: "Application Under Review — Luna Vendor",
+  title: "Application Under Review — AYVANA Vendor",
 };
 
 export default async function PendingPage() {
@@ -14,7 +14,7 @@ export default async function PendingPage() {
     <main className="flex min-h-screen flex-col bg-ivory">
       {/* Top strip */}
       <div className="bg-ink px-6 py-4 flex items-center justify-between">
-        <span className="font-display text-display-sm text-gold">✦ Luna</span>
+        <span className="font-display text-display-sm text-gold">✦ AYVANA</span>
         {user && (
           <SignOutButton>
             <button className="text-body-sm text-mist hover:text-ivory transition-colors">
@@ -47,16 +47,16 @@ export default async function PendingPage() {
               <li>✦ We verify your store details</li>
               <li>✦ We review your product categories</li>
               <li>✦ You receive an approval email</li>
-              <li>✦ Your boutique goes live on Luna</li>
+              <li>✦ Your boutique goes live on AYVANA</li>
             </ul>
           </div>
           <p className="text-body-sm text-mist">
             Questions?{" "}
             <a
-              href="mailto:sellers@luna.ae"
+              href="mailto:sellers@ayvana.ae"
               className="text-gold hover:underline"
             >
-              sellers@luna.ae
+              sellers@ayvana.ae
             </a>
           </p>
         </div>

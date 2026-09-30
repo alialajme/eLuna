@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build the foundational shell for the Vendor OS: auth guard, 4-step onboarding wizard, pending-approval holding page, sidebar navigation layout, and a rich dashboard with KPI cards, Luna AI low-stock alerts, and a 7-day revenue bar chart.
+Build the foundational shell for the Vendor OS: auth guard, 4-step onboarding wizard, pending-approval holding page, sidebar navigation layout, and a rich dashboard with KPI cards, AYVANA AI low-stock alerts, and a 7-day revenue bar chart.
 
 ---
 
@@ -49,7 +49,7 @@ In dev without Clerk keys, `safeCurrentUser()` returns null → the layout rende
 ```
 [Sign up] → /onboarding (4 steps) → Vendor created (PENDING)
          → /pending (waiting room)
-         → [Admin approves in ops.luna.ae] → status = ACTIVE
+         → [Admin approves in ops.ayvana.ae] → status = ACTIVE
          → (dashboard)/ unlocked
 ```
 
@@ -119,10 +119,10 @@ All functions are `"use server"` async exports.
 
 Full-page centered layout (no sidebar shell). Content:
 
-- Luna wordmark (gold on ink background strip at top)
+- AYVANA wordmark (gold on ink background strip at top)
 - Headline: "Your boutique is under review"
 - Body: "Our team reviews every seller application within 2–3 business days. You'll receive an email at {userEmail} once you're approved."
-- Support link: `mailto:sellers@luna.ae`
+- Support link: `mailto:sellers@ayvana.ae`
 - Sign out button (Clerk `<SignOutButton />`)
 
 No Prisma call needed. `safeCurrentUser()` used only to get the email address for the message.
@@ -245,7 +245,7 @@ const [revenue30d, orderCount, pendingCount, productCount, lowStockVariants, dai
 - Pending card background becomes `bg-coral/10 border-coral` when `pendingCount > 0`
 - All cards: `bg-ivory border border-sand rounded-2xl` base
 
-### Luna AI Alert strip
+### AYVANA AI Alert strip
 
 `bg-ink rounded-2xl px-5 py-4`. Only rendered if `lowStockVariants.length > 0`. Each variant shows product title + size + stock count. "View inventory →" link to `/inventory`.
 

@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
-import { securityHeadersConfig } from "@e-luna/config/security";
+import { securityHeadersConfig } from "@ayvana/config/security";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  transpilePackages: ["@e-luna/ui", "@e-luna/auth", "@e-luna/db", "@e-luna/ai", "@e-luna/einvoice", "@e-luna/courier"],
+  transpilePackages: ["@ayvana/ui", "@ayvana/auth", "@ayvana/db", "@ayvana/ai", "@ayvana/einvoice", "@ayvana/courier"],
   async headers() {
     return securityHeadersConfig();
   },

@@ -2,7 +2,7 @@
 
 **Status:** Approved (brainstorming) — 2026-08-12
 **Relationship:** Builds on the Supplier persona (S1–S3), the 7a per-vendor `Shipment` model, and the shared
-`@e-luna/courier` gateway (Supplier Courier feature). This is **feature #3 of 4** the user queued.
+`@ayvana/courier` gateway (Supplier Courier feature). This is **feature #3 of 4** the user queued.
 
 ## Goal
 
@@ -43,16 +43,16 @@ supplier**; the vendor sees "Fulfilled by <supplier>" (read-only) and is not ask
 - Multi-vendor-in-one-parcel: the supplier fulfils **one (order, listing-vendor) group per shipment**
   (mirrors the existing per-vendor `Shipment` model, keeps 1 tracking# : 1 shipment for the webhook).
 
-## Part A — Extract shared order-status helpers to `@e-luna/db`
+## Part A — Extract shared order-status helpers to `@ayvana/db`
 
 `recomputeOrderStatus` (currently `apps/vendor/app/lib/order-status.ts`) and `applyShipmentStatus`
 (currently `apps/vendor/app/lib/courier/apply-status.ts`) encode the customer-order fulfilment state machine.
 The supplier now needs the **same** logic (a dropship shipment flips items + recomputes the order, and
-mark-delivered must behave identically to the vendor's). Move both into **`@e-luna/db/src/order-status.ts`**
+mark-delivered must behave identically to the vendor's). Move both into **`@ayvana/db/src/order-status.ts`**
 (the package already hosts domain helpers — `settings.ts`, `categories.ts`) and export them from the
-`@e-luna/db` barrel. Repoint the vendor (`actions/shipment.ts`, the courier webhook route) to import from
-`@e-luna/db`; delete the two vendor-local files. Single source of truth for both apps. (The vendor courier
-`apply-status.ts` is replaced by the `@e-luna/db` export; the vendor webhook keeps its neutral→ShipmentStatus map.)
+`@ayvana/db` barrel. Repoint the vendor (`actions/shipment.ts`, the courier webhook route) to import from
+`@ayvana/db`; delete the two vendor-local files. Single source of truth for both apps. (The vendor courier
+`apply-status.ts` is replaced by the `@ayvana/db` export; the vendor webhook keeps its neutral→ShipmentStatus map.)
 
 ## Part B — Data model (Prisma, `db push`)
 
@@ -92,14 +92,14 @@ mark-delivered must behave identically to the vendor's). Move both into **`@e-lu
   address> })` (`created` → auto tracking/label; `manual` → require trackingNumber; `failed` → error). In a
   `$transaction`: create `Shipment { orderId, vendorId, supplierId: supplier.id, courier, trackingNumber,
   externalRef, labelUrl, status: "IN_TRANSIT", … }`, set those items' `shipmentId` + `fulfillmentStatus:
-  "SHIPPED"`; then `recomputeOrderStatus(orderId)` (from `@e-luna/db`). One shipment per call (one
+  "SHIPPED"`; then `recomputeOrderStatus(orderId)` (from `@ayvana/db`). One shipment per call (one
   order-vendor group).
 - **`markDropshipDelivered(shipmentId)`** (supplier action) — resolve ACTIVE supplier; load the shipment,
   assert `shipment.supplierId == supplier.id` and `status != "DELIVERED"`; call
-  `applyShipmentStatus(shipmentId, "DELIVERED")` (from `@e-luna/db`; flips items + recomputes the order).
+  `applyShipmentStatus(shipmentId, "DELIVERED")` (from `@ayvana/db`; flips items + recomputes the order).
 - **Sidebar** — add "📦 Customer Orders" nav; dashboard card shows the pending dropship-fulfilment count.
-- The supplier reuses `@e-luna/courier` (already a dep from the Supplier Courier feature) and
-  `@e-luna/ui/couriers` (COURIERS / trackingUrl). No new supplier deps.
+- The supplier reuses `@ayvana/courier` (already a dep from the Supplier Courier feature) and
+  `@ayvana/ui/couriers` (COURIERS / trackingUrl). No new supplier deps.
 
 ## Part E — Customer side (`apps/customer`)
 
@@ -128,7 +128,7 @@ state-machine. DB reads `.catch`-guarded; `markDropshipDelivered` ownership-chec
 
 No automated suite — types + lint + manual:
 1. `db:generate` + `db:push` (Product/Shipment fields).
-2. `pnpm --filter "@e-luna/*" exec tsc --noEmit` — clean (incl. the repointed vendor + `@e-luna/db` helpers).
+2. `pnpm --filter "@ayvana/*" exec tsc --noEmit` — clean (incl. the repointed vendor + `@ayvana/db` helpers).
 3. `pnpm lint` — clean.
 4. gitleaks — clean.
 5. Manual: vendor assigns supplier S to a product; place a customer order for it; S sees it in Customer
@@ -142,7 +142,7 @@ No automated suite — types + lint + manual:
   create `packages/db/src/order-status.ts` (moved `recomputeOrderStatus` + `applyShipmentStatus`), export from
   `packages/db/src/index.ts`.
 - Vendor: delete `app/lib/order-status.ts` + `app/lib/courier/apply-status.ts`; repoint
-  `app/actions/shipment.ts` + `app/api/webhooks/courier/[courier]/route.ts` to `@e-luna/db`; modify
+  `app/actions/shipment.ts` + `app/api/webhooks/courier/[courier]/route.ts` to `@ayvana/db`; modify
   `app/actions/product.ts` (validate/persist `dropshipSupplierId`), the new/edit product pages + `ProductForm`
   (supplier picker), `createShipment` (exclude dropship items), order-detail `FulfillmentPanel` (read-only
   dropship group).

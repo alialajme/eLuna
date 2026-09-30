@@ -58,7 +58,7 @@ async function ClerkNavButtons({ cartCount }: { cartCount: number }) {
 async function getCartCount(): Promise<number> {
   try {
     const cookieStore = await cookies();
-    const raw = cookieStore.get("luna_cart")?.value;
+    const raw = cookieStore.get("ayvana_cart")?.value;
     if (!raw) return 0;
     const items: CartItem[] = JSON.parse(raw);
     return items.reduce((sum, item) => sum + item.qty, 0);

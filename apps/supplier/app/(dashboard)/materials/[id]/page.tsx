@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getSupplierByUserId } from "../../../lib/supplier";
 import { MaterialForm, type MaterialFormInitial } from "../../components/MaterialForm";
@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const material = await prisma.material
     .findUnique({ where: { id }, select: { name: true } })
     .catch(() => null);
-  return { title: material ? `${material.name} — Luna Supplier` : "Edit material — Luna Supplier" };
+  return { title: material ? `${material.name} — AYVANA Supplier` : "Edit material — AYVANA Supplier" };
 }
 
 export default async function EditMaterialPage({ params }: Props) {

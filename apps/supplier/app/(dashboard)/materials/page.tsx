@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 
-export const metadata: Metadata = { title: "Materials — Luna Supplier" };
+export const metadata: Metadata = { title: "Materials — AYVANA Supplier" };
 
 const STATUS_CLASSES: Record<string, string> = {
   DRAFT: "bg-sand text-mist",

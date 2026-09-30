@@ -4,15 +4,15 @@
 
 **Goal:** Let a supplier ship a fulfilled `MaterialOrder` to the buying vendor through a real courier (Aramex/DHL) with structured tracking, reusing the vendor's courier gateway extracted to a shared package; the vendor sees live tracking and a delivery webhook auto-completes the order.
 
-**Architecture:** Extract the pure courier gateway (`apps/vendor/app/lib/courier/{gateway,config,simulated,aramex,factory}.ts`) into a new `@e-luna/courier` package with a **neutral** delivery-status type; repoint the vendor (which keeps its own `apply-status`). Add courier fields to `MaterialOrder`; the supplier's `shipMaterialOrder` drives the gateway; a supplier-local `apply-status` + webhook moves `SHIPPED → COMPLETED` on delivery. Credential-gated: no keys → Simulated (manual tracking), exactly today's behavior.
+**Architecture:** Extract the pure courier gateway (`apps/vendor/app/lib/courier/{gateway,config,simulated,aramex,factory}.ts`) into a new `@ayvana/courier` package with a **neutral** delivery-status type; repoint the vendor (which keeps its own `apply-status`). Add courier fields to `MaterialOrder`; the supplier's `shipMaterialOrder` drives the gateway; a supplier-local `apply-status` + webhook moves `SHIPPED → COMPLETED` on delivery. Credential-gated: no keys → Simulated (manual tracking), exactly today's behavior.
 
 **Tech Stack:** Turborepo + pnpm, Next.js 15 App Router, Prisma + PostgreSQL (`db push`, no migration files), TypeScript. No test suite — verification is `db:generate` + `tsc --noEmit` + `pnpm lint` + gitleaks.
 
-**Conventions:** workspace packages export raw TS (`@e-luna/db` pattern); apps list them in `dependencies` + `next.config.ts` `transpilePackages`. Commits use trailer `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`. Server actions resolve the scope id (supplierId/vendorId) from the Clerk session, never a client param.
+**Conventions:** workspace packages export raw TS (`@ayvana/db` pattern); apps list them in `dependencies` + `next.config.ts` `transpilePackages`. Commits use trailer `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`. Server actions resolve the scope id (supplierId/vendorId) from the Clerk session, never a client param.
 
 ---
 
-### Task 1: Extract `@e-luna/courier` + repoint vendor
+### Task 1: Extract `@ayvana/courier` + repoint vendor
 
 **Files:**
 - Create: `packages/courier/package.json`, `packages/courier/tsconfig.json`, `packages/courier/src/{gateway,config,simulated,aramex,dhl,factory,index}.ts`
@@ -22,14 +22,14 @@
 - [ ] **Step 1: `packages/courier/package.json`**
 ```json
 {
-  "name": "@e-luna/courier",
+  "name": "@ayvana/courier",
   "version": "0.0.1",
   "private": true,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": { ".": "./src/index.ts" },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "@types/node": "^20",
     "typescript": "^5.4.0"
   }
@@ -39,7 +39,7 @@
 - [ ] **Step 2: `packages/courier/tsconfig.json`**
 ```json
 {
-  "extends": "@e-luna/config/tsconfig/base.json",
+  "extends": "@ayvana/config/tsconfig/base.json",
   "include": ["src/**/*.ts"]
 }
 ```
@@ -186,16 +186,16 @@ import { applyShipmentStatus } from "../lib/courier/apply-status";
 ```
 with:
 ```ts
-import { getCourierGateway } from "@e-luna/courier";
+import { getCourierGateway } from "@ayvana/courier";
 import { applyShipmentStatus } from "../lib/courier/apply-status";
 ```
 And in the `getCourierGateway(input.courier).createShipment({...})` call, rename the first field `orderId: input.orderId,` → `reference: input.orderId,`.
 
 - [ ] **Step 12: Repoint `apps/vendor/app/api/webhooks/courier/[courier]/route.ts`** — import from the package and map the neutral status to `ShipmentStatus` before applying. Replace the whole file with:
 ```ts
-import { prisma, type ShipmentStatus } from "@e-luna/db";
-import type { CourierStatusEvent } from "@e-luna/courier";
-import { getCourierGateway } from "@e-luna/courier";
+import { prisma, type ShipmentStatus } from "@ayvana/db";
+import type { CourierStatusEvent } from "@ayvana/courier";
+import { getCourierGateway } from "@ayvana/courier";
 import { applyShipmentStatus } from "../../../../lib/courier/apply-status";
 
 export async function POST(req: Request, { params }: { params: Promise<{ courier: string }> }) {
@@ -229,17 +229,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ courier
 }
 ```
 
-- [ ] **Step 13: Add the dep + transpile to the vendor app.** In `apps/vendor/package.json` dependencies, after `"@e-luna/ai": "workspace:*",` add:
+- [ ] **Step 13: Add the dep + transpile to the vendor app.** In `apps/vendor/package.json` dependencies, after `"@ayvana/ai": "workspace:*",` add:
 ```json
-    "@e-luna/courier": "workspace:*",
+    "@ayvana/courier": "workspace:*",
 ```
-In `apps/vendor/next.config.ts`, add `"@e-luna/courier"` to the `transpilePackages` array.
+In `apps/vendor/next.config.ts`, add `"@ayvana/courier"` to the `transpilePackages` array.
 
 - [ ] **Step 14: Install, generate, type-check the package + vendor**
 ```bash
 pnpm install
 pnpm exec tsc --noEmit -p packages/courier/tsconfig.json
-pnpm --filter @e-luna/vendor exec tsc --noEmit
+pnpm --filter @ayvana/vendor exec tsc --noEmit
 ```
 Expected: all exit 0.
 
@@ -247,7 +247,7 @@ Expected: all exit 0.
 ```bash
 git add packages/courier apps/vendor/app/lib/courier apps/vendor/app/actions/shipment.ts \
   "apps/vendor/app/api/webhooks/courier/[courier]/route.ts" apps/vendor/package.json apps/vendor/next.config.ts pnpm-lock.yaml
-git commit -m "refactor(courier): extract shared @e-luna/courier gateway + repoint vendor"
+git commit -m "refactor(courier): extract shared @ayvana/courier gateway + repoint vendor"
 ```
 
 ---
@@ -267,7 +267,7 @@ git commit -m "refactor(courier): extract shared @e-luna/courier gateway + repoi
 
 - [ ] **Step 2: Generate + push**
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:generate && pnpm --filter @ayvana/db db:push
 ```
 Expected: "Your database is now in sync with your Prisma schema."
 
@@ -287,7 +287,7 @@ git commit -m "feat(db): MaterialOrder structured courier fields"
 
 - [ ] **Step 1: `apps/supplier/app/lib/courier/apply-status.ts`**
 ```ts
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
 /** Idempotently move a shipped material order to COMPLETED on courier delivery. No-op otherwise. */
 export async function applyMaterialOrderDelivery(materialOrderId: string): Promise<void> {
@@ -297,16 +297,16 @@ export async function applyMaterialOrderDelivery(materialOrderId: string): Promi
 }
 ```
 
-- [ ] **Step 2: Add the dep + transpile.** In `apps/supplier/package.json` dependencies, after `"@e-luna/einvoice": "workspace:*",` add:
+- [ ] **Step 2: Add the dep + transpile.** In `apps/supplier/package.json` dependencies, after `"@ayvana/einvoice": "workspace:*",` add:
 ```json
-    "@e-luna/courier": "workspace:*",
+    "@ayvana/courier": "workspace:*",
 ```
-In `apps/supplier/next.config.ts`, add `"@e-luna/courier"` to the `transpilePackages` array.
+In `apps/supplier/next.config.ts`, add `"@ayvana/courier"` to the `transpilePackages` array.
 
 - [ ] **Step 3: Rewrite `shipMaterialOrder` in `apps/supplier/app/actions/incoming-order.ts`.** Add these imports at the top (after the existing imports):
 ```ts
-import { getCourier } from "@e-luna/ui/couriers";
-import { getCourierGateway } from "@e-luna/courier";
+import { getCourier } from "@ayvana/ui/couriers";
+import { getCourierGateway } from "@ayvana/courier";
 ```
 Then replace the entire existing `shipMaterialOrder` function with:
 ```ts
@@ -372,7 +372,7 @@ export async function shipMaterialOrder(
 - [ ] **Step 4: Install + type-check**
 ```bash
 pnpm install
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Expected: exit 0. (Note: the supplier `OrderActions` island still calls the old `shipMaterialOrder(orderId, trackingNote)` signature and will error here — that call site is fixed in Task 5. If tsc fails ONLY on `OrderActions.tsx`, proceed to Task 5 before committing; otherwise fix the reported error.)
 
@@ -386,9 +386,9 @@ Because Task 5's UI change is required to compile, **defer the commit for Task 3
 
 - [ ] **Step 1: Write the route**
 ```ts
-import { prisma } from "@e-luna/db";
-import type { CourierStatusEvent } from "@e-luna/courier";
-import { getCourierGateway } from "@e-luna/courier";
+import { prisma } from "@ayvana/db";
+import type { CourierStatusEvent } from "@ayvana/courier";
+import { getCourierGateway } from "@ayvana/courier";
 import { applyMaterialOrderDelivery } from "../../../../lib/courier/apply-status";
 
 export async function POST(req: Request, { params }: { params: Promise<{ courier: string }> }) {
@@ -427,7 +427,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ courier
 
 - [ ] **Step 2: Type-check** (still expected to fail only on `OrderActions.tsx` until Task 5 — that's fine)
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Do not commit yet — ships with Task 5.
 
@@ -443,7 +443,7 @@ Do not commit yet — ships with Task 5.
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { COURIERS } from "@e-luna/ui/couriers";
+import { COURIERS } from "@ayvana/ui/couriers";
 import {
   acceptMaterialOrder,
   rejectMaterialOrder,
@@ -542,7 +542,7 @@ export function OrderActions({ orderId, status }: Props) {
 
 - [ ] **Step 2: Update the supplier order-detail tracking block.** In `apps/supplier/app/(dashboard)/orders/[id]/page.tsx`, add the registry import after the existing imports:
 ```ts
-import { courierName, trackingUrl } from "@e-luna/ui/couriers";
+import { courierName, trackingUrl } from "@ayvana/ui/couriers";
 ```
 Then replace the existing `{order.trackingNote && ( ... )}` block with:
 ```tsx
@@ -577,7 +577,7 @@ Then replace the existing `{order.trackingNote && ( ... )}` block with:
 
 - [ ] **Step 3: Type-check + lint the supplier app** (Tasks 3–5 now compile together)
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: clean.
 
@@ -599,7 +599,7 @@ git commit -m "feat(supplier): ship material orders via courier gateway + delive
 
 - [ ] **Step 1: Add the registry import** after the existing imports:
 ```ts
-import { courierName, trackingUrl } from "@e-luna/ui/couriers";
+import { courierName, trackingUrl } from "@ayvana/ui/couriers";
 ```
 
 - [ ] **Step 2: Replace the `{order.trackingNote && ( ... )}` block** with a shipment panel:
@@ -631,7 +631,7 @@ import { courierName, trackingUrl } from "@e-luna/ui/couriers";
 
 - [ ] **Step 3: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit && pnpm --filter @e-luna/vendor lint
+pnpm --filter @ayvana/vendor exec tsc --noEmit && pnpm --filter @ayvana/vendor lint
 ```
 Expected: clean.
 
@@ -669,7 +669,7 @@ DHL_WEBHOOK_SECRET=
 
 ## Supplier → vendor material orders
 
-The supplier's `MaterialOrder` shipping reuses the same `@e-luna/courier` gateway. `shipMaterialOrder`
+The supplier's `MaterialOrder` shipping reuses the same `@ayvana/courier` gateway. `shipMaterialOrder`
 calls `getCourierGateway(courier).createShipment(...)`; with no keys the Simulated gateway asks the supplier
 to enter a tracking number (manual). The webhook `POST /api/webhooks/courier/[courier]` (supplier app) moves
 the order `SHIPPED → COMPLETED` on a `delivered` event.
@@ -681,7 +681,7 @@ shipping-address source and populate `destination.addressLine1`/`city`/`emirate`
 
 - [ ] **Step 4: Type-check + commit**
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit
+pnpm --filter @ayvana/vendor exec tsc --noEmit
 git add apps/vendor/app/actions/invoice.ts .env.example docs/deployment/couriers.md
 git commit -m "fix(vendor): match compound P2002 constraint name; doc + env for supplier courier"
 ```
@@ -694,9 +694,9 @@ git commit -m "fix(vendor): match compound P2002 constraint name; doc + env for 
 
 - [ ] **Step 1: Full typecheck**
 ```bash
-pnpm --filter "@e-luna/*" exec tsc --noEmit
+pnpm --filter "@ayvana/*" exec tsc --noEmit
 ```
-Expected: exit 0 (all 9 packages/apps, incl. the new `@e-luna/courier`).
+Expected: exit 0 (all 9 packages/apps, incl. the new `@ayvana/courier`).
 
 - [ ] **Step 2: Full lint**
 ```bash
@@ -717,7 +717,7 @@ Expected: only `apply-status` references remain (which are app-local and correct
 ## Notes for the implementer
 
 - **`db push`, never migrations** — this repo has no migration files.
-- **Neutral status is the crux of Task 1:** the package no longer imports `@e-luna/db`; each app maps
+- **Neutral status is the crux of Task 1:** the package no longer imports `@ayvana/db`; each app maps
   `CourierDeliveryStatus` to its own enum (vendor → `ShipmentStatus`, supplier → `MaterialOrderStatus` via
   the SHIPPED→COMPLETED guard). If you see the package trying to import `ShipmentStatus`, you've under-generalized.
 - **Tasks 3–5 commit together** (the `shipMaterialOrder` signature change breaks the old `OrderActions` call

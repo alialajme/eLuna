@@ -101,8 +101,8 @@ All changes in `packages/db/prisma/schema.prisma`.
    - `model Supplier` → `materialOrders MaterialOrder[]`
    - `model Material` → `orderItems MaterialOrderItem[]`
 
-Regenerate offline: `pnpm --filter @e-luna/db db:generate`; apply: `pnpm --filter @e-luna/db db:push`.
-`MaterialOrderStatus`, `MaterialOrder`, `MaterialOrderItem` re-export through the `@e-luna/db` barrel.
+Regenerate offline: `pnpm --filter @ayvana/db db:generate`; apply: `pnpm --filter @ayvana/db db:push`.
+`MaterialOrderStatus`, `MaterialOrder`, `MaterialOrderItem` re-export through the `@ayvana/db` barrel.
 
 Rationale for snapshots: `materialName`/`unit`/`unitPrice` are copied onto the line at order time so an
 order's history is stable even if the supplier later edits or deletes the material (`materialId` then
@@ -190,8 +190,8 @@ New `(dashboard)/orders` section. Supplier scoping resolves server-side from
 ## Testing
 
 No automated suite — verification is types + lint + manual:
-1. `pnpm --filter @e-luna/db db:generate` (regenerate with the new models/enum).
-2. `pnpm --filter "@e-luna/*" exec tsc --noEmit` — clean.
+1. `pnpm --filter @ayvana/db db:generate` (regenerate with the new models/enum).
+2. `pnpm --filter "@ayvana/*" exec tsc --noEmit` — clean.
 3. `pnpm lint` — clean (vendor + supplier apps included).
 4. gitleaks — clean.
 5. Manual: as a vendor, browse Sourcing, place an order (qty < MOQ and qty > stock both rejected); as

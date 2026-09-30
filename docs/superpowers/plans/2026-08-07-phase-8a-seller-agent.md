@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Turn the stub Seller agent into a real, vendor-scoped assistant (3 Prisma-backed tools + an honest Studio deep-link) surfaced as a floating "Seller Assistant" chat on every vendor dashboard page, reusing the existing `LunaChatWidget`.
+**Goal:** Turn the stub Seller agent into a real, vendor-scoped assistant (3 Prisma-backed tools + an honest Studio deep-link) surfaced as a floating "Seller Assistant" chat on every vendor dashboard page, reusing the existing `AyvanaChatWidget`.
 
-**Architecture:** A new vendor route `/api/assistant` resolves the authenticated `vendorId` server-side and calls `runSellerAgent(messages, { vendorId })`, streaming back through the reused `LunaChatWidget` (Vercel AI SDK `useChat` → `toDataStreamResponse()`, exactly like the customer Shopping agent). Tools are built by a `buildSellerTools(vendorId)` factory that closes over the authenticated vendor — `vendorId` is never an LLM parameter. No schema changes; persistence deferred.
+**Architecture:** A new vendor route `/api/assistant` resolves the authenticated `vendorId` server-side and calls `runSellerAgent(messages, { vendorId })`, streaming back through the reused `AyvanaChatWidget` (Vercel AI SDK `useChat` → `toDataStreamResponse()`, exactly like the customer Shopping agent). Tools are built by a `buildSellerTools(vendorId)` factory that closes over the authenticated vendor — `vendorId` is never an LLM parameter. No schema changes; persistence deferred.
 
-**Tech Stack:** Vercel AI SDK (`streamText`, `tool`, `useChat`), Anthropic claude-sonnet-4-6, Prisma (`@e-luna/db`), Next.js 15 route handler, Zod.
+**Tech Stack:** Vercel AI SDK (`streamText`, `tool`, `useChat`), Anthropic claude-sonnet-4-6, Prisma (`@ayvana/db`), Next.js 15 route handler, Zod.
 
 ---
 
@@ -16,7 +16,7 @@
 |------|--------|----------------|
 | `packages/ai/src/agents/seller.ts` | Rewrite | `buildSellerTools(vendorId)` + `runSellerAgent(messages, { vendorId })` |
 | `packages/ai/src/index.ts` | Modify | Export `runSellerAgent` only (drop `sellerTools`) |
-| `packages/ui/src/components/LunaChatWidget.tsx` | Modify | Add optional `title` + `greeting` props |
+| `packages/ui/src/components/AyvanaChatWidget.tsx` | Modify | Add optional `title` + `greeting` props |
 | `apps/vendor/app/api/assistant/route.ts` | Create | POST → auth → `runSellerAgent` → stream |
 | `apps/vendor/app/(dashboard)/layout.tsx` | Modify | Mount the widget |
 
@@ -27,12 +27,12 @@
 **Working dir:** `/Users/alialajme/Projects/Luna/e-luna`
 
 **Confirmed facts:**
-- `packages/ai` depends on `@e-luna/db`; `apps/vendor` already depends on `@e-luna/ai` (verified). `packages/ui` depends on `ai` (`useChat`).
+- `packages/ai` depends on `@ayvana/db`; `apps/vendor` already depends on `@ayvana/ai` (verified). `packages/ui` depends on `ai` (`useChat`).
 - Nothing imports `sellerTools` (safe to drop).
 - `getVendorByUserId(userId)` → `{ id, storeName, status, ... } | null` (`apps/vendor/app/lib/vendor.ts`).
 - `safeCurrentUser()` → Clerk user or null (`apps/vendor/app/lib/auth.ts`).
 - Shopping pattern: `runShoppingAgent(messages: CoreMessage[], options?)` → `streamText({...}).toDataStreamResponse()` in `apps/customer/app/api/chat/route.ts`.
-- `LunaChatWidget` (`packages/ui`): client `useChat` widget; header text "Luna Stylist" (line ~63), empty-state greeting `<p>مرحباً! I'm Luna.</p>` + subline (lines ~76-82), signature `export function LunaChatWidget({ apiPath }: LunaChatWidgetProps)`.
+- `AyvanaChatWidget` (`packages/ui`): client `useChat` widget; header text "AYVANA Stylist" (line ~63), empty-state greeting `<p>مرحباً! I'm AYVANA.</p>` + subline (lines ~76-82), signature `export function AyvanaChatWidget({ apiPath }: AyvanaChatWidgetProps)`.
 - `OrderItem`: `vendorId, variantId, quantity` + relation `variant → product`. `ProductVariant`: `stock, size, color` + relation `product (vendorId, title, category, price, status)`.
 
 **noUncheckedIndexedAccess is ON** — array index reads are `T | undefined`; use `?? ` where needed (e.g. `prices[Math.floor(prices.length/2)] ?? currentPrice`).
@@ -59,15 +59,15 @@ packages/ai tsc: expect clean (the pre-existing `shopping.ts` `@prisma/client/ru
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const SELLER_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Seller Agent for a Luna vendor. Help them manage and grow their boutique.
+You are the Seller Agent for a AYVANA vendor. Help them manage and grow their boutique.
 Use your tools to ground every answer in the vendor's real data — never invent numbers.
 Be concise and data-driven; vendors are busy. When you recommend creating marketing
-imagery, use the studio_link tool to point them to Luna Studio.`;
+imagery, use the studio_link tool to point them to AYVANA Studio.`;
 
 // vendorId is captured from the authenticated session — NEVER an LLM parameter.
 export function buildSellerTools(vendorId: string) {
@@ -192,7 +192,7 @@ export function buildSellerTools(vendorId: string) {
 
     studio_link: tool({
       description:
-        "Return a link to Luna Studio where the vendor can upload photos to generate a marketing campaign.",
+        "Return a link to AYVANA Studio where the vendor can upload photos to generate a marketing campaign.",
       parameters: z.object({
         productId: z.string().optional(),
       }),
@@ -200,7 +200,7 @@ export function buildSellerTools(vendorId: string) {
         return {
           url: "/studio/new",
           message:
-            "Upload 3 photos of the product to generate a full marketing campaign in Luna Studio.",
+            "Upload 3 photos of the product to generate a full marketing campaign in AYVANA Studio.",
         };
       },
     }),
@@ -247,24 +247,24 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add packages/ai/src/agents/selle
 
 ---
 
-## Task 2: Add title + greeting props to LunaChatWidget
+## Task 2: Add title + greeting props to AyvanaChatWidget
 
 **Files:**
-- Modify: `packages/ui/src/components/LunaChatWidget.tsx`
+- Modify: `packages/ui/src/components/AyvanaChatWidget.tsx`
 
 - [ ] **Step 1: Extend the props type**
 
 Read the file. The current props type (near line 21) is:
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in customer app
 };
 ```
 Replace it with:
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in the app
-  title?: string; // header title; default "Luna Stylist"
+  title?: string; // header title; default "AYVANA Stylist"
   greeting?: string; // empty-state assistant greeting; default the customer copy
 };
 ```
@@ -273,22 +273,22 @@ type LunaChatWidgetProps = {
 
 Change the component signature from:
 ```ts
-export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
+export function AyvanaChatWidget({ apiPath }: AyvanaChatWidgetProps) {
 ```
 to:
 ```ts
-export function LunaChatWidget({ apiPath, title, greeting }: LunaChatWidgetProps) {
+export function AyvanaChatWidget({ apiPath, title, greeting }: AyvanaChatWidgetProps) {
 ```
 
 - [ ] **Step 3: Use `title` in the header**
 
 Change the header span (near line 63) from:
 ```tsx
-              <span className="font-sans text-body-md font-semibold text-ivory">Luna Stylist</span>
+              <span className="font-sans text-body-md font-semibold text-ivory">AYVANA Stylist</span>
 ```
 to:
 ```tsx
-              <span className="font-sans text-body-md font-semibold text-ivory">{title ?? "Luna Stylist"}</span>
+              <span className="font-sans text-body-md font-semibold text-ivory">{title ?? "AYVANA Stylist"}</span>
 ```
 
 - [ ] **Step 4: Use `greeting` in the empty state**
@@ -298,7 +298,7 @@ Change the empty-state block (near lines 76-82) from:
             {messages.length === 0 && (
               <div className="text-center text-body-sm text-mist pt-8">
                 <p className="text-gold text-2xl mb-2">◑</p>
-                <p>مرحباً! I'm Luna.</p>
+                <p>مرحباً! I'm AYVANA.</p>
                 <p className="mt-1">Tell me your occasion and I'll find your perfect abaya.</p>
               </div>
             )}
@@ -312,7 +312,7 @@ to:
                   <p>{greeting}</p>
                 ) : (
                   <>
-                    <p>مرحباً! I'm Luna.</p>
+                    <p>مرحباً! I'm AYVANA.</p>
                     <p className="mt-1">Tell me your occasion and I'll find your perfect abaya.</p>
                   </>
                 )}
@@ -330,7 +330,7 @@ Expected: clean (no new errors).
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /Users/alialajme/Projects/Luna/e-luna && git add packages/ui/src/components/LunaChatWidget.tsx && git commit -m "feat(ui): optional title + greeting props on LunaChatWidget (backward-compatible)"
+cd /Users/alialajme/Projects/Luna/e-luna && git add packages/ui/src/components/AyvanaChatWidget.tsx && git commit -m "feat(ui): optional title + greeting props on AyvanaChatWidget (backward-compatible)"
 ```
 
 ---
@@ -345,7 +345,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add packages/ui/src/components/L
 ```ts
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
-import { runSellerAgent } from "@e-luna/ai";
+import { runSellerAgent } from "@ayvana/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -405,7 +405,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/api/assista
 
 Read the file. Add the import alongside the existing imports at the top:
 ```ts
-import { LunaChatWidget } from "@e-luna/ui";
+import { AyvanaChatWidget } from "@ayvana/ui";
 ```
 
 - [ ] **Step 2: Mount the widget in the returned JSX**
@@ -431,7 +431,7 @@ Change it to (add the widget as the last child inside the outer div):
         <TopBar storeName={vendor.storeName} />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
-      <LunaChatWidget
+      <AyvanaChatWidget
         apiPath="/api/assistant"
         title="Seller Assistant"
         greeting="Hi! I can check your stock, suggest pricing, and forecast demand. What would you like to look at?"
@@ -463,7 +463,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/(dashboard)
 - [ ] **Step 1: Full repo typecheck (exact CI command)**
 
 ```bash
-cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit; echo "EXIT: $?"
+cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit; echo "EXIT: $?"
 ```
 Expected: `EXIT: 0`.
 
@@ -482,7 +482,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && ls "apps/vendor/app/api/assistant/ro
 Expected: route file present; both greps match; git log shows (newest first):
 - feat(vendor): mount Seller Assistant chat widget on the dashboard
 - feat(vendor): /api/assistant route streaming the Seller agent
-- feat(ui): optional title + greeting props on LunaChatWidget (backward-compatible)
+- feat(ui): optional title + greeting props on AyvanaChatWidget (backward-compatible)
 - feat(ai): real Seller agent tools (low stock, price benchmark, demand forecast, studio link)
 
 Report the actual SHAs. Note: live agent chat needs a running vendor app + `ANTHROPIC_API_KEY` — a manual smoke check, not automated here.

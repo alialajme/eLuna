@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { MaterialForm } from "../../components/MaterialForm";
 
-export const metadata: Metadata = { title: "New material — Luna Supplier" };
+export const metadata: Metadata = { title: "New material — AYVANA Supplier" };
 
 export default function NewMaterialPage() {
   return (

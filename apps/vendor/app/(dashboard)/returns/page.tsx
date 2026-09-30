@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { ReturnActions } from "./components/ReturnActions";
 
-export const metadata: Metadata = { title: "Returns — Luna Vendor" };
+export const metadata: Metadata = { title: "Returns — AYVANA Vendor" };
 
 const STATUS_STYLES: Record<string, string> = {
   REQUESTED: "bg-gold/20 text-gold",

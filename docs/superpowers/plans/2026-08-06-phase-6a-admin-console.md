@@ -6,7 +6,7 @@
 
 **Architecture:** Mirror the vendor app's `(dashboard)` route-group structure — an RSC layout with Sidebar + TopBar guarding on `safeCurrentUser()` (ADMIN role already enforced by middleware), a dashboard page computing 4 KPIs from existing tables, and a sellers section (list, approvals queue, detail) backed by four status-transition server actions. No schema changes.
 
-**Tech Stack:** Next.js 15 App Router (RSC + server actions), Prisma (`@e-luna/db`), Clerk auth, Tailwind (Warm Oud tokens, sage admin accent).
+**Tech Stack:** Next.js 15 App Router (RSC + server actions), Prisma (`@ayvana/db`), Clerk auth, Tailwind (Warm Oud tokens, sage admin accent).
 
 ---
 
@@ -33,9 +33,9 @@
 
 **Working dir:** `/Users/alialajme/Projects/Luna/e-luna`
 
-**DB:** `import { prisma } from "@e-luna/db"`. Enums (`VendorStatus`) import from `@e-luna/db` too (it re-exports `@prisma/client`).
+**DB:** `import { prisma } from "@ayvana/db"`. Enums (`VendorStatus`) import from `@ayvana/db` too (it re-exports `@prisma/client`).
 
-**Auth:** `import { safeCurrentUser } from "../lib/auth"` (path depth varies per file). Admin ADMIN-role enforcement is handled by `apps/admin/middleware.ts` (`createLunaMiddleware("ADMIN")`) — pages/actions only need a null-user check, not a role check.
+**Auth:** `import { safeCurrentUser } from "../lib/auth"` (path depth varies per file). Admin ADMIN-role enforcement is handled by `apps/admin/middleware.ts` (`createAyvanaMiddleware("ADMIN")`) — pages/actions only need a null-user check, not a role check.
 
 **Next.js 15:** `params` and `searchParams` are Promises — always `await`.
 
@@ -108,7 +108,7 @@ export function Sidebar() {
     <aside className="flex w-56 shrink-0 flex-col bg-ink min-h-screen">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-white/10">
-        <p className="font-display text-display-sm text-sage">✦ Luna</p>
+        <p className="font-display text-display-sm text-sage">✦ AYVANA</p>
         <p className="text-body-xs text-mist mt-0.5">Ops Console</p>
       </div>
 
@@ -168,7 +168,7 @@ export function TopBar() {
   const pathname = usePathname();
   const title =
     PAGE_TITLES[pathname] ??
-    (pathname.startsWith("/sellers/") ? "Seller Detail" : "Luna Ops");
+    (pathname.startsWith("/sellers/") ? "Seller Detail" : "AYVANA Ops");
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-sand bg-ivory px-6">
@@ -259,10 +259,10 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add apps/admin/app/lib/auth.ts "
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 
-export const metadata: Metadata = { title: "Overview — Luna Ops" };
+export const metadata: Metadata = { title: "Overview — AYVANA Ops" };
 
 function fmtAED(n: number): string {
   return `AED ${n.toLocaleString("en-AE", { maximumFractionDigits: 0 })}`;
@@ -358,7 +358,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, type VendorStatus } from "@e-luna/db";
+import { prisma, type VendorStatus } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 
 type ActionResult = { success: true } | { error: string };
@@ -399,7 +399,7 @@ export async function reactivateVendor(id: string): Promise<ActionResult> {
 }
 ```
 
-**Note on `"use server"`:** Every export in this file is an async function (the four wrappers). `setVendorStatus` is a non-exported helper — allowed. If TypeScript complains that `type VendorStatus` cannot be imported from `@e-luna/db`, change the import to `import { prisma } from "@e-luna/db"; import type { VendorStatus } from "@prisma/client";`.
+**Note on `"use server"`:** Every export in this file is an async function (the four wrappers). `setVendorStatus` is a non-exported helper — allowed. If TypeScript complains that `type VendorStatus` cannot be imported from `@ayvana/db`, change the import to `import { prisma } from "@ayvana/db"; import type { VendorStatus } from "@prisma/client";`.
 
 - [ ] **Step 2: TypeScript check**
 
@@ -428,7 +428,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/actions/sell
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { VendorStatus } from "@e-luna/db";
+import type { VendorStatus } from "@ayvana/db";
 import {
   approveVendor,
   rejectVendor,
@@ -525,7 +525,7 @@ export function VendorActions({ vendorId, status }: Props) {
 }
 ```
 
-**Note:** If `import type { VendorStatus } from "@e-luna/db"` errors, use `import type { VendorStatus } from "@prisma/client"`.
+**Note:** If `import type { VendorStatus } from "@ayvana/db"` errors, use `import type { VendorStatus } from "@prisma/client"`.
 
 - [ ] **Step 2: TypeScript check**
 
@@ -600,11 +600,11 @@ export function StatusFilter({ status }: Props) {
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma, type VendorStatus } from "@e-luna/db";
+import { prisma, type VendorStatus } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { StatusFilter } from "../components/StatusFilter";
 
-export const metadata: Metadata = { title: "Sellers — Luna Ops" };
+export const metadata: Metadata = { title: "Sellers — AYVANA Ops" };
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "bg-gold/20 text-gold",
@@ -703,11 +703,11 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { VendorActions } from "../../components/VendorActions";
 
-export const metadata: Metadata = { title: "Pending Approvals — Luna Ops" };
+export const metadata: Metadata = { title: "Pending Approvals — AYVANA Ops" };
 
 export default async function ApprovalsPage() {
   const user = await safeCurrentUser();
@@ -799,7 +799,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { VendorActions } from "../../components/VendorActions";
 
@@ -817,7 +817,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const vendor = await prisma.vendor
     .findUnique({ where: { id }, select: { storeName: true } })
     .catch(() => null);
-  return { title: `${vendor?.storeName ?? "Seller"} — Luna Ops` };
+  return { title: `${vendor?.storeName ?? "Seller"} — AYVANA Ops` };
 }
 
 function maskIban(iban: string): string {

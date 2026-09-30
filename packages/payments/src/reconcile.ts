@@ -1,4 +1,4 @@
-import { prisma, releaseStockTx, appendOutboxEvent } from "@e-luna/db";
+import { prisma, releaseStockTx, appendOutboxEvent } from "@ayvana/db";
 import type { WebhookResult } from "./gateway";
 
 /**

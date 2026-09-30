@@ -8,7 +8,7 @@ Replace the three inconsistent hardcoded category lists (vendor `["OCCASION"…]
 
 ## Scope
 
-**In scope:** `Category` model + `getCategories`/`getAllCategories` helpers in `@e-luna/db`; admin categories CRUD (page + actions + nav); vendor product form/validation reads the managed list; customer home/browse/category-route/footer read it.
+**In scope:** `Category` model + `getCategories`/`getAllCategories` helpers in `@ayvana/db`; admin categories CRUD (page + actions + nav); vendor product form/validation reads the managed list; customer home/browse/category-route/footer read it.
 
 **Out of scope (deferred / YAGNI):** foreign-key linkage / migrating `Product.category` to `categoryId`; category images, descriptions, or nested subcategories; per-vendor categories; renaming a slug and mass-updating existing products' stored strings (products keep their string; the browse filter is case-insensitive).
 
@@ -112,7 +112,7 @@ Server page fetches `getAllCategories()` and renders `<CategoryManager categorie
 
 - **`ProductForm.tsx`**: add a `categories: CategoryDTO[]` prop; the category `<select>` maps over it (`value={c.slug}`, label `{c.name}`); the initial category is `initialData?.category ?? categories[0]?.slug ?? ""`. Remove the hardcoded `CATEGORIES` const.
 - **`products/new/page.tsx`** + **`products/[id]/page.tsx`**: `const categories = await getCategories();` and pass `categories={categories}` to `<ProductForm />`.
-- **`actions/product.ts`**: remove `VALID_CATEGORIES`/`Category`; add `import { getCategories } from "@e-luna/db";`; in both `createProduct` and `updateProduct` replace the guard with:
+- **`actions/product.ts`**: remove `VALID_CATEGORIES`/`Category`; add `import { getCategories } from "@ayvana/db";`; in both `createProduct` and `updateProduct` replace the guard with:
   ```ts
   const validSlugs = (await getCategories()).map((c) => c.slug);
   if (!validSlugs.includes(data.category.toLowerCase())) {
@@ -150,15 +150,15 @@ Server page fetches `getAllCategories()` and renders `<CategoryManager categorie
 
 No automated suite (repo-consistent). Per task:
 ```bash
-pnpm --filter @e-luna/db db:generate                                       # regen client for Category
+pnpm --filter @ayvana/db db:generate                                       # regen client for Category
 cd apps/admin    && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"    # clean
 cd apps/vendor   && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"    # clean
 cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"    # clean
 # lint all three apps
 ```
-Final task: repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit`.
+Final task: repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit`.
 
-**Operator:** `pnpm --filter @e-luna/db db:push` to add `Category` (optionally seed the 4 canonical rows; the fallback covers pre-seed). **Manual smoke (DB):** admin `/categories` add "Modest Formals" → it appears in the vendor product-form dropdown and the customer footer/home; a product filed under an existing slug shows under that category in browse; toggling a category inactive removes it from the storefront nav (products keep their string).
+**Operator:** `pnpm --filter @ayvana/db db:push` to add `Category` (optionally seed the 4 canonical rows; the fallback covers pre-seed). **Manual smoke (DB):** admin `/categories` add "Modest Formals" → it appears in the vendor product-form dropdown and the customer footer/home; a product filed under an existing slug shows under that category in browse; toggling a category inactive removes it from the storefront nav (products keep their string).
 
 ---
 

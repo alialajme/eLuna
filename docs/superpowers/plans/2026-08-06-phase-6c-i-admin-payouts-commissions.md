@@ -6,7 +6,7 @@
 
 **Architecture:** Two RSC routes under the existing `apps/admin/app/(dashboard)/` group (ADMIN role already gated by its layout). Reuse the 6a/6b patterns: status-filtered lists, status-badge maps, hardened `"use server"` action files (with `getAuthUser()` ADMIN check), and small client action components. Payout amounts are always recomputed server-side. No schema changes.
 
-**Tech Stack:** Next.js 15 App Router (RSC + server actions), Prisma (`@e-luna/db`), Clerk auth (`getAuthUser` from `@e-luna/auth`), Tailwind (Warm Oud tokens).
+**Tech Stack:** Next.js 15 App Router (RSC + server actions), Prisma (`@ayvana/db`), Clerk auth (`getAuthUser` from `@ayvana/auth`), Tailwind (Warm Oud tokens).
 
 ---
 
@@ -30,9 +30,9 @@
 
 **Working dir:** `/Users/alialajme/Projects/Luna/e-luna`
 
-**DB:** `import { prisma } from "@e-luna/db"`. Enums (`PayoutStatus`) import from `@e-luna/db`; if a `type` import errors, fall back to `@prisma/client`.
+**DB:** `import { prisma } from "@ayvana/db"`. Enums (`PayoutStatus`) import from `@ayvana/db`; if a `type` import errors, fall back to `@prisma/client`.
 
-**Auth:** ADMIN enforced centrally by `(dashboard)/layout.tsx`. Pages need only a null-user check via `safeCurrentUser()` (from `../../lib/auth`). Server actions independently re-check ADMIN via `getAuthUser()` from `@e-luna/auth`.
+**Auth:** ADMIN enforced centrally by `(dashboard)/layout.tsx`. Pages need only a null-user check via `safeCurrentUser()` (from `../../lib/auth`). Server actions independently re-check ADMIN via `getAuthUser()` from `@ayvana/auth`.
 
 **Next.js 15:** `params` / `searchParams` are Promises — always `await`.
 
@@ -138,8 +138,8 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, type PayoutStatus } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { prisma, type PayoutStatus } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -245,7 +245,7 @@ export async function markFailed(id: string): Promise<ActionResult> {
 }
 ```
 
-**Note:** all exports are async; `requireAdmin`, `computeAvailableBalance`, `setPayoutStatus` are non-exported helpers (required by `"use server"`). If `type PayoutStatus` from `@e-luna/db` errors, use `import type { PayoutStatus } from "@prisma/client"`.
+**Note:** all exports are async; `requireAdmin`, `computeAvailableBalance`, `setPayoutStatus` are non-exported helpers (required by `"use server"`). If `type PayoutStatus` from `@ayvana/db` errors, use `import type { PayoutStatus } from "@prisma/client"`.
 
 - [ ] **Step 2: TypeScript + lint check**
 
@@ -274,8 +274,8 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/actions/payo
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { prisma } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -334,7 +334,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/actions/comm
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { PayoutStatus } from "@e-luna/db";
+import type { PayoutStatus } from "@ayvana/db";
 import { markProcessing, markCompleted, markFailed } from "../../actions/payouts";
 
 type Props = { payoutId: string; status: PayoutStatus };
@@ -552,13 +552,13 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma, type PayoutStatus } from "@e-luna/db";
+import { prisma, type PayoutStatus } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { StatusFilter } from "../components/StatusFilter";
 import { PayoutActions } from "../components/PayoutActions";
 import { CreatePayoutButton } from "../components/CreatePayoutButton";
 
-export const metadata: Metadata = { title: "Payouts — Luna Ops" };
+export const metadata: Metadata = { title: "Payouts — AYVANA Ops" };
 
 const PAYOUT_STATUS_BADGE: Record<string, string> = {
   COMPLETED: "bg-sage/20 text-sage",
@@ -756,11 +756,11 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { CommissionEditor } from "../components/CommissionEditor";
 
-export const metadata: Metadata = { title: "Commissions — Luna Ops" };
+export const metadata: Metadata = { title: "Commissions — AYVANA Ops" };
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "bg-gold/20 text-gold",
@@ -883,7 +883,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 - [ ] **Step 1: Full repo typecheck (exact CI command)**
 
 ```bash
-cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit; echo "EXIT: $?"
+cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit; echo "EXIT: $?"
 ```
 Expected: `EXIT: 0` (all 8 packages/apps clean).
 

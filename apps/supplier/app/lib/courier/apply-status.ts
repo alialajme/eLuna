@@ -1,4 +1,4 @@
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
 /** Idempotently move a shipped material order to COMPLETED on courier delivery. No-op otherwise. */
 export async function applyMaterialOrderDelivery(materialOrderId: string): Promise<void> {

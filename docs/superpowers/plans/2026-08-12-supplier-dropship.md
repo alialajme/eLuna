@@ -4,7 +4,7 @@
 
 **Goal:** Let a vendor mark a product as dropshipped by a supplier; the supplier fulfils + ships directly to the customer via the courier gateway, invisible to the customer, with the vendor's own ship control disabled for those items.
 
-**Architecture:** Add `Product.dropshipSupplierId` + `Shipment.supplierId`. Extract the customer-order fulfilment state machine (`recomputeOrderStatus` + `applyShipmentStatus`) into `@e-luna/db` so both vendor and supplier share one source of truth. The supplier gets a Customer-fulfilment queue and a ship action that reuses `@e-luna/courier` + the existing `Shipment` model. Checkout, payout, and the customer order view are untouched.
+**Architecture:** Add `Product.dropshipSupplierId` + `Shipment.supplierId`. Extract the customer-order fulfilment state machine (`recomputeOrderStatus` + `applyShipmentStatus`) into `@ayvana/db` so both vendor and supplier share one source of truth. The supplier gets a Customer-fulfilment queue and a ship action that reuses `@ayvana/courier` + the existing `Shipment` model. Checkout, payout, and the customer order view are untouched.
 
 **Tech Stack:** Turborepo + pnpm, Next.js 15 App Router, Prisma + PostgreSQL (`db push`, no migration files), TypeScript. Verification = `db:generate` + `tsc --noEmit` + `pnpm lint` + gitleaks (no test suite).
 
@@ -12,7 +12,7 @@
 
 ---
 
-### Task 1: Extract order-status helpers to `@e-luna/db` + repoint vendor
+### Task 1: Extract order-status helpers to `@ayvana/db` + repoint vendor
 
 **Files:**
 - Create: `packages/db/src/order-status.ts`
@@ -89,37 +89,37 @@ git rm apps/vendor/app/lib/order-status.ts apps/vendor/app/lib/courier/apply-sta
 - [ ] **Step 4: Repoint `apps/vendor/app/actions/shipment.ts`.** It currently imports:
 ```ts
 import { recomputeOrderStatus } from "../lib/order-status";
-import { getCourierGateway } from "@e-luna/courier";
+import { getCourierGateway } from "@ayvana/courier";
 import { applyShipmentStatus } from "../lib/courier/apply-status";
 ```
 Replace those three lines with:
 ```ts
-import { recomputeOrderStatus, applyShipmentStatus } from "@e-luna/db";
-import { getCourierGateway } from "@e-luna/courier";
+import { recomputeOrderStatus, applyShipmentStatus } from "@ayvana/db";
+import { getCourierGateway } from "@ayvana/courier";
 ```
 
 - [ ] **Step 5: Repoint the vendor courier webhook** `apps/vendor/app/api/webhooks/courier/[courier]/route.ts`. Change:
 ```ts
 import { applyShipmentStatus } from "../../../../lib/courier/apply-status";
 ```
-to (merge into the existing `@e-luna/db` import line, which currently imports `prisma, type ShipmentStatus`):
+to (merge into the existing `@ayvana/db` import line, which currently imports `prisma, type ShipmentStatus`):
 ```ts
-import { prisma, type ShipmentStatus, applyShipmentStatus } from "@e-luna/db";
+import { prisma, type ShipmentStatus, applyShipmentStatus } from "@ayvana/db";
 ```
-and remove the now-duplicate `import { prisma, type ShipmentStatus } from "@e-luna/db";` line if separate. (Net: one import line from `@e-luna/db` bringing `prisma`, `ShipmentStatus`, `applyShipmentStatus`; keep the `CourierStatusEvent`/`getCourierGateway` imports from `@e-luna/courier`.)
+and remove the now-duplicate `import { prisma, type ShipmentStatus } from "@ayvana/db";` line if separate. (Net: one import line from `@ayvana/db` bringing `prisma`, `ShipmentStatus`, `applyShipmentStatus`; keep the `CourierStatusEvent`/`getCourierGateway` imports from `@ayvana/courier`.)
 
 - [ ] **Step 6: Regenerate + type-check**
 ```bash
-pnpm --filter @e-luna/db db:generate
-pnpm --filter @e-luna/vendor exec tsc --noEmit
+pnpm --filter @ayvana/db db:generate
+pnpm --filter @ayvana/vendor exec tsc --noEmit
 ```
-Expected: exit 0. (`@e-luna/db` has no separate tsc script; it's covered by the workspace typecheck in Task 7.)
+Expected: exit 0. (`@ayvana/db` has no separate tsc script; it's covered by the workspace typecheck in Task 7.)
 
 - [ ] **Step 7: Commit**
 ```bash
 git add packages/db/src/order-status.ts packages/db/src/index.ts apps/vendor/app/lib \
   apps/vendor/app/actions/shipment.ts "apps/vendor/app/api/webhooks/courier/[courier]/route.ts"
-git commit -m "refactor(db): extract recomputeOrderStatus + applyShipmentStatus to @e-luna/db"
+git commit -m "refactor(db): extract recomputeOrderStatus + applyShipmentStatus to @ayvana/db"
 ```
 
 ---
@@ -162,7 +162,7 @@ Add an index:
 
 - [ ] **Step 4: Generate + push**
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:generate && pnpm --filter @ayvana/db db:push
 ```
 Expected: "Your database is now in sync with your Prisma schema."
 
@@ -248,11 +248,11 @@ In the `prisma.product.update({ where: { id }, data: { ... } })` object, add aft
     .findMany({ where: { status: "ACTIVE" }, select: { id: true, companyName: true }, orderBy: { companyName: "asc" } })
     .catch(() => []);
 ```
-Pass `suppliers={suppliers}` to `<ProductForm ... />`. In the `[id]` (edit) page, also include `dropshipSupplierId: product.dropshipSupplierId` in the `initialData` object built for `ProductForm`, and ensure the product query selects/returns `dropshipSupplierId` (it does by default with `findUnique`/no `select`, or add it to the `select`). If `prisma` isn't already imported in these pages, add `import { prisma } from "@e-luna/db";`.
+Pass `suppliers={suppliers}` to `<ProductForm ... />`. In the `[id]` (edit) page, also include `dropshipSupplierId: product.dropshipSupplierId` in the `initialData` object built for `ProductForm`, and ensure the product query selects/returns `dropshipSupplierId` (it does by default with `findUnique`/no `select`, or add it to the `select`). If `prisma` isn't already imported in these pages, add `import { prisma } from "@ayvana/db";`.
 
 - [ ] **Step 7: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit && pnpm --filter @e-luna/vendor lint
+pnpm --filter @ayvana/vendor exec tsc --noEmit && pnpm --filter @ayvana/vendor lint
 ```
 Expected: clean.
 
@@ -316,7 +316,7 @@ type Item = { id: string; fulfillmentStatus: string; shipmentId: string | null; 
 
 - [ ] **Step 4: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit && pnpm --filter @e-luna/vendor lint
+pnpm --filter @ayvana/vendor exec tsc --noEmit && pnpm --filter @ayvana/vendor lint
 ```
 Expected: clean.
 
@@ -337,9 +337,9 @@ git commit -m "feat(vendor): exclude dropship items from vendor fulfilment (supp
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, recomputeOrderStatus, applyShipmentStatus } from "@e-luna/db";
-import { getCourier } from "@e-luna/ui/couriers";
-import { getCourierGateway } from "@e-luna/courier";
+import { prisma, recomputeOrderStatus, applyShipmentStatus } from "@ayvana/db";
+import { getCourier } from "@ayvana/ui/couriers";
+import { getCourierGateway } from "@ayvana/courier";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
 
@@ -463,7 +463,7 @@ export async function markDropshipDelivered(shipmentId: string): Promise<{ succe
 
 - [ ] **Step 2: Type-check** (the page + island in Task 6 consume these; if tsc errors only on a missing `/fulfilment` page import, that's expected until Task 6)
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Defer the commit to the end of Task 6 (they ship together).
 
@@ -479,7 +479,7 @@ Defer the commit to the end of Task 6 (they ship together).
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { COURIERS } from "@e-luna/ui/couriers";
+import { COURIERS } from "@ayvana/ui/couriers";
 import { shipDropshipItems, markDropshipDelivered } from "../../actions/dropship";
 
 const primaryBtn =
@@ -543,13 +543,13 @@ export function DeliverButton({ shipmentId }: { shipmentId: string }) {
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
-import { courierName, trackingUrl } from "@e-luna/ui/couriers";
+import { prisma } from "@ayvana/db";
+import { courierName, trackingUrl } from "@ayvana/ui/couriers";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 import { ShipGroup, DeliverButton } from "./FulfilmentActions";
 
-export const metadata: Metadata = { title: "Customer Orders — Luna Supplier" };
+export const metadata: Metadata = { title: "Customer Orders — AYVANA Supplier" };
 
 export default async function FulfilmentPage() {
   const user = await safeCurrentUser();
@@ -664,7 +664,7 @@ export default async function FulfilmentPage() {
 
 - [ ] **Step 4: Type-check + lint the supplier app**
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: clean.
 
@@ -688,7 +688,7 @@ git commit -m "feat(supplier): customer dropship fulfilment queue + ship/deliver
 
 A vendor can set `Product.dropshipSupplierId` so a supplier fulfils that product directly to the customer.
 The supplier's **Customer Orders** queue lists paid orders' dropship items (grouped by order + listing
-vendor) with the customer's shipping address; the supplier ships via the same `@e-luna/courier` gateway
+vendor) with the customer's shipping address; the supplier ships via the same `@ayvana/courier` gateway
 (Simulated → manual tracking with no keys), creating a `Shipment { vendorId, supplierId }`. Delivery is
 marked manually by the supplier this phase; real-courier webhook auto-delivery for dropship shipments is a
 later operator step (the customer never sees the supplier — only courier + tracking).
@@ -696,7 +696,7 @@ later operator step (the customer never sees the supplier — only courier + tra
 
 - [ ] **Step 2: Full typecheck**
 ```bash
-pnpm --filter "@e-luna/*" exec tsc --noEmit
+pnpm --filter "@ayvana/*" exec tsc --noEmit
 ```
 Expected: exit 0.
 
@@ -724,7 +724,7 @@ git commit -m "docs: document supplier dropship fulfilment path"
 
 - **`db push`, never migrations.**
 - **Extraction (Task 1) is the foundation:** both `recomputeOrderStatus` and `applyShipmentStatus` now live in
-  `@e-luna/db` (internal import is `./client`, not `@e-luna/db`). Vendor + supplier both import from `@e-luna/db`.
+  `@ayvana/db` (internal import is `./client`, not `@ayvana/db`). Vendor + supplier both import from `@ayvana/db`.
 - **Tasks 5–6 commit together** (the actions and the page/island that call them).
 - **Customer stays invisible:** no customer-app changes. A dropship `Shipment` renders on the customer order
   page via the existing generic shipment list (courier + tracking only); `supplierId` is never read there.

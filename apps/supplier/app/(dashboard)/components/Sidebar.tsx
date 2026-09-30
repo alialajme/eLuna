@@ -26,7 +26,7 @@ export function Sidebar({ companyName }: Props) {
   return (
     <aside className="flex w-56 shrink-0 flex-col bg-ink min-h-screen">
       <div className="px-4 py-5 border-b border-white/10">
-        <p className="font-display text-display-sm text-gold">✦ Luna</p>
+        <p className="font-display text-display-sm text-gold">✦ AYVANA</p>
         <p className="text-body-xs text-mist mt-0.5">Supplier OS</p>
       </div>
 

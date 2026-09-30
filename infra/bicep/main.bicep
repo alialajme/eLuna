@@ -4,10 +4,10 @@ targetScope = 'subscription'
 param location string = 'uaenorth'
 
 @description('Base name prefix for resources')
-param prefix string = 'eluna'
+param prefix string = 'ayvana'
 
 @description('PostgreSQL admin login')
-param pgAdminUser string = 'lunaadmin'
+param pgAdminUser string = 'ayvanaadmin'
 
 @description('PostgreSQL admin password')
 @secure()
@@ -20,7 +20,7 @@ param deployFrontDoor bool = false
 param ingressHostName string = ''
 
 var rgName = '${prefix}-rg'
-var tags = { project: 'e-luna', managedBy: 'bicep' }
+var tags = { project: 'e-ayvana', managedBy: 'bicep' }
 
 resource rg 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   name: rgName

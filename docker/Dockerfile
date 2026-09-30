@@ -13,7 +13,7 @@ FROM base AS pruner
 ARG APP
 RUN pnpm add -g turbo@2
 COPY . .
-RUN turbo prune "@e-luna/${APP}" --docker
+RUN turbo prune "@ayvana/${APP}" --docker
 
 # ---- installer: install deps + build ----
 FROM base AS installer
@@ -22,8 +22,8 @@ COPY --from=pruner /app/out/json/ .
 RUN pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
 # Prisma client must be generated before the Next.js build (db package)
-RUN pnpm --filter "@e-luna/db" exec prisma generate
-RUN pnpm --filter "@e-luna/${APP}" build
+RUN pnpm --filter "@ayvana/db" exec prisma generate
+RUN pnpm --filter "@ayvana/${APP}" build
 
 # ---- runner: minimal runtime with standalone output ----
 FROM node:20-alpine AS runner

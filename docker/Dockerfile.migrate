@@ -8,18 +8,18 @@ FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat openssl && corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
 
-# Isolate just the @e-luna/db package subset.
+# Isolate just the @ayvana/db package subset.
 FROM base AS pruner
 RUN pnpm add -g turbo@2
 COPY . .
-RUN turbo prune "@e-luna/db" --docker
+RUN turbo prune "@ayvana/db" --docker
 
 # Install deps (incl. prisma CLI devDep) + generate client.
 FROM base AS migrator
 COPY --from=pruner /app/out/json/ .
 RUN pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
-RUN pnpm --filter "@e-luna/db" exec prisma generate
+RUN pnpm --filter "@ayvana/db" exec prisma generate
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 migrator
 USER migrator
@@ -28,4 +28,4 @@ USER migrator
 # schema via `db push`; switch to `prisma migrate deploy` once a committed
 # migration history exists (see docs/adr/0007-database-migrations.md). The Helm
 # Job overrides this command via .Values.migration.command.
-CMD ["pnpm", "--filter", "@e-luna/db", "exec", "prisma", "db", "push", "--skip-generate"]
+CMD ["pnpm", "--filter", "@ayvana/db", "exec", "prisma", "db", "push", "--skip-generate"]

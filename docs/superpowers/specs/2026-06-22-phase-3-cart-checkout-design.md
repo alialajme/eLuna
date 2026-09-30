@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build the complete commerce layer for the e-Luna customer app: cart review, checkout flow, order confirmation, wishlist, address book, size profile, and order history. Payment processing is simulated via a gateway abstraction layer that is drop-in ready for Tabby, Tamara, and Stripe without changes to the checkout flow.
+Build the complete commerce layer for the AYVANA customer app: cart review, checkout flow, order confirmation, wishlist, address book, size profile, and order history. Payment processing is simulated via a gateway abstraction layer that is drop-in ready for Tabby, Tamara, and Stripe without changes to the checkout flow.
 
 ## Architecture
 
@@ -50,7 +50,7 @@ type ChargeResult = {
 
 ### Cart Cookie Shape
 
-Already established: `luna_cart` cookie holds `CartItem[]`:
+Already established: `ayvana_cart` cookie holds `CartItem[]`:
 ```typescript
 type CartItem = { variantId: string; qty: number; addedAt: string }
 ```
@@ -77,7 +77,7 @@ The cart page enriches this with live product data from Prisma.
 7. prisma.$transaction([
      prisma.order.create({ ... includes items and payment transaction })
    ])
-8. (await cookies()).delete("luna_cart")
+8. (await cookies()).delete("ayvana_cart")
 9. return { orderId }
 ```
 
@@ -114,7 +114,7 @@ Two sections rendered as a single page (not a multi-step wizard — cleaner on m
   - 💳 Credit / Debit Card — "Processed securely" (SimulatedGateway in Phase 3)
   - 🟢 Tabby — "Pay in 4, no interest" (stub gateway)
   - 🟣 Tamara — "Split in 3" (stub gateway)
-  - 🌙 Luna Wallet — "Use your Luna balance" (SimulatedGateway)
+  - 🌙 AYVANA Wallet — "Use your AYVANA balance" (SimulatedGateway)
   - 📦 Cash on Delivery — "+AED 5 fee"
 
 **Order Summary sidebar** (sticky on desktop, accordion on mobile):
@@ -131,7 +131,7 @@ Two sections rendered as a single page (not a multi-step wizard — cleaner on m
 - Fetches order from DB (must belong to current user)
 - Shows: order number, items, total, payment method, "estimated delivery 2-5 business days"
 - CTAs: "Track Order" → `/orders/[id]`, "Continue Shopping" → `/browse`
-- Luna quote: "✦ Luna has notified your boutique. Your order is on its way."
+- AYVANA quote: "✦ AYVANA has notified your boutique. Your order is on its way."
 
 ### `/wishlist` — Saved Items
 
@@ -174,7 +174,7 @@ Fields (all optional except `usualSize`):
 - `fitPreference`: select (Fitted / Regular / Loose / Oversized)
 
 On save → `saveSizeProfile(formData)` upserts `SizeProfile` linked to `CustomerProfile`.
-Shows confirmation: "✦ Luna will use your measurements to find your perfect fit."
+Shows confirmation: "✦ AYVANA will use your measurements to find your perfect fit."
 
 ### `/orders` — Order History
 
@@ -195,7 +195,7 @@ Shows confirmation: "✦ Luna will use your measurements to find your perfect fi
 - Order total breakdown: subtotal, shipping, discount, total
 - Shipment timeline (if shipment exists): vertical stepper with ShipmentStatus stages
 - Payment info: method, transaction ref, status
-- "Need help?" → links to /chat (Luna can look up order context)
+- "Need help?" → links to /chat (AYVANA can look up order context)
 
 ---
 
@@ -211,7 +211,7 @@ In dev without Clerk keys, `safeCurrentUser()` returns `null`. Each page checks 
 
 All from the existing Warm Oud design system:
 - `bg-ink` / `text-ivory` — payment method selected state, CTA buttons
-- `text-gold` — price highlights, Luna quotes, default badge
+- `text-gold` — price highlights, AYVANA quotes, default badge
 - `border-sand` — card borders, dividers
 - `text-mist` — secondary text
 - `bg-coral` — error states, out-of-stock warnings
@@ -223,7 +223,7 @@ All from the existing Warm Oud design system:
 ## Scope Exclusions (deferred)
 
 - Real Stripe / Tabby / Tamara API calls — gateway stubs are the integration point
-- Luna Wallet balance tracking — deferred to Phase 6 (AI Agent Mesh)
+- AYVANA Wallet balance tracking — deferred to Phase 6 (AI Agent Mesh)
 - Return/refund flow — deferred to Phase 7 (Logistics)
 - Push notifications for order status — deferred to Phase 6
 - Promo codes / discount logic — deferred

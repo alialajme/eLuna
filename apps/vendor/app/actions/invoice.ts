@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
-import { getEInvoiceGateway } from "@e-luna/einvoice";
+import { prisma } from "@ayvana/db";
+import { getEInvoiceGateway } from "@ayvana/einvoice";
 import { safeCurrentUser } from "../lib/auth";
 
 type ActiveVendor = { id: string; storeName: string; storeSlug: string; trn: string | null };

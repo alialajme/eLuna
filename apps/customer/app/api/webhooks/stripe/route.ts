@@ -1,7 +1,7 @@
-import { StripeGateway } from "@e-luna/payments";
-import { applyPaymentResult } from "@e-luna/payments";
-import { hasStripe } from "@e-luna/payments";
-import { logger, getCorrelationId } from "@e-luna/observability";
+import { StripeGateway } from "@ayvana/payments";
+import { applyPaymentResult } from "@ayvana/payments";
+import { hasStripe } from "@ayvana/payments";
+import { logger, getCorrelationId } from "@ayvana/observability";
 
 export async function POST(req: Request) {
   const log = logger.child({ route: "webhooks/stripe", correlationId: getCorrelationId(req) });

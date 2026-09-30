@@ -145,7 +145,7 @@ export function SizeProfileForm({ initial }: Props) {
       )}
       {saved && (
         <div className="rounded-xl bg-sage/10 border border-sage px-4 py-3 text-body-md text-sage">
-          ✦ Luna will use your measurements to find your perfect fit.
+          ✦ AYVANA will use your measurements to find your perfect fit.
         </div>
       )}
 

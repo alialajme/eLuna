@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 
-export const metadata: Metadata = { title: "Customers — Luna Ops" };
+export const metadata: Metadata = { title: "Customers — AYVANA Ops" };
 
 function fmtAED(n: number): string {
   return `AED ${n.toLocaleString("en-AE", { maximumFractionDigits: 0 })}`;

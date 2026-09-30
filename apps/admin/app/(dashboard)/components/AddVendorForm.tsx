@@ -52,7 +52,7 @@ export function AddVendorForm() {
       <div className="space-y-1">
         <label htmlFor="storeSlug" className="text-body-xs text-mist">Store URL</label>
         <div className="flex items-center gap-2">
-          <span className="text-body-sm text-mist">sell.luna.ae/</span>
+          <span className="text-body-sm text-mist">sell.ayvana.ae/</span>
           <input id="storeSlug" value={storeSlug} maxLength={40}
             onChange={(e) => { setSlugEdited(true); setStoreSlug(slugify(e.target.value)); }}
             placeholder="aisha-couture" className={input} />

@@ -183,7 +183,7 @@ function maskIban(iban: string): string {
   - Available Balance (gold, left border `border-l-2 border-gold`) — separated visually
 - "Payout history" section heading
 - Table: Date | Amount | IBAN (masked) | Reference (— if null) | Status badge
-- Empty state (no payouts): "No payouts yet. Luna Operations processes payouts bi-monthly."
+- Empty state (no payouts): "No payouts yet. AYVANA Operations processes payouts bi-monthly."
 
 **Status badge colours:**
 - PENDING → `bg-sand text-mist`

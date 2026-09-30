@@ -6,8 +6,8 @@
 ## Goal
 
 Introduce the **Supplier** persona — a materials/fabric supplier that serves Vendors — as a
-fourth, separately-authenticated persona in e-Luna. S1 delivers only the foundation: the
-`SUPPLIER` role, a `Supplier` profile, a dedicated `supply.luna.ae` app (its own login,
+fourth, separately-authenticated persona in AYVANA. S1 delivers only the foundation: the
+`SUPPLIER` role, a `Supplier` profile, a dedicated `supply.ayvana.ae` app (its own login,
 onboarding, and dashboard shell), and admin approval. No materials catalog, no vendor sourcing,
 no material orders — those are S2 and S3.
 
@@ -18,12 +18,12 @@ blocked from the app by the role gate.
 
 ## Context & Rationale
 
-- e-Luna already runs three separate, role-gated Next.js apps on separate domains
+- AYVANA already runs three separate, role-gated Next.js apps on separate domains
   (`customer` / `vendor` / `admin`). The user explicitly wants persona logins kept **separate for
   security** ("like Amazon"). A supplier is therefore a **new app**, not a section of an existing one.
 - The existing **Vendor** is Amazon's "Seller Central" equivalent (sells finished abayas to
   customers). The **Supplier** is the upstream **materials** layer (sells fabric/trim wholesale to
-  vendors). This keeps Luna from becoming a first-party retailer that competes with its own vendors.
+  vendors). This keeps AYVANA from becoming a first-party retailer that competes with its own vendors.
 - S1 reuses the vendor onboarding + admin approval machinery almost verbatim, so it is low-risk.
 
 ## Non-Goals (deferred)
@@ -36,9 +36,9 @@ blocked from the app by the role gate.
 
 ## Architecture
 
-A new app `apps/supplier` (domain `supply.luna.ae`) is a structural clone of `apps/vendor`, stripped
+A new app `apps/supplier` (domain `supply.ayvana.ae`) is a structural clone of `apps/vendor`, stripped
 to the foundation: sign-in, onboarding, and a dashboard shell. Authentication is
-`createLunaMiddleware("SUPPLIER")` — the same session-claim `role` gate plus mandatory MFA the other
+`createAyvanaMiddleware("SUPPLIER")` — the same session-claim `role` gate plus mandatory MFA the other
 apps use — so it is a genuinely separate portal, not a shared login. Admins approve suppliers from a
 new `suppliers/approvals` section in the existing admin console that mirrors `sellers/approvals`.
 
@@ -93,14 +93,14 @@ All changes in `packages/db/prisma/schema.prisma`:
 
 4. **`model User`** — add the back-relation `supplier Supplier?` alongside the existing `vendor` relation.
 
-Regenerate the client offline: `pnpm --filter @e-luna/db db:generate`. `prisma db push` applies the
+Regenerate the client offline: `pnpm --filter @ayvana/db db:generate`. `prisma db push` applies the
 schema to the local DB.
 
 ## Auth Package Changes (`packages/auth`)
 
 - `src/roles.ts`: add `"SUPPLIER"` to the `UserRole` union and a `SUPPLIER` entry in `ROLES`; add
   `supplierId?: string` to `ClerkSessionClaims.metadata`.
-- `src/middleware.ts`: **no code change required** — `createLunaMiddleware(appRole)` already handles any
+- `src/middleware.ts`: **no code change required** — `createAyvanaMiddleware(appRole)` already handles any
   `UserRole` value (non-customer branch: public routes = sign-in/sign-up/webhooks/health, role gate,
   mandatory MFA). Confirm `"SUPPLIER"` flows through unchanged.
 
@@ -108,9 +108,9 @@ schema to the local DB.
 
 Clone `apps/vendor` structure, stripped to foundation. Files:
 
-- **`package.json`** — name `@e-luna/supplier` (or match vendor's naming), same deps/scripts as
+- **`package.json`** — name `@ayvana/supplier` (or match vendor's naming), same deps/scripts as
   `apps/vendor`, dev port `3003` (customer 3000 / vendor 3001 / admin 3002 by convention; supplier 3003).
-- **`middleware.ts`** — `createLunaMiddleware("SUPPLIER")` wrapped in the **same no-Clerk-keys dev
+- **`middleware.ts`** — `createAyvanaMiddleware("SUPPLIER")` wrapped in the **same no-Clerk-keys dev
   fallback** the other apps use: `const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;`
   prod-without-keys throws; when no keys, dev returns `NextResponse.next()` and prod returns
   `new NextResponse("Auth not configured", { status: 503 })`. Same matcher as vendor.
@@ -153,7 +153,7 @@ shared test keys.
 
 ## Data Flow
 
-1. Supplier visits `supply.luna.ae`, signs in (Clerk), hits `/onboarding`.
+1. Supplier visits `supply.ayvana.ae`, signs in (Clerk), hits `/onboarding`.
 2. `createSupplier` upserts `User.role = "SUPPLIER"` and creates `Supplier(status = PENDING)`.
 3. Dashboard shows "under review".
 4. Admin opens ops console → **Suppliers → Approvals**, approves → `status = ACTIVE`.
@@ -172,9 +172,9 @@ Identical lifecycle to vendors.
 
 No automated suite in this repo. Verification = types + lint + manual:
 
-1. `pnpm --filter @e-luna/db db:generate` (regenerate client with `Supplier`/`SupplierStatus`).
-2. `pnpm --filter "@e-luna/*" exec tsc --noEmit` — clean, including the new app.
+1. `pnpm --filter @ayvana/db db:generate` (regenerate client with `Supplier`/`SupplierStatus`).
+2. `pnpm --filter "@ayvana/*" exec tsc --noEmit` — clean, including the new app.
 3. `pnpm lint` — clean.
 4. gitleaks — clean.
 5. Manual: onboarding creates a `PENDING` supplier; admin approval flips it to `ACTIVE`; the role gate
-   blocks a non-supplier (e.g. a vendor) from `supply.luna.ae`.
+   blocks a non-supplier (e.g. a vendor) from `supply.ayvana.ae`.

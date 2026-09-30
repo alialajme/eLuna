@@ -21,9 +21,9 @@ async function main() {
 
   // ── Admin ────────────────────────────────────────────────────────────────
   await prisma.user.upsert({
-    where: { email: "admin@seed.luna.ae" },
+    where: { email: "admin@seed.ayvana.ae" },
     update: { role: UserRole.ADMIN },
-    create: { id: "user_seed_admin", email: "admin@seed.luna.ae", role: UserRole.ADMIN, mfaEnabled: true },
+    create: { id: "user_seed_admin", email: "admin@seed.ayvana.ae", role: UserRole.ADMIN, mfaEnabled: true },
   });
   console.log("✅ Admin user");
 
@@ -48,7 +48,7 @@ async function main() {
         userId: user.id,
         companyName: opts.companyName,
         companySlug: opts.companySlug,
-        description: `${opts.companyName} — wholesale materials for Luna vendors.`,
+        description: `${opts.companyName} — wholesale materials for AYVANA vendors.`,
         status: opts.status,
         materialTypes: opts.materialTypes,
       },
@@ -57,7 +57,7 @@ async function main() {
 
   const gulf = await upsertSupplier({
     id: "user_seed_supplier_gulf",
-    email: "gulf@seed.luna.ae",
+    email: "gulf@seed.ayvana.ae",
     companyName: "Gulf Textiles Trading",
     companySlug: "gulf-textiles",
     status: SupplierStatus.ACTIVE,
@@ -65,7 +65,7 @@ async function main() {
   });
   const emirates = await upsertSupplier({
     id: "user_seed_supplier_emirates",
-    email: "emirates@seed.luna.ae",
+    email: "emirates@seed.ayvana.ae",
     companyName: "Emirates Fabrics",
     companySlug: "emirates-fabrics",
     status: SupplierStatus.ACTIVE,
@@ -74,7 +74,7 @@ async function main() {
   // A PENDING supplier so the admin approvals queue has something to show.
   await upsertSupplier({
     id: "user_seed_supplier_nova",
-    email: "nova@seed.luna.ae",
+    email: "nova@seed.ayvana.ae",
     companyName: "Nova Trims & Notions",
     companySlug: "nova-trims",
     status: SupplierStatus.PENDING,
@@ -193,7 +193,7 @@ async function main() {
   console.log("✅ Material orders (2 pending, 1 accepted, 1 shipped, 1 completed)");
 
   // ── A couple of customer orders (gives vendor + customer views data) ───────
-  const sara = await prisma.customerProfile.findFirst({ where: { user: { email: "sara@seed.luna.ae" } }, select: { id: true, userId: true } });
+  const sara = await prisma.customerProfile.findFirst({ where: { user: { email: "sara@seed.ayvana.ae" } }, select: { id: true, userId: true } });
   const saraAddr = await prisma.address.findFirst({ where: { userId: sara?.userId ?? "" }, select: { id: true } });
   async function firstVariant(productSlug: string) {
     return prisma.productVariant.findFirst({

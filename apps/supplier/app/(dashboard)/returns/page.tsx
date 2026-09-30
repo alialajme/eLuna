@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma, type MaterialReturnStatus } from "@e-luna/db";
+import { prisma, type MaterialReturnStatus } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 import { MaterialReturnActions } from "../components/MaterialReturnActions";
 
-export const metadata: Metadata = { title: "Returns — Luna Supplier" };
+export const metadata: Metadata = { title: "Returns — AYVANA Supplier" };
 
 const STATUS_CLASSES: Record<string, string> = {
   REQUESTED: "bg-gold/20 text-gold",

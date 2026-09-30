@@ -1,8 +1,8 @@
 import { Metadata } from "next";
-import { getAllCategories } from "@e-luna/db";
+import { getAllCategories } from "@ayvana/db";
 import { CategoryManager } from "./CategoryManager";
 
-export const metadata: Metadata = { title: "Categories — Luna Ops" };
+export const metadata: Metadata = { title: "Categories — AYVANA Ops" };
 
 export default async function CategoriesPage() {
   const categories = await getAllCategories();

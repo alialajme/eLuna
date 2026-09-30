@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
-import { detectGarment, writeCopy } from "@e-luna/ai";
+import { prisma } from "@ayvana/db";
+import { detectGarment, writeCopy } from "@ayvana/ai";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 

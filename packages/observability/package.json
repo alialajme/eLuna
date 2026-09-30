@@ -1,5 +1,5 @@
 {
-  "name": "@e-luna/observability",
+  "name": "@ayvana/observability",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -9,7 +9,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
     "vitest": "^2.1.0"

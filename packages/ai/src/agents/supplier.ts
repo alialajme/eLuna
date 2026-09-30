@@ -1,13 +1,13 @@
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 import { median } from "../median";
 
 const SUPPLIER_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Supplier Agent for a Luna materials supplier. Help them manage their materials
+You are the Supplier Agent for a AYVANA materials supplier. Help them manage their materials
 catalog and fulfil vendor orders. Use your tools to ground every answer in the supplier's real
 data — never invent numbers. Be concise and data-driven. You are advisory only: to accept, ship,
 or complete an order, direct the supplier to the Incoming Orders page (/orders).`;
@@ -107,7 +107,7 @@ export function buildSupplierTools(supplierId: string) {
 
     benchmark_material_price: tool({
       description:
-        "Benchmark one of the supplier's materials against the median wholesale price of active materials of the same type across Luna.",
+        "Benchmark one of the supplier's materials against the median wholesale price of active materials of the same type across AYVANA.",
       parameters: z.object({ materialId: z.string() }),
       execute: async ({ materialId }) => {
         const material = await prisma.material

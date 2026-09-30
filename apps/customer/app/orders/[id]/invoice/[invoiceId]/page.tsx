@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
-import { TaxInvoiceDocument } from "@e-luna/ui";
+import { prisma } from "@ayvana/db";
+import { TaxInvoiceDocument } from "@ayvana/ui";
 import { safeCurrentUser } from "../../../../lib/auth";
 
-export const metadata: Metadata = { title: "Tax Invoice — Luna" };
+export const metadata: Metadata = { title: "Tax Invoice — AYVANA" };
 
 type Props = { params: Promise<{ id: string; invoiceId: string }> };
 type Line = { description: string; quantity: number; unitPrice: number; lineTotal: number };

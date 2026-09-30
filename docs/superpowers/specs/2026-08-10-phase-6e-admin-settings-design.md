@@ -2,14 +2,14 @@
 
 ## Goal
 
-Give admins a settings surface: a `PlatformSetting` key/value store (the first admin schema addition), a typed registry + `getSetting` helper in `@e-luna/db`, an admin CRUD page, and real wiring of a small set of currently-hardcoded values (checkout free-shipping threshold/fee) plus a site-wide maintenance banner. Absent settings fall back to today's defaults, so deploying 6e changes nothing until an admin edits.
+Give admins a settings surface: a `PlatformSetting` key/value store (the first admin schema addition), a typed registry + `getSetting` helper in `@ayvana/db`, an admin CRUD page, and real wiring of a small set of currently-hardcoded values (checkout free-shipping threshold/fee) plus a site-wide maintenance banner. Absent settings fall back to today's defaults, so deploying 6e changes nothing until an admin edits.
 
 ---
 
 ## Scope
 
 **In scope:**
-- `PlatformSetting` model + a fixed typed registry (`SETTINGS`) with `getSetting`/`getAllSettings`/`setSetting` in `@e-luna/db`.
+- `PlatformSetting` model + a fixed typed registry (`SETTINGS`) with `getSetting`/`getAllSettings`/`setSetting` in `@ayvana/db`.
 - Admin `/settings` CRUD page + `updateSetting` action (ADMIN-gated) + a nav item.
 - Wire `free_shipping_threshold` + `shipping_fee` into customer checkout; wire `maintenance_banner` into the customer root layout.
 
@@ -26,7 +26,7 @@ Give admins a settings surface: a `PlatformSetting` key/value store (the first a
 
 ### Current state (verified)
 - Admin app `(dashboard)/` has analytics/commissions/customers/fraud/orders/payouts/products/sellers — **no settings**. Nav = `apps/admin/app/(dashboard)/components/Sidebar.tsx` (`NAV_ITEMS` array; the active-check ends in a `pathname === href` fallback, so a new item works with no ternary edit).
-- Admin actions use `getAuthUser()` from `@e-luna/auth`; pattern: `if (!user) return { error: "Unauthorized" }; if (user.role !== "ADMIN") return { error: "Forbidden" };`. `ActionResult = { success: true } | { error: string }`.
+- Admin actions use `getAuthUser()` from `@ayvana/auth`; pattern: `if (!user) return { error: "Unauthorized" }; if (user.role !== "ADMIN") return { error: "Forbidden" };`. `ActionResult = { success: true } | { error: string }`.
 - `Product.category` is a free-form `String` (unrelated to this phase).
 - Customer checkout hardcodes `SHIPPING_THRESHOLD = 500` / `SHIPPING_FEE = 15` in `apps/customer/app/actions/checkout.ts` (used in `placeOrder` + `initiateCardPayment`) and again in `apps/customer/app/checkout/page.tsx`.
 - Customer root `apps/customer/app/layout.tsx` is a **non-async** server component rendering `<Nav/>`, `<main>`, `<Footer/>`, and the Shopping widget.
@@ -120,8 +120,8 @@ apps/customer/app/layout.tsx                               — maintenance banne
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { setSetting, type SettingKey } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { setSetting, type SettingKey } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -139,7 +139,7 @@ export async function updateSetting(key: SettingKey, value: string): Promise<Act
 
 ## Admin page — `apps/admin/app/(dashboard)/settings/page.tsx`
 
-Server component: renders a heading + `<SettingsForm settings={SETTINGS} values={await getAllSettings()} />`. (The `(dashboard)` layout + middleware already gate ADMIN; the action re-checks defense-in-depth.) Imports `SETTINGS`, `getAllSettings` from `@e-luna/db`. Passes the registry (as a serializable array of `{ key, label, type }`) + current values to the client form.
+Server component: renders a heading + `<SettingsForm settings={SETTINGS} values={await getAllSettings()} />`. (The `(dashboard)` layout + middleware already gate ADMIN; the action re-checks defense-in-depth.) Imports `SETTINGS`, `getAllSettings` from `@ayvana/db`. Passes the registry (as a serializable array of `{ key, label, type }`) + current values to the client form.
 
 ## Admin form — `apps/admin/app/(dashboard)/settings/SettingsForm.tsx`
 
@@ -154,7 +154,7 @@ Add to `NAV_ITEMS` (e.g. after Fraud): `{ icon: "⚙️", label: "Settings", hre
 ## Real wiring
 
 ### Checkout free-shipping — `apps/customer/app/actions/checkout.ts` + `checkout/page.tsx`
-Add `import { getSetting } from "@e-luna/db";`. Remove the module-level `SHIPPING_THRESHOLD`/`SHIPPING_FEE` consts. In each place that computed `shippingFee` (both `placeOrder` and `initiateCardPayment` in the action, and the `checkout/page.tsx` RSC), replace with:
+Add `import { getSetting } from "@ayvana/db";`. Remove the module-level `SHIPPING_THRESHOLD`/`SHIPPING_FEE` consts. In each place that computed `shippingFee` (both `placeOrder` and `initiateCardPayment` in the action, and the `checkout/page.tsx` RSC), replace with:
 ```ts
     const threshold = await getSetting("free_shipping_threshold");
     const fee = await getSetting("shipping_fee");
@@ -162,7 +162,7 @@ Add `import { getSetting } from "@e-luna/db";`. Remove the module-level `SHIPPIN
 ```
 
 ### Maintenance banner — `apps/customer/app/layout.tsx`
-Make `RootLayout` `async`; add `import { getSetting } from "@e-luna/db";` and `const maintenanceBanner = await getSetting("maintenance_banner");`. Inside `<body>`, immediately above `<Nav />`, render when non-empty:
+Make `RootLayout` `async`; add `import { getSetting } from "@ayvana/db";` and `const maintenanceBanner = await getSetting("maintenance_banner");`. Inside `<body>`, immediately above `<Nav />`, render when non-empty:
 ```tsx
 {maintenanceBanner && (
   <div className="bg-gold px-4 py-2 text-center text-body-sm font-medium text-ink">
@@ -186,14 +186,14 @@ Make `RootLayout` `async`; add `import { getSetting } from "@e-luna/db";` and `c
 
 No automated suite (repo-consistent). Per task:
 ```bash
-pnpm --filter @e-luna/db db:generate                                       # regen client for PlatformSetting
+pnpm --filter @ayvana/db db:generate                                       # regen client for PlatformSetting
 cd apps/admin && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"       # clean
 cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"    # clean
 # lint admin + customer
 ```
-Final task: repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit`.
+Final task: repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit`.
 
-**Operator:** `pnpm --filter @e-luna/db db:push` to add `PlatformSetting`. **Manual smoke (DB):** admin `/settings` → change the free-shipping threshold → a customer's checkout uses the new value; set a maintenance banner → it appears site-wide; clear it → banner gone.
+**Operator:** `pnpm --filter @ayvana/db db:push` to add `PlatformSetting`. **Manual smoke (DB):** admin `/settings` → change the free-shipping threshold → a customer's checkout uses the new value; set a maintenance banner → it appears site-wide; clear it → banner gone.
 
 ---
 

@@ -10,8 +10,8 @@ import {
   isDomainError,
   writeAuditLog,
   auditSafe,
-} from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+} from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 type AdminActor = { userId: string; role: string | null };
@@ -37,7 +37,7 @@ export async function createPayout(vendorId: string): Promise<ActionResult> {
   if (!vendor.ibanNumber) return { error: "Vendor has no IBAN on file" };
 
   try {
-    // Race-safe, Decimal, reserved-aware payout creation lives in @e-luna/db so
+    // Race-safe, Decimal, reserved-aware payout creation lives in @ayvana/db so
     // the concurrency guarantee is unit-tested and this action stays thin.
     const result = await createVendorPayout(vendorId, vendor.ibanNumber);
     if (!result.ok) return { error: "No balance available to pay out" };

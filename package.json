@@ -1,5 +1,5 @@
 {
-  "name": "e-luna",
+  "name": "ayvana",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -9,7 +9,7 @@
     "test": "turbo test",
     "db:push": "turbo db:push",
     "db:generate": "turbo db:generate",
-    "db:seed": "turbo run db:seed --filter=@e-luna/db",
+    "db:seed": "turbo run db:seed --filter=@ayvana/db",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {

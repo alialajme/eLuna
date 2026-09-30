@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 
 export const metadata: Metadata = {
-  title: "Dashboard — Luna Vendor",
+  title: "Dashboard — AYVANA Vendor",
 };
 
 type DailyRevenue = { day: string; total: number };
@@ -182,7 +182,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Luna AI Alert Strip */}
+      {/* AYVANA AI Alert Strip */}
       {lowStock.length > 0 && (
         <div className="rounded-2xl bg-ink px-5 py-4">
           <p className="text-label text-gold mb-2">✦ LUNA AI — LOW STOCK ALERT</p>

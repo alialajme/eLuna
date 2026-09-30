@@ -1,16 +1,16 @@
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const PAYMENT_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Payment Agent — a READ-ONLY checkout helper for a Luna customer.
+You are the Payment Agent — a READ-ONLY checkout helper for a AYVANA customer.
 Explain payment options and compute previews using your tools. You do NOT charge
 cards, apply credits, or issue refunds — never claim you have. To pay, the customer
 uses the checkout button; for refunds, direct them to the returns flow on their orders page.
-Supported methods today: Card, Luna Wallet, Tabby, Tamara, Cash on Delivery.
+Supported methods today: Card, AYVANA Wallet, Tabby, Tamara, Cash on Delivery.
 Coming soon (via Stripe and regional gateways): Apple Pay, Google Pay, Tap Payments, Noqodi.
 Ground every answer in the tools; never invent balances, methods, or eligibility. Be concise.`;
 
@@ -24,7 +24,7 @@ const DAY = 86_400_000;
 export function buildPaymentTools(customerId: string) {
   return {
     wallet_and_loyalty: tool({
-      description: "Get the customer's current Luna wallet balance (AED) and loyalty points.",
+      description: "Get the customer's current AYVANA wallet balance (AED) and loyalty points.",
       parameters: z.object({}),
       execute: async () => {
         const p = await prisma.customerProfile
@@ -122,7 +122,7 @@ export function buildPaymentTools(customerId: string) {
         "List the payment methods available today and the ones coming soon. Use this instead of guessing.",
       parameters: z.object({}),
       execute: async () => ({
-        live: ["Card", "Luna Wallet", "Tabby", "Tamara", "Cash on Delivery"],
+        live: ["Card", "AYVANA Wallet", "Tabby", "Tamara", "Cash on Delivery"],
         comingSoon: [
           "Apple Pay (via Stripe)",
           "Google Pay (via Stripe)",

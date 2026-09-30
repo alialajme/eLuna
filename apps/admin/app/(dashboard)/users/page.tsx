@@ -1,7 +1,7 @@
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
-export const metadata: Metadata = { title: "Users & Access — Luna Ops" };
+export const metadata: Metadata = { title: "Users & Access — AYVANA Ops" };
 
 const ROLE_BADGE: Record<string, string> = {
   ADMIN: "bg-sage/20 text-sage",

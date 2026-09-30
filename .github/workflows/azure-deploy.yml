@@ -12,10 +12,10 @@ permissions:
   contents: read
 
 env:
-  ACR_NAME: elunaacr
-  AKS_NAME: eluna-aks
-  RESOURCE_GROUP: eluna-rg
-  IMAGE_REPO: e-luna
+  ACR_NAME: ayvanaacr
+  AKS_NAME: ayvana-aks
+  RESOURCE_GROUP: ayvana-rg
+  IMAGE_REPO: ayvana
 
 jobs:
   build-and-deploy:
@@ -56,7 +56,7 @@ jobs:
 
       - name: Helm deploy
         run: |
-          helm upgrade --install luna infra/helm/luna \
-            --namespace luna --create-namespace \
+          helm upgrade --install ayvana infra/helm/ayvana \
+            --namespace ayvana --create-namespace \
             --set image.tag=${{ steps.tag.outputs.value }} \
             --wait --timeout 10m

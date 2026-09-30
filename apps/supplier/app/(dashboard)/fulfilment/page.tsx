@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
-import { courierName, trackingUrl } from "@e-luna/ui/couriers";
+import { prisma } from "@ayvana/db";
+import { courierName, trackingUrl } from "@ayvana/ui/couriers";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 import { ShipGroup, DeliverButton } from "./FulfilmentActions";
 
-export const metadata: Metadata = { title: "Customer Orders — Luna Supplier" };
+export const metadata: Metadata = { title: "Customer Orders — AYVANA Supplier" };
 
 type Address = { fullName: string; addressLine1: string; city: string; emirate: string | null };
 type Line = { id: string; title: string; size: string; color: string; quantity: number };

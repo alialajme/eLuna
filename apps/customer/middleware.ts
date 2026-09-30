@@ -11,8 +11,8 @@ if (!hasClerkKeys && !isDev) {
 
 async function getMiddleware() {
   if (!hasClerkKeys) return null;
-  const { createLunaMiddleware } = await import("@e-luna/auth/middleware");
-  return createLunaMiddleware("CUSTOMER");
+  const { createAyvanaMiddleware } = await import("@ayvana/auth/middleware");
+  return createAyvanaMiddleware("CUSTOMER");
 }
 
 let middlewareInstance: Awaited<ReturnType<typeof getMiddleware>> = null;

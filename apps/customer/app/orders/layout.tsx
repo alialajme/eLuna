@@ -1,10 +1,10 @@
-import { LunaChatWidget } from "@e-luna/ui";
+import { AyvanaChatWidget } from "@ayvana/ui";
 
 export default function OrdersLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      <LunaChatWidget
+      <AyvanaChatWidget
         apiPath="/api/delivery-help"
         title="Delivery Help"
         greeting="Ask me where your order is, delivery timing, or how to return an item."

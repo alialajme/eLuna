@@ -1,4 +1,4 @@
-# e-Luna — Final Architecture Review
+# AYVANA — Final Architecture Review
 
 Assessment after the production-hardening effort. Scores are deliberately **not inflated** — each is
 tied to evidence in the repo, and gaps are stated plainly. Hardening was delivered as four stacked
@@ -6,7 +6,7 @@ PRs (#1 financial correctness, #2 security, #3 observability, #4 reliability) pl
 
 ## Executive summary
 
-e-Luna is a well-structured modular monolith whose **financial, payment, and inventory core is now
+AYVANA is a well-structured modular monolith whose **financial, payment, and inventory core is now
 production-grade and proven** — the highest-risk correctness properties (no oversell, no wallet
 double-spend, no double payout, idempotent payments, bounded refunds) are enforced in the database
 transaction layer and verified by real-Postgres concurrency tests. The operational-maturity
@@ -57,7 +57,7 @@ coverage**.
 | Category | Score | Basis |
 |----------|:----:|-------|
 | Architecture Design | 8 | clean modular monolith, service seams, ADRs |
-| Code Organization | 8 | domain logic in `@e-luna/db`; thin actions |
+| Code Organization | 8 | domain logic in `@ayvana/db`; thin actions |
 | Data Architecture | 8 | Decimal, ledgers, FKs/`Restrict`, indexes; `db push` not migrations |
 | Security | 8 | strong authz/secrets/headers + CI scanning + Redis RL + WAF; `script-src` CSP still open |
 | Payment Architecture | 9 | fail-closed, idempotent, order-first |
@@ -75,7 +75,7 @@ coverage**.
 | Production Readiness | 7 | core strong; scanning/DR/perf gaps |
 
 ## Test results
-- **Total: 75** (`@e-luna/db` 61, `@e-luna/auth` 5, `@e-luna/observability` 9). Pass: 75, fail: 0.
+- **Total: 75** (`@ayvana/db` 61, `@ayvana/auth` 5, `@ayvana/observability` 9). Pass: 75, fail: 0.
 - **Critical-domain coverage:** enforced thresholds on money/inventory/wallet/ledger/order-state
   (≥90–95% statements/lines) in `packages/db/vitest.config.ts`, run against a real Postgres.
 - **Concurrency invariants proven:** oversell, wallet double-spend, double payout, outbox

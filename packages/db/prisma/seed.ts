@@ -15,15 +15,15 @@ const STANDARD_SIZE_GUIDE = {
 };
 
 async function main() {
-  console.log("🌙 Seeding Luna database…");
+  console.log("🌙 Seeding AYVANA database…");
 
   // ── Vendor 1: Nidaa Studio (Occasion & Formal, Dubai) ──────────────────
   const nidaaUser = await prisma.user.upsert({
-    where: { email: "nidaa@seed.luna.ae" },
+    where: { email: "nidaa@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_vendor_nidaa",
-      email: "nidaa@seed.luna.ae",
+      email: "nidaa@seed.ayvana.ae",
       role: UserRole.VENDOR,
       mfaEnabled: true,
     },
@@ -44,11 +44,11 @@ async function main() {
 
   // ── Vendor 2: Lomar (Everyday & Travel, Riyadh) ─────────────────────────
   const lomarUser = await prisma.user.upsert({
-    where: { email: "lomar@seed.luna.ae" },
+    where: { email: "lomar@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_vendor_lomar",
-      email: "lomar@seed.luna.ae",
+      email: "lomar@seed.ayvana.ae",
       role: UserRole.VENDOR,
       mfaEnabled: true,
     },
@@ -69,11 +69,11 @@ async function main() {
 
   // ── Vendor 3: Bashaer (Sport & Activewear, Abu Dhabi) ───────────────────
   const bashaerUser = await prisma.user.upsert({
-    where: { email: "bashaer@seed.luna.ae" },
+    where: { email: "bashaer@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_vendor_bashaer",
-      email: "bashaer@seed.luna.ae",
+      email: "bashaer@seed.ayvana.ae",
       role: UserRole.VENDOR,
       mfaEnabled: true,
     },
@@ -284,11 +284,11 @@ async function main() {
 
   // ── Customer 1: Petite profile ──────────────────────────────────────────
   const customer1User = await prisma.user.upsert({
-    where: { email: "sara@seed.luna.ae" },
+    where: { email: "sara@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_customer_sara",
-      email: "sara@seed.luna.ae",
+      email: "sara@seed.ayvana.ae",
       role: UserRole.CUSTOMER,
       mfaEnabled: true,
       customerProfile: {
@@ -329,11 +329,11 @@ async function main() {
 
   // ── Customer 2: Standard profile ────────────────────────────────────────
   const customer2User = await prisma.user.upsert({
-    where: { email: "layla@seed.luna.ae" },
+    where: { email: "layla@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_customer_layla",
-      email: "layla@seed.luna.ae",
+      email: "layla@seed.ayvana.ae",
       role: UserRole.CUSTOMER,
       mfaEnabled: true,
       customerProfile: {

@@ -114,7 +114,7 @@ export function OnboardingWizard({ userEmail }: Props) {
         <div className="space-y-6">
           <div>
             <h1 className="font-display text-display-md text-ink">Name your boutique</h1>
-            <p className="text-body-md text-mist mt-1">This is what customers will see on Luna.</p>
+            <p className="text-body-md text-mist mt-1">This is what customers will see on AYVANA.</p>
           </div>
           <div className="space-y-4">
             {/* Fix 2: htmlFor/id association */}
@@ -134,7 +134,7 @@ export function OnboardingWizard({ userEmail }: Props) {
               <label htmlFor="store-slug" className="text-label text-mist block mb-2">STORE URL</label>
               <div className="flex items-center rounded-xl border border-sand overflow-hidden">
                 <span className="px-3 py-3 text-body-sm text-mist bg-sand/50 border-r border-sand">
-                  luna.ae/vendors/
+                  ayvana.ae/vendors/
                 </span>
                 <input
                   id="store-slug"
@@ -243,7 +243,7 @@ export function OnboardingWizard({ userEmail }: Props) {
               placeholder="AE07 0331 2345 6789 0123 456"
               className="w-full rounded-xl border border-sand px-4 py-3 text-body-md text-ink bg-ivory focus:outline-none focus:border-ink font-mono"
             />
-            <p className="text-body-xs text-mist mt-1">UAE IBAN format · Luna pays out weekly</p>
+            <p className="text-body-xs text-mist mt-1">UAE IBAN format · AYVANA pays out weekly</p>
           </div>
           {error && (
             <div className="rounded-xl bg-coral/10 border border-coral px-4 py-3 text-body-sm text-coral">
@@ -276,7 +276,7 @@ export function OnboardingWizard({ userEmail }: Props) {
           <div>
             <h1 className="font-display text-display-md text-ink">Secure your account</h1>
             <p className="text-body-md text-mist mt-1">
-              Luna requires two-factor authentication for all sellers to protect your earnings and your customers.
+              AYVANA requires two-factor authentication for all sellers to protect your earnings and your customers.
             </p>
           </div>
           <div className="rounded-2xl border border-sand bg-sand/30 p-5 space-y-3">

@@ -20,7 +20,7 @@ transacts it.
 
 ## Context & Rationale
 
-- Supplier S1 shipped the `Supplier` model, the `supply.luna.ae` app, onboarding, admin approval, and
+- Supplier S1 shipped the `Supplier` model, the `supply.ayvana.ae` app, onboarding, admin approval, and
   a dashboard shell with two "coming soon" seams (Materials, Incoming Orders). S2 fills the Materials seam.
 - `Material` is a deliberately simpler sibling of the vendor `Product` model. Per the brainstorming
   decision, **each material is one flat listing per SKU** (e.g. "Black Nida Crepe" and "Navy Nida Crepe"
@@ -89,8 +89,8 @@ All changes in `packages/db/prisma/schema.prisma`.
    materials Material[]
    ```
 
-Regenerate offline: `pnpm --filter @e-luna/db db:generate`; apply: `pnpm --filter @e-luna/db db:push`.
-`MaterialStatus`, `MaterialUnit`, and the `Material` type re-export through the `@e-luna/db` barrel.
+Regenerate offline: `pnpm --filter @ayvana/db db:generate`; apply: `pnpm --filter @ayvana/db db:push`.
+`MaterialStatus`, `MaterialUnit`, and the `Material` type re-export through the `@ayvana/db` barrel.
 
 ## Shared material-type list
 
@@ -203,8 +203,8 @@ prevents it, but catch defensively and return a friendly error. All list/read qu
 ## Testing
 
 No automated suite in this repo — verification is types + lint + manual:
-1. `pnpm --filter @e-luna/db db:generate` (regenerate client with `Material`/`MaterialStatus`/`MaterialUnit`).
-2. `pnpm --filter "@e-luna/*" exec tsc --noEmit` — clean.
+1. `pnpm --filter @ayvana/db db:generate` (regenerate client with `Material`/`MaterialStatus`/`MaterialUnit`).
+2. `pnpm --filter "@ayvana/*" exec tsc --noEmit` — clean.
 3. `pnpm lint` — clean (supplier app included).
 4. gitleaks — clean.
 5. Manual: as an ACTIVE supplier, create → edit → archive → delete a material; confirm the list reflects

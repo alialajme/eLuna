@@ -6,7 +6,7 @@ import { getSupplierByUserId } from "../../lib/supplier";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 export const metadata: Metadata = {
-  title: "Set up your supplier account — Luna Supplier",
+  title: "Set up your supplier account — AYVANA Supplier",
 };
 
 export default async function OnboardingPage() {
@@ -16,7 +16,7 @@ export default async function OnboardingPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-ink">
         <div className="text-center">
-          <p className="font-display text-display-md text-gold mb-4">Luna Supplier OS</p>
+          <p className="font-display text-display-md text-gold mb-4">AYVANA Supplier OS</p>
           <Link
             href="/sign-in"
             className="inline-flex rounded-full bg-gold px-6 py-3 text-body-md font-medium text-ink"
@@ -42,7 +42,7 @@ export default async function OnboardingPage() {
   return (
     <main className="min-h-screen bg-ivory">
       <div className="border-b border-sand px-6 py-4">
-        <span className="font-display text-display-sm text-gold">✦ Luna</span>
+        <span className="font-display text-display-sm text-gold">✦ AYVANA</span>
         <span className="text-body-md text-mist ml-2">Supplier setup</span>
       </div>
       <OnboardingWizard userEmail={userEmail} />

@@ -10,7 +10,7 @@ The Payment Agent is method-aware: it advises accurately on what works today and
 
 ## Scope
 
-**In scope:** rewrite the Payment agent with 5 read-only, customer-scoped tools; a customer chat route; a `hiddenPaths` prop on `LunaChatWidget`; mount the Payment widget on `/checkout` and hide the Shopping widget there.
+**In scope:** rewrite the Payment agent with 5 read-only, customer-scoped tools; a customer chat route; a `hiddenPaths` prop on `AyvanaChatWidget`; mount the Payment widget on `/checkout` and hide the Shopping widget there.
 
 **Out of scope (explicitly):** any money mutation by the agent (charges, refunds, applying credits, payouts — those stay in deterministic server actions; `payout_vendor` is dropped as it already exists as an admin action in 6c-i); the actual **gateway integrations** for Stripe / Apple Pay / Google Pay / Tap Payments / Noqodi (a separate deferred phase — see "Future work"); schema changes; `AISession` persistence (Phase 8e).
 
@@ -18,7 +18,7 @@ The Payment Agent is method-aware: it advises accurately on what works today and
 
 ## Architecture
 
-The Payment agent is **advisory/read-only**, customer-scoped, running in a new customer route (`/api/payment-help`) and surfaced via the reused `LunaChatWidget` (Vercel AI SDK `useChat` → `toDataStreamResponse()`, same pattern as Shopping `/api/chat` and Seller `/api/assistant`).
+The Payment agent is **advisory/read-only**, customer-scoped, running in a new customer route (`/api/payment-help`) and surfaced via the reused `AyvanaChatWidget` (Vercel AI SDK `useChat` → `toDataStreamResponse()`, same pattern as Shopping `/api/chat` and Seller `/api/assistant`).
 
 **Security:** the agent is bound to the **authenticated customer**. `customerId` (`CustomerProfile.id`) is resolved server-side (`safeCurrentUser()` → `prisma.customerProfile.findUnique({ where: { userId } })`), captured in a `buildPaymentTools(customerId)` closure, and **never** an LLM parameter. Order-based tools verify `order.customerId === customerId` first. **No tool mutates money** — `walletBalance` is only read; the agent's prompt forbids claiming to have charged/refunded.
 
@@ -27,15 +27,15 @@ The Payment agent is **advisory/read-only**, customer-scoped, running in a new c
 ```
 packages/ai/src/agents/payment.ts                 — REWRITE: buildPaymentTools(customerId) + runPaymentAgent(messages, { customerId })
 packages/ai/src/index.ts                          — MODIFY: export runPaymentAgent + buildPaymentTools (drop paymentTools)
-packages/ui/src/components/LunaChatWidget.tsx     — MODIFY: add optional hiddenPaths prop (default ["/chat"])
+packages/ui/src/components/AyvanaChatWidget.tsx     — MODIFY: add optional hiddenPaths prop (default ["/chat"])
 apps/customer/app/api/payment-help/route.ts       — CREATE: POST → auth → customer profile → runPaymentAgent → stream
 apps/customer/app/checkout/page.tsx               — MODIFY: mount the Payment widget
 apps/customer/app/layout.tsx                       — MODIFY: pass hiddenPaths=["/chat","/checkout"] to the Shopping widget
 ```
 
-No schema changes. `packages/ai` depends on `@e-luna/db`; the customer app already depends on `@e-luna/ai` and `ai`.
+No schema changes. `packages/ai` depends on `@ayvana/db`; the customer app already depends on `@ayvana/ai` and `ai`.
 
-**Verified facts:** `CustomerProfile { id, userId, walletBalance (Decimal), loyaltyPoints (Int) }`; `Order { customerId (= CustomerProfile.id), total (Decimal), status (OrderStatus), updatedAt }` with relation `paymentTransactions (PaymentTransaction[])`; `PaymentTransaction { status (PaymentStatus) }`; `PaymentMethod` enum = `CARD | LUNA_WALLET | TABBY | TAMARA | CASH_ON_DELIVERY`. Shopping widget mounted at `apps/customer/app/layout.tsx` as `<LunaChatWidget apiPath="/api/chat" />`; widget's current hide-rule is `if (pathname === "/chat") return null;`.
+**Verified facts:** `CustomerProfile { id, userId, walletBalance (Decimal), loyaltyPoints (Int) }`; `Order { customerId (= CustomerProfile.id), total (Decimal), status (OrderStatus), updatedAt }` with relation `paymentTransactions (PaymentTransaction[])`; `PaymentTransaction { status (PaymentStatus) }`; `PaymentMethod` enum = `CARD | LUNA_WALLET | TABBY | TAMARA | CASH_ON_DELIVERY`. Shopping widget mounted at `apps/customer/app/layout.tsx` as `<AyvanaChatWidget apiPath="/api/chat" />`; widget's current hide-rule is `if (pathname === "/chat") return null;`.
 
 ---
 
@@ -47,11 +47,11 @@ Mirrors the Seller agent (8a) factory shape.
 ```
 ${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Payment Agent — a READ-ONLY checkout helper for a Luna customer.
+You are the Payment Agent — a READ-ONLY checkout helper for a AYVANA customer.
 Explain payment options and compute previews using your tools. You do NOT charge cards,
 apply credits, or issue refunds — never claim you have. To pay, the customer uses the
 checkout button; for refunds, direct them to the returns flow.
-Supported methods today: Card, Luna Wallet, Tabby, Tamara, Cash on Delivery.
+Supported methods today: Card, AYVANA Wallet, Tabby, Tamara, Cash on Delivery.
 Coming soon (via Stripe and regional gateways): Apple Pay, Google Pay, Tap Payments, Noqodi.
 Ground every answer in the tools; never invent balances, methods, or eligibility.
 ```
@@ -120,7 +120,7 @@ Ground every answer in the tools; never invent balances, methods, or eligibility
 5. **`payment_methods`** — params `{}`. Honest, method-aware list (grounds the agent so it never invents methods).
    ```ts
    return {
-     live: ["Card", "Luna Wallet", "Tabby", "Tamara", "Cash on Delivery"],
+     live: ["Card", "AYVANA Wallet", "Tabby", "Tamara", "Cash on Delivery"],
      comingSoon: ["Apple Pay (via Stripe)", "Google Pay (via Stripe)", "Tap Payments", "Noqodi"],
    };
    ```
@@ -149,8 +149,8 @@ export async function runPaymentAgent(
 
 ```ts
 import { safeCurrentUser as currentUser } from "../../lib/auth";
-import { prisma } from "@e-luna/db";
-import { runPaymentAgent } from "@e-luna/ai";
+import { prisma } from "@ayvana/db";
+import { runPaymentAgent } from "@ayvana/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -187,11 +187,11 @@ export async function POST(req: Request) {
 
 ---
 
-## Shared Widget — `packages/ui/src/components/LunaChatWidget.tsx`
+## Shared Widget — `packages/ui/src/components/AyvanaChatWidget.tsx`
 
 Add an optional `hiddenPaths` prop; backward-compatible.
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string;
   title?: string;
   greeting?: string;
@@ -210,12 +210,12 @@ Default preserves current behavior.
 
 **Shopping widget** (`apps/customer/app/layout.tsx`) — hide it on checkout so only one widget floats there:
 ```tsx
-<LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />
+<AyvanaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />
 ```
 
 **Payment widget** — mount on the checkout page (`apps/customer/app/checkout/page.tsx`) as the last child of its returned JSX (client widget in an RSC page is fine). It uses the default `hiddenPaths` (`["/chat"]`), so it shows on `/checkout`:
 ```tsx
-<LunaChatWidget
+<AyvanaChatWidget
   apiPath="/api/payment-help"
   title="Payment Help"
   greeting="Ask about your wallet balance, a Tabby/Tamara split, or refund eligibility — I explain options; you complete payment with the button."
@@ -242,7 +242,7 @@ cd packages/ai && npx tsc --noEmit 2>&1                                     # cl
 cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"    # clean
 cd apps/customer && npx next lint 2>&1 | tail -3                            # no errors
 ```
-Final task runs repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit`. Live agent chat needs a running app + `ANTHROPIC_API_KEY` (manual smoke).
+Final task runs repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit`. Live agent chat needs a running app + `ANTHROPIC_API_KEY` (manual smoke).
 
 ---
 

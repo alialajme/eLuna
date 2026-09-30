@@ -6,7 +6,7 @@
 
 **Architecture:** Tailwind token update flows automatically to all three apps. Seed uses `tsx` to run a plain TypeScript script against Prisma. Shopping agent tools are refactored from module-level stubs to a factory function that closes over the customer's `SizeProfile`.
 
-**Tech Stack:** Tailwind CSS · Prisma 5 · tsx · Vercel AI SDK · `@e-luna/db` · `@e-luna/ai`
+**Tech Stack:** Tailwind CSS · Prisma 5 · tsx · Vercel AI SDK · `@ayvana/db` · `@ayvana/ai`
 
 **Run order:** Plan 1 → Plan 2 → Plan 3 → Plan 4. This plan has no dependencies on the others.
 
@@ -21,7 +21,7 @@
 | `packages/db/prisma/seed.ts` | Create — full seed script |
 | `turbo.json` | Modify — add `db:seed` task |
 | `package.json` (root) | Modify — add `db:seed` script |
-| `packages/ai/package.json` | Modify — add `@e-luna/db` dep |
+| `packages/ai/package.json` | Modify — add `@ayvana/db` dep |
 | `packages/ai/src/agents/shopping.ts` | Modify — real tool implementations |
 
 ---
@@ -38,8 +38,8 @@ Replace the existing content of `packages/config/tailwind/index.ts` with:
 ```ts
 import type { Config } from "tailwindcss";
 
-// Luna "Warm Oud" design tokens — approved 2026-06-22
-export const lunaPreset: Partial<Config> = {
+// AYVANA "Warm Oud" design tokens — approved 2026-06-22
+export const ayvanaPreset: Partial<Config> = {
   theme: {
     extend: {
       colors: {
@@ -78,7 +78,7 @@ export const lunaPreset: Partial<Config> = {
 - [ ] **Step 2: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/config exec tsc --noEmit
+pnpm --filter @ayvana/config exec tsc --noEmit
 ```
 
 Expected: no errors.
@@ -104,7 +104,7 @@ git commit -m "feat: update design tokens to Warm Oud palette"
 
 ```json
 {
-  "name": "@e-luna/db",
+  "name": "@ayvana/db",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -179,7 +179,7 @@ Full `turbo.json` after edit:
 Add to the `scripts` object:
 
 ```json
-"db:seed": "turbo run db:seed --filter=@e-luna/db"
+"db:seed": "turbo run db:seed --filter=@ayvana/db"
 ```
 
 - [ ] **Step 4: Install tsx**
@@ -210,15 +210,15 @@ const STANDARD_SIZE_GUIDE = {
 };
 
 async function main() {
-  console.log("🌙 Seeding Luna database…");
+  console.log("🌙 Seeding AYVANA database…");
 
   // ── Vendor 1: Nidaa Studio (Occasion & Formal, Dubai) ──────────────────
   const nidaaUser = await prisma.user.upsert({
-    where: { email: "nidaa@seed.luna.ae" },
+    where: { email: "nidaa@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_vendor_nidaa",
-      email: "nidaa@seed.luna.ae",
+      email: "nidaa@seed.ayvana.ae",
       role: UserRole.VENDOR,
       mfaEnabled: true,
     },
@@ -239,11 +239,11 @@ async function main() {
 
   // ── Vendor 2: Lomar (Everyday & Travel, Riyadh) ─────────────────────────
   const lomarUser = await prisma.user.upsert({
-    where: { email: "lomar@seed.luna.ae" },
+    where: { email: "lomar@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_vendor_lomar",
-      email: "lomar@seed.luna.ae",
+      email: "lomar@seed.ayvana.ae",
       role: UserRole.VENDOR,
       mfaEnabled: true,
     },
@@ -264,11 +264,11 @@ async function main() {
 
   // ── Vendor 3: Bashaer (Sport & Activewear, Abu Dhabi) ───────────────────
   const bashaerUser = await prisma.user.upsert({
-    where: { email: "bashaer@seed.luna.ae" },
+    where: { email: "bashaer@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_vendor_bashaer",
-      email: "bashaer@seed.luna.ae",
+      email: "bashaer@seed.ayvana.ae",
       role: UserRole.VENDOR,
       mfaEnabled: true,
     },
@@ -481,11 +481,11 @@ async function main() {
 
   // ── Customer 1: Petite profile ──────────────────────────────────────────
   const customer1User = await prisma.user.upsert({
-    where: { email: "sara@seed.luna.ae" },
+    where: { email: "sara@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_customer_sara",
-      email: "sara@seed.luna.ae",
+      email: "sara@seed.ayvana.ae",
       role: UserRole.CUSTOMER,
       mfaEnabled: true,
       customerProfile: {
@@ -521,11 +521,11 @@ async function main() {
 
   // ── Customer 2: Standard profile ────────────────────────────────────────
   const customer2User = await prisma.user.upsert({
-    where: { email: "layla@seed.luna.ae" },
+    where: { email: "layla@seed.ayvana.ae" },
     update: {},
     create: {
       id: "user_seed_customer_layla",
-      email: "layla@seed.luna.ae",
+      email: "layla@seed.ayvana.ae",
       role: UserRole.CUSTOMER,
       mfaEnabled: true,
       customerProfile: {
@@ -627,7 +627,7 @@ pnpm db:seed
 
 Expected output:
 ```
-🌙 Seeding Luna database…
+🌙 Seeding AYVANA database…
 ✅ Vendors created
 ✅ Products and variants created
 ✅ Customers with size profiles created
@@ -650,13 +650,13 @@ git commit -m "feat: add seed script with 3 boutiques, 15 products, 2 customers"
 - Modify: `packages/ai/package.json`
 - Modify: `packages/ai/src/agents/shopping.ts`
 
-- [ ] **Step 1: Add @e-luna/db to packages/ai dependencies**
+- [ ] **Step 1: Add @ayvana/db to packages/ai dependencies**
 
 Update `packages/ai/package.json`:
 
 ```json
 {
-  "name": "@e-luna/ai",
+  "name": "@ayvana/ai",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -670,12 +670,12 @@ Update `packages/ai/package.json`:
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
-    "@e-luna/db": "workspace:*",
+    "@ayvana/db": "workspace:*",
     "ai": "^4.3.19",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "typescript": "^5.4.0"
   }
 }
@@ -693,8 +693,8 @@ pnpm install
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
-import type { SizeProfile } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
+import type { SizeProfile } from "@ayvana/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
@@ -910,7 +910,7 @@ export async function runShoppingAgent(
 - [ ] **Step 4: Verify TypeScript compiles**
 
 ```bash
-pnpm --filter @e-luna/ai exec tsc --noEmit
+pnpm --filter @ayvana/ai exec tsc --noEmit
 ```
 
 Expected: no errors.
@@ -927,6 +927,6 @@ git commit -m "feat: wire Shopping Agent tools with real Prisma queries"
 ## Self-Check Before Handing Off to Plan 2
 
 - [ ] `pnpm lint` passes across all packages
-- [ ] `pnpm --filter @e-luna/config exec tsc --noEmit` passes
-- [ ] `pnpm --filter @e-luna/ai exec tsc --noEmit` passes
+- [ ] `pnpm --filter @ayvana/config exec tsc --noEmit` passes
+- [ ] `pnpm --filter @ayvana/ai exec tsc --noEmit` passes
 - [ ] `pnpm db:seed` runs without errors

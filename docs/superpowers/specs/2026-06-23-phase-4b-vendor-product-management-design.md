@@ -198,7 +198,7 @@ type Props = {
 
 ## New Product Page — `(dashboard)/products/new/page.tsx`
 
-RSC. Metadata: `"New product — Luna Vendor"`.
+RSC. Metadata: `"New product — AYVANA Vendor"`.
 
 Renders:
 ```tsx
@@ -228,7 +228,7 @@ const product = await prisma.product.findUnique({
 - If `!product || product.vendorId !== vendor.id` → `redirect("/products")`
 - Maps variants to `initialData.variants` with `hasOrders: variant._count.orderItems > 0`
 - `images` field: `(product.aiImages as string[]) ?? []`
-- Metadata: `"{product.title} — Luna Vendor"`
+- Metadata: `"{product.title} — AYVANA Vendor"`
 
 Renders:
 ```tsx

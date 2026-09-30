@@ -33,13 +33,13 @@ describe("invitePartner", () => {
       email: "v@x.ae",
       role: "VENDOR",
       vendorId: "v1",
-      redirectUrl: "https://sell.luna.ae/sign-up",
+      redirectUrl: "https://sell.ayvana.ae/sign-up",
     });
     expect(res).toEqual({ invited: true });
     expect(createInvitation).toHaveBeenCalledWith({
       emailAddress: "v@x.ae",
       publicMetadata: { role: "VENDOR", vendorId: "v1" },
-      redirectUrl: "https://sell.luna.ae/sign-up",
+      redirectUrl: "https://sell.ayvana.ae/sign-up",
       ignoreExisting: true,
     });
   });

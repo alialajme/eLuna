@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { InvalidAmountError } from "./errors";
 
 /**
- * Money handling for e-Luna. All authoritative financial math uses Prisma.Decimal
+ * Money handling for AYVANA. All authoritative financial math uses Prisma.Decimal
  * (arbitrary precision) — never IEEE-754 floats. Amounts are AED with 2 decimals.
  *
  * Rationale: `0.1 + 0.2 !== 0.3` in JS. Prices/totals stored as Decimal(10,2) in

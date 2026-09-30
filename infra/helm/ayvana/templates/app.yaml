@@ -29,7 +29,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: {{ $app.name }}
-          image: {{ include "luna.image" (dict "root" $ "app" $app) }}
+          image: {{ include "ayvana.image" (dict "root" $ "app" $app) }}
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
@@ -71,7 +71,7 @@ spec:
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
-            volumeAttributes: { secretProviderClass: luna-spc }
+            volumeAttributes: { secretProviderClass: ayvana-spc }
         - name: next-cache
           emptyDir: {}
         - name: tmp

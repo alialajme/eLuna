@@ -34,7 +34,7 @@ const PAYMENT_METHODS = [
   { value: "TABBY", label: "Tabby", icon: "🟢", desc: "Pay in 4 — no interest" },
   { value: "TAMARA", label: "Tamara", icon: "🟣", desc: "Split in 3 instalments" },
   { value: "NEOPAY", label: "NeoPay", icon: "🇦🇪", desc: "UAE bank cards & wallets" },
-  { value: "LUNA_WALLET", label: "Luna Wallet", icon: "🌙", desc: "Use your Luna balance" },
+  { value: "LUNA_WALLET", label: "AYVANA Wallet", icon: "🌙", desc: "Use your AYVANA balance" },
   { value: "CASH_ON_DELIVERY", label: "Cash on Delivery", icon: "📦", desc: "+AED 5 fee" },
 ] as const;
 
@@ -278,7 +278,7 @@ export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, 
           </button>
 
           <p className="mt-3 text-center text-body-xs text-mist">
-            By placing your order, you agree to Luna&apos;s Terms &amp; Conditions
+            By placing your order, you agree to AYVANA&apos;s Terms &amp; Conditions
           </p>
         </div>
       </div>

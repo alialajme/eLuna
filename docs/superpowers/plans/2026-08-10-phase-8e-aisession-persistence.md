@@ -13,7 +13,7 @@
 ## Context for the implementer (read once)
 
 - **No automated test suite.** "Tests" = `npx tsc --noEmit` and `npx next lint`. Do NOT add a test runner.
-- **`noUncheckedIndexedAccess` is ON.** Repo uses **`prisma db push`** (no migration files); after editing `schema.prisma`, run `pnpm --filter @e-luna/db db:generate` (offline) to regen the client — that's what makes the new unique key type-check. `db push` to a live DB is an operator step.
+- **`noUncheckedIndexedAccess` is ON.** Repo uses **`prisma db push`** (no migration files); after editing `schema.prisma`, run `pnpm --filter @ayvana/db db:generate` (offline) to regen the client — that's what makes the new unique key type-check. `db push` to a live DB is an operator step.
 - **Verified state:**
   - `AISession { id, userId, agentType AIAgentType, messages Json @default("[]"), context Json @default("{}"), createdAt, updatedAt, user User @relation(onDelete: Cascade) }`, currently `@@index([userId]) @@index([userId, agentType])`. Prisma accessor: `prisma.aISession`. `AIAgentType = SHOPPING | SELLER | STUDIO | LOGISTICS | PAYMENT | POS`.
   - Agents (all `(messages: CoreMessage[], options) => streamText({...})`):
@@ -22,7 +22,7 @@
     - `runPaymentAgent(messages, options: { customerId: string })`.
     - `runLogisticsAgent(messages, options: { customerId: string })`.
   - Streaming routes: `apps/customer/app/api/chat/route.ts` (guest-tolerant; `const { messages, id } = ...`; `const user = await currentUser()` may be null; calls `runShoppingAgent(messages, { sizeProfile, sessionId: id })`), `.../payment-help/route.ts` (`runPaymentAgent(messages, { customerId: profile.id })`, user guaranteed), `.../delivery-help/route.ts` (`runLogisticsAgent(messages, { customerId: profile.id })`, user guaranteed), `apps/vendor/app/api/assistant/route.ts` (`runSellerAgent(messages, { vendorId: vendor.id })`, `user` from `safeCurrentUser`, guaranteed).
-  - `LunaChatWidget` `useChat` line: `const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({ api: apiPath, id: sessionIdRef.current ?? undefined });`. `useEffect`/`useRef` already imported. Props: `{ apiPath, title?, greeting?, hiddenPaths?, hiddenPrefixes? }`.
+  - `AyvanaChatWidget` `useChat` line: `const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({ api: apiPath, id: sessionIdRef.current ?? undefined });`. `useEffect`/`useRef` already imported. Props: `{ apiPath, title?, greeting?, hiddenPaths?, hiddenPrefixes? }`.
   - Mount points (locate by `apiPath`): root `apps/customer/app/layout.tsx` (`apiPath="/api/chat"`), `apps/customer/app/checkout/page.tsx` (`apiPath="/api/payment-help"`), `apps/customer/app/orders/layout.tsx` (`apiPath="/api/delivery-help"`), vendor `apps/vendor/app/(dashboard)/layout.tsx` (`apiPath="/api/assistant"`).
   - Customer route auth import style: `import { safeCurrentUser as currentUser } from "../../lib/auth";` (from an `app/api/<x>/route.ts`). Vendor: `import { safeCurrentUser } from "../../lib/auth";`.
 
@@ -39,7 +39,7 @@ apps/customer/app/api/{chat,payment-help,delivery-help}/route.ts — attach pers
 apps/vendor/app/api/assistant/route.ts                          — attach persistOnFinish
 apps/customer/app/api/ai-history/route.ts                       — CREATE GET
 apps/vendor/app/api/ai-history/route.ts                         — CREATE GET
-packages/ui/src/components/LunaChatWidget.tsx                   — agentType prop + mount load
+packages/ui/src/components/AyvanaChatWidget.tsx                   — agentType prop + mount load
 apps/customer/app/layout.tsx, checkout/page.tsx, orders/layout.tsx — agentType props
 apps/vendor/app/(dashboard)/layout.tsx                          — agentType="SELLER"
 ```
@@ -66,7 +66,7 @@ to:
 - [ ] **Step 2: Create `packages/ai/src/session.ts`**
 
 ```ts
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
 export type StoredMessage = { id: string; role: "user" | "assistant"; content: string };
 
@@ -113,7 +113,7 @@ export function persistOnFinish(userId: string, agentType: AgentType, inputMessa
   };
 }
 ```
-Note: if tsc rejects `messages: full` on the Json field, import `Prisma` from `@e-luna/db` and cast `full as unknown as Prisma.InputJsonValue` in both `create` and `update`. Try without the cast first.
+Note: if tsc rejects `messages: full` on the Json field, import `Prisma` from `@ayvana/db` and cast `full as unknown as Prisma.InputJsonValue` in both `create` and `update`. Try without the cast first.
 
 - [ ] **Step 3: Export from `packages/ai/src/index.ts`**
 
@@ -125,7 +125,7 @@ export type { StoredMessage } from "./session";
 
 - [ ] **Step 4: Regenerate the Prisma client (offline)**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db db:generate`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db db:generate`
 Expected: "Generated Prisma Client" success (the `userId_agentType` compound unique input is now available).
 
 - [ ] **Step 5: Type-check the ai package**
@@ -230,9 +230,9 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 1: `apps/customer/app/api/chat/route.ts` (SHOPPING, guest-tolerant)**
 
-Add `persistOnFinish` to the `@e-luna/ai` import (it currently imports `runShoppingAgent`):
+Add `persistOnFinish` to the `@ayvana/ai` import (it currently imports `runShoppingAgent`):
 ```ts
-import { runShoppingAgent, persistOnFinish } from "@e-luna/ai";
+import { runShoppingAgent, persistOnFinish } from "@ayvana/ai";
 ```
 Then change the agent call:
 ```ts
@@ -252,9 +252,9 @@ to:
 
 - [ ] **Step 2: `apps/customer/app/api/payment-help/route.ts` (PAYMENT)**
 
-Add `persistOnFinish` to the `@e-luna/ai` import:
+Add `persistOnFinish` to the `@ayvana/ai` import:
 ```ts
-import { runPaymentAgent, persistOnFinish } from "@e-luna/ai";
+import { runPaymentAgent, persistOnFinish } from "@ayvana/ai";
 ```
 Change:
 ```ts
@@ -270,9 +270,9 @@ to:
 
 - [ ] **Step 3: `apps/customer/app/api/delivery-help/route.ts` (LOGISTICS)**
 
-Add `persistOnFinish` to the `@e-luna/ai` import:
+Add `persistOnFinish` to the `@ayvana/ai` import:
 ```ts
-import { runLogisticsAgent, persistOnFinish } from "@e-luna/ai";
+import { runLogisticsAgent, persistOnFinish } from "@ayvana/ai";
 ```
 Change:
 ```ts
@@ -288,9 +288,9 @@ to:
 
 - [ ] **Step 4: `apps/vendor/app/api/assistant/route.ts` (SELLER)**
 
-Add `persistOnFinish` to the `@e-luna/ai` import:
+Add `persistOnFinish` to the `@ayvana/ai` import:
 ```ts
-import { runSellerAgent, persistOnFinish } from "@e-luna/ai";
+import { runSellerAgent, persistOnFinish } from "@ayvana/ai";
 ```
 Change:
 ```ts
@@ -333,7 +333,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ```ts
 import { safeCurrentUser as currentUser } from "../../lib/auth";
-import { loadAgentMessages, isAgentType } from "@e-luna/ai";
+import { loadAgentMessages, isAgentType } from "@ayvana/ai";
 
 export async function GET(req: Request) {
   const agentType = new URL(req.url).searchParams.get("agentType") ?? "";
@@ -351,7 +351,7 @@ export async function GET(req: Request) {
 
 ```ts
 import { safeCurrentUser as currentUser } from "../../lib/auth";
-import { loadAgentMessages, isAgentType } from "@e-luna/ai";
+import { loadAgentMessages, isAgentType } from "@ayvana/ai";
 
 export async function GET(req: Request) {
   const agentType = new URL(req.url).searchParams.get("agentType") ?? "";
@@ -388,11 +388,11 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ## Task 5: Widget self-load + mount points
 
-**Files:** Modify `packages/ui/src/components/LunaChatWidget.tsx`; Modify `apps/customer/app/layout.tsx`, `apps/customer/app/checkout/page.tsx`, `apps/customer/app/orders/layout.tsx`, `apps/vendor/app/(dashboard)/layout.tsx`.
+**Files:** Modify `packages/ui/src/components/AyvanaChatWidget.tsx`; Modify `apps/customer/app/layout.tsx`, `apps/customer/app/checkout/page.tsx`, `apps/customer/app/orders/layout.tsx`, `apps/vendor/app/(dashboard)/layout.tsx`.
 
-- [ ] **Step 1: Add the `agentType` prop to `LunaChatWidget`'s props type**
+- [ ] **Step 1: Add the `agentType` prop to `AyvanaChatWidget`'s props type**
 
-Add `agentType?: string;` to `LunaChatWidgetProps` (after `hiddenPrefixes`):
+Add `agentType?: string;` to `AyvanaChatWidgetProps` (after `hiddenPrefixes`):
 ```ts
   agentType?: string; // if set, load persisted history from /api/ai-history on mount
 ```
@@ -401,7 +401,7 @@ Add `agentType?: string;` to `LunaChatWidgetProps` (after `hiddenPrefixes`):
 
 Change the signature to include `agentType`:
 ```ts
-export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPrefixes, agentType }: LunaChatWidgetProps) {
+export function AyvanaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPrefixes, agentType }: AyvanaChatWidgetProps) {
 ```
 Change the `useChat` destructure to also pull `setMessages`:
 ```ts
@@ -435,10 +435,10 @@ Expected: clean. (`StoredMessage` `{ id, role, content }` is a valid `useChat` `
 
 - [ ] **Step 5: Add `agentType` to the four mount points**
 
-- `apps/customer/app/layout.tsx` — the `<LunaChatWidget apiPath="/api/chat" ... />`: add `agentType="SHOPPING"`.
-- `apps/customer/app/checkout/page.tsx` — the `<LunaChatWidget apiPath="/api/payment-help" ... />`: add `agentType="PAYMENT"`.
-- `apps/customer/app/orders/layout.tsx` — the `<LunaChatWidget apiPath="/api/delivery-help" ... />`: add `agentType="LOGISTICS"`.
-- `apps/vendor/app/(dashboard)/layout.tsx` — the `<LunaChatWidget apiPath="/api/assistant" ... />`: add `agentType="SELLER"`.
+- `apps/customer/app/layout.tsx` — the `<AyvanaChatWidget apiPath="/api/chat" ... />`: add `agentType="SHOPPING"`.
+- `apps/customer/app/checkout/page.tsx` — the `<AyvanaChatWidget apiPath="/api/payment-help" ... />`: add `agentType="PAYMENT"`.
+- `apps/customer/app/orders/layout.tsx` — the `<AyvanaChatWidget apiPath="/api/delivery-help" ... />`: add `agentType="LOGISTICS"`.
+- `apps/vendor/app/(dashboard)/layout.tsx` — the `<AyvanaChatWidget apiPath="/api/assistant" ... />`: add `agentType="SELLER"`.
 
 (Add the prop to the existing element; keep all current props.)
 
@@ -455,8 +455,8 @@ Expected: tsc clean; no new lint errors.
 
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna
-git add packages/ui/src/components/LunaChatWidget.tsx apps/customer/app/layout.tsx apps/customer/app/checkout/page.tsx apps/customer/app/orders/layout.tsx "apps/vendor/app/(dashboard)/layout.tsx"
-git commit -m "feat(ui): LunaChatWidget loads persisted history via agentType prop (8e)
+git add packages/ui/src/components/AyvanaChatWidget.tsx apps/customer/app/layout.tsx apps/customer/app/checkout/page.tsx apps/customer/app/orders/layout.tsx "apps/vendor/app/(dashboard)/layout.tsx"
+git commit -m "feat(ui): AyvanaChatWidget loads persisted history via agentType prop (8e)
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
@@ -473,7 +473,7 @@ Run:
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna
 pnpm install --frozen-lockfile 2>&1 | tail -3
-pnpm --filter @e-luna/db db:generate 2>&1 | tail -2
+pnpm --filter @ayvana/db db:generate 2>&1 | tail -2
 ```
 Expected: no lockfile change (no new deps); client regen succeeds.
 
@@ -484,7 +484,7 @@ Expected: all apps pass (pre-existing `<img>` warnings acceptable).
 
 - [ ] **Step 3: Repo-wide type check**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit 2>&1 | tail -12`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit 2>&1 | tail -12`
 Expected: clean.
 
 - [ ] **Step 4: Confirm the wiring (inspection)**
@@ -493,7 +493,7 @@ Run:
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna
 grep -rn "persistOnFinish(" apps | grep -c route.ts   # expect 4 (chat, payment-help, delivery-help, assistant)
-grep -rn 'agentType="' apps | grep -c LunaChatWidget || grep -rn 'agentType="' apps/customer/app/layout.tsx apps/customer/app/checkout/page.tsx apps/customer/app/orders/layout.tsx "apps/vendor/app/(dashboard)/layout.tsx"
+grep -rn 'agentType="' apps | grep -c AyvanaChatWidget || grep -rn 'agentType="' apps/customer/app/layout.tsx apps/customer/app/checkout/page.tsx apps/customer/app/orders/layout.tsx "apps/vendor/app/(dashboard)/layout.tsx"
 grep -n "@@unique(\[userId, agentType\])" packages/db/prisma/schema.prisma
 ```
 Expected: 4 route persistence call sites; the 4 mount points carry `agentType="…"`; the schema has the unique.
@@ -510,7 +510,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 6: Manual/operator smoke note (not automated)**
 
-Applying `@@unique` to the live DB is `pnpm --filter @e-luna/db db:push` (operator). Live smoke (running app + DB + `ANTHROPIC_API_KEY`): chat with an agent → reload the page → the conversation reappears (loaded from `/api/ai-history`); a different signed-in user sees only their own; guests get ephemeral chat.
+Applying `@@unique` to the live DB is `pnpm --filter @ayvana/db db:push` (operator). Live smoke (running app + DB + `ANTHROPIC_API_KEY`): chat with an agent → reload the page → the conversation reappears (loaded from `/api/ai-history`); a different signed-in user sees only their own; guests get ephemeral chat.
 
 ---
 

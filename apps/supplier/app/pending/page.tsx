@@ -3,7 +3,7 @@ import { SignOutButton } from "@clerk/nextjs";
 import { safeCurrentUser } from "../lib/auth";
 
 export const metadata: Metadata = {
-  title: "Application Under Review — Luna Supplier",
+  title: "Application Under Review — AYVANA Supplier",
 };
 
 type StatusCopy = {
@@ -21,7 +21,7 @@ const COPY: Record<"pending" | "suspended" | "rejected", StatusCopy> = {
       "We verify your company details",
       "We review the materials you supply",
       "You receive an approval email",
-      "Your supplier account goes live on Luna",
+      "Your supplier account goes live on AYVANA",
     ],
   },
   suspended: {
@@ -62,7 +62,7 @@ export default async function PendingPage({
   return (
     <main className="flex min-h-screen flex-col bg-ivory">
       <div className="bg-ink px-6 py-4 flex items-center justify-between">
-        <span className="font-display text-display-sm text-gold">✦ Luna</span>
+        <span className="font-display text-display-sm text-gold">✦ AYVANA</span>
         {user && (
           <SignOutButton>
             <button className="text-body-sm text-mist hover:text-ivory transition-colors">
@@ -91,8 +91,8 @@ export default async function PendingPage({
           </div>
           <p className="text-body-sm text-mist">
             Questions?{" "}
-            <a href="mailto:suppliers@luna.ae" className="text-gold hover:underline">
-              suppliers@luna.ae
+            <a href="mailto:suppliers@ayvana.ae" className="text-gold hover:underline">
+              suppliers@ayvana.ae
             </a>
           </p>
         </div>

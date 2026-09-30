@@ -24,7 +24,7 @@ export function TaxInvoiceDocument(props: TaxInvoiceProps) {
           <p className="text-body-sm text-mist">{invoiceNumber}</p>
         </div>
         <div className="text-right text-body-sm">
-          <p className="font-display text-display-sm text-gold">✦ Luna</p>
+          <p className="font-display text-display-sm text-gold">✦ AYVANA</p>
           <p className="text-mist">{issuedAt}</p>
         </div>
       </div>

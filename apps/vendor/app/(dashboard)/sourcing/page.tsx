@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
-export const metadata: Metadata = { title: "Sourcing — Luna Vendor" };
+export const metadata: Metadata = { title: "Sourcing — AYVANA Vendor" };
 
 const TYPES = [
   { label: "All", value: undefined },
@@ -35,7 +35,7 @@ export default async function SourcingPage({ searchParams }: Props) {
     <div className="max-w-5xl space-y-5">
       <div>
         <h2 className="font-display text-display-md text-ink">Sourcing</h2>
-        <p className="text-body-sm text-mist">Order fabrics, trims, and hardware from Luna suppliers.</p>
+        <p className="text-body-sm text-mist">Order fabrics, trims, and hardware from AYVANA suppliers.</p>
       </div>
 
       <div className="flex flex-wrap gap-2">

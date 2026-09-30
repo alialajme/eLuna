@@ -4,7 +4,7 @@
 
 **Goal:** Make the `Shipment` model real — vendors create per-vendor shipments (courier + tracking number) that move items to SHIPPED, mark them delivered, and `Order.status` auto-aggregates to SHIPPED/DELIVERED; customers get a per-shipment tracking timeline with a courier deep-link.
 
-**Architecture:** Additive schema (`Shipment.vendorId`, `OrderItem.shipmentId`); a shared courier registry at `@e-luna/ui/couriers`; vendor server actions (`createShipment`, `markShipmentDelivered`, `recomputeOrderStatus`); vendor `FulfillmentPanel` gains a shipment UI; the customer order page renders multiple shipments via a `TrackingTimeline` component.
+**Architecture:** Additive schema (`Shipment.vendorId`, `OrderItem.shipmentId`); a shared courier registry at `@ayvana/ui/couriers`; vendor server actions (`createShipment`, `markShipmentDelivered`, `recomputeOrderStatus`); vendor `FulfillmentPanel` gains a shipment UI; the customer order page renders multiple shipments via a `TrackingTimeline` component.
 
 **Tech Stack:** Next.js 15 (App Router, async params), Prisma + PostgreSQL (`prisma db push`, no migration files), TypeScript (`noUncheckedIndexedAccess` on), Clerk.
 
@@ -15,7 +15,7 @@
 - **No automated test suite.** "Tests" = `npx tsc --noEmit` and `npx next lint`. Do NOT add a test runner.
 - **`noUncheckedIndexedAccess` is ON.** Array index reads are `T | undefined` (`arr[0]?.x`, `?? fallback`).
 - **Prisma `Decimal`** → `Number(...)` before arithmetic/JSON.
-- **Schema uses `prisma db push`** (no migration files). After editing `schema.prisma`, run `pnpm --filter @e-luna/db db:generate` to regenerate the client types offline (this is what makes new fields/relations type-check). Applying to a live DB (`db push`) is an operator step.
+- **Schema uses `prisma db push`** (no migration files). After editing `schema.prisma`, run `pnpm --filter @ayvana/db db:generate` to regenerate the client types offline (this is what makes new fields/relations type-check). Applying to a live DB (`db push`) is an operator step.
 - **Verified current state:**
   - `Shipment { id, orderId, courier String, trackingNumber String?, status ShipmentStatus @default(CREATED), estimatedDelivery?, deliveredAt?, cost Decimal, createdAt, updatedAt, order Order @relation(...) }` (schema lines ~358-375). No vendor link, no item link.
   - `OrderItem { id, orderId, variantId, vendorId, quantity, unitPrice, fulfillmentStatus FulfillmentStatus @default(PENDING), ...relations... returns Return[] }`.
@@ -127,7 +127,7 @@ to:
 
 - [ ] **Step 6: Regenerate the Prisma client (offline)**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db db:generate`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db db:generate`
 Expected: "Generated Prisma Client" success.
 
 - [ ] **Step 7: Type-check both apps + ui**
@@ -149,7 +149,7 @@ git add packages/db/prisma/schema.prisma packages/ui/src/couriers.ts packages/ui
 git commit -m "feat(logistics): shipment schema (vendorId/shipmentId) + courier registry
 
 Add Shipment.vendorId + OrderItem.shipmentId (per-vendor shipments) and a
-shared courier registry exported at @e-luna/ui/couriers.
+shared courier registry exported at @ayvana/ui/couriers.
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
@@ -166,8 +166,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
-import { getCourier } from "@e-luna/ui/couriers";
+import { prisma } from "@ayvana/db";
+import { getCourier } from "@ayvana/ui/couriers";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 
@@ -287,7 +287,7 @@ export async function markShipmentDelivered(
 - [ ] **Step 2: Type-check the vendor app**
 
 Run: `cd /Users/alialajme/Projects/Luna/e-luna/apps/vendor && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts" | tail -5`
-Expected: clean. (`@e-luna/ui/couriers` resolves via the subpath export from Task 1.)
+Expected: clean. (`@ayvana/ui/couriers` resolves via the subpath export from Task 1.)
 
 - [ ] **Step 3: Commit**
 
@@ -312,7 +312,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { COURIERS } from "@e-luna/ui/couriers";
+import { COURIERS } from "@ayvana/ui/couriers";
 import { updateFulfillmentStatus } from "../../../actions/order";
 import { createShipment, markShipmentDelivered } from "../../../actions/shipment";
 
@@ -582,8 +582,8 @@ Change the imports at the top of the file (lines 1-5) to add the registry and th
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
-import { courierName, trackingUrl } from "@e-luna/ui/couriers";
+import { prisma } from "@ayvana/db";
+import { courierName, trackingUrl } from "@ayvana/ui/couriers";
 import { safeCurrentUser } from "../../lib/auth";
 import { TrackingTimeline } from "../components/TrackingTimeline";
 ```
@@ -765,7 +765,7 @@ Expected: no lockfile change (no new dependencies added this phase — the `"./c
 
 - [ ] **Step 2: Regenerate the Prisma client (in case the checkout was clean)**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db db:generate 2>&1 | tail -2`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db db:generate 2>&1 | tail -2`
 Expected: success.
 
 - [ ] **Step 3: Repo-wide lint**
@@ -775,7 +775,7 @@ Expected: all apps pass (pre-existing `<img>` warnings elsewhere are acceptable;
 
 - [ ] **Step 4: Repo-wide type check**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit 2>&1 | tail -15`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit 2>&1 | tail -15`
 Expected: clean.
 
 - [ ] **Step 5: Confirm the 8b loop closes (inspection)**
@@ -803,7 +803,7 @@ Needs a running app + DB (and `db push` applied). Flow: vendor opens an order �
 
 **Spec coverage:**
 - `Shipment.vendorId` + `OrderItem.shipmentId` + `Vendor.shipments` → Task 1 ✓
-- Courier registry at `@e-luna/ui/couriers` → Task 1 ✓
+- Courier registry at `@ayvana/ui/couriers` → Task 1 ✓
 - `createShipment` / `markShipmentDelivered` / `recomputeOrderStatus` → Task 2 ✓
 - Order status aggregation closing the 8b loop → Task 2 + Task 5 Step 5 ✓
 - Vendor create-shipment form + mark-delivered → Task 3 ✓

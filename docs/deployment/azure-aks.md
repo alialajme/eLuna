@@ -1,11 +1,11 @@
-# Deploying e-Luna to Azure AKS (UAE North)
+# Deploying AYVANA to Azure AKS (UAE North)
 
 This runbook takes the repo's infra-as-code and stands the platform up on Azure. Vercel remains the default target; this is the Azure path.
 
 ## Prerequisites
 - Azure subscription with Contributor + User Access Administrator on the target subscription
 - `az` CLI (with the `bicep` extension), `kubectl`, `helm` v3 installed locally
-- A registered DNS zone for `luna.ae` (and subdomains `sell.` / `ops.`)
+- A registered DNS zone for `ayvana.ae` (and subdomains `sell.` / `ops.`)
 
 ## 1. Provision infrastructure (one-time)
 ```bash
@@ -20,7 +20,7 @@ Capture the outputs: `acrLoginServer`, `aksName`, `keyVaultName`, `postgresFqdn`
 
 ## 2. Cluster add-ons (one-time)
 ```bash
-az aks get-credentials -g eluna-rg -n eluna-aks
+az aks get-credentials -g ayvana-rg -n ayvana-aks
 # ingress-nginx
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace
@@ -32,19 +32,19 @@ kubectl apply -f infra/k8s/cert-manager/cluster-issuer.yaml
 
 ## 3. Populate secrets (Key Vault)
 ```bash
-KV=eluna-kv
-az keyvault secret set --vault-name $KV --name DATABASE_URL --value "postgresql://lunaadmin:${PG_ADMIN_PASSWORD}@<postgresFqdn>:5432/luna?sslmode=require"
+KV=ayvana-kv
+az keyvault secret set --vault-name $KV --name DATABASE_URL --value "postgresql://ayvanaadmin:${PG_ADMIN_PASSWORD}@<postgresFqdn>:5432/ayvana?sslmode=require"
 az keyvault secret set --vault-name $KV --name ANTHROPIC_API_KEY --value "<key>"
 az keyvault secret set --vault-name $KV --name NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY --value "<key>"
 az keyvault secret set --vault-name $KV --name CLERK_SECRET_KEY --value "<key>"
 az keyvault secret set --vault-name $KV --name CLOUDINARY_URL --value "<url>"
 ```
-Create a workload identity + federated credential for the app service account (`luna-workload-identity` in the `luna` namespace) and grant it `Key Vault Secrets User` on the vault; put its client id into `infra/helm/luna/values.yaml` (`keyVault.userAssignedIdentityClientId`) and set `keyVault.tenantId`.
+Create a workload identity + federated credential for the app service account (`ayvana-workload-identity` in the `ayvana` namespace) and grant it `Key Vault Secrets User` on the vault; put its client id into `infra/helm/ayvana/values.yaml` (`keyVault.userAssignedIdentityClientId`) and set `keyVault.tenantId`.
 
 ## 4. Database schema
 ```bash
-DATABASE_URL="postgresql://lunaadmin:${PG_ADMIN_PASSWORD}@<postgresFqdn>:5432/luna?sslmode=require" \
-  pnpm --filter "@e-luna/db" exec prisma migrate deploy
+DATABASE_URL="postgresql://ayvanaadmin:${PG_ADMIN_PASSWORD}@<postgresFqdn>:5432/ayvana?sslmode=require" \
+  pnpm --filter "@ayvana/db" exec prisma migrate deploy
 ```
 
 ## 5. Configure GitHub -> Azure (OIDC)
@@ -72,26 +72,26 @@ at runtime from Key Vault.
 Trigger the **Azure Deploy** GitHub Action (`workflow_dispatch`), or locally:
 ```bash
 for app in customer vendor admin; do
-  az acr build --registry elunaacr --image e-luna/$app:manual --build-arg APP=$app --file docker/Dockerfile .
+  az acr build --registry ayvanaacr --image e-ayvana/$app:manual --build-arg APP=$app --file docker/Dockerfile .
 done
-helm upgrade --install luna infra/helm/luna -n luna --create-namespace --set image.tag=manual --wait
+helm upgrade --install ayvana infra/helm/ayvana -n ayvana --create-namespace --set image.tag=manual --wait
 ```
 
 ## 7. DNS + verify 24/7
-- Point `luna.ae`, `sell.luna.ae`, `ops.luna.ae` A-records at the ingress-nginx public IP (`kubectl get svc -n ingress-nginx`).
+- Point `ayvana.ae`, `sell.ayvana.ae`, `ops.ayvana.ae` A-records at the ingress-nginx public IP (`kubectl get svc -n ingress-nginx`).
 - Smoke test:
 ```bash
-curl -sf https://luna.ae/api/health      # {"status":"ok"}
-curl -sf https://sell.luna.ae/api/health
-curl -sf https://ops.luna.ae/api/health
-kubectl get pods -n luna                  # >=2 Ready per app across zones
+curl -sf https://ayvana.ae/api/health      # {"status":"ok"}
+curl -sf https://sell.ayvana.ae/api/health
+curl -sf https://ops.ayvana.ae/api/health
+kubectl get pods -n ayvana                  # >=2 Ready per app across zones
 ```
 
 ## Rollback
 ```bash
-helm rollback luna            # previous release
+helm rollback ayvana            # previous release
 # or pin a known-good SHA:
-helm upgrade luna infra/helm/luna -n luna --set image.tag=<good-sha>
+helm upgrade ayvana infra/helm/ayvana -n ayvana --set image.tag=<good-sha>
 ```
 
 ## 24/7 resilience recap

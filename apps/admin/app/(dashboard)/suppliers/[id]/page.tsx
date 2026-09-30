@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { SupplierActions } from "../../components/SupplierActions";
 import { OnboardingBanner } from "../../components/OnboardingBanner";
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supplier = await prisma.supplier
     .findUnique({ where: { id }, select: { companyName: true } })
     .catch(() => null);
-  return { title: `${supplier?.companyName ?? "Supplier"} — Luna Ops` };
+  return { title: `${supplier?.companyName ?? "Supplier"} — AYVANA Ops` };
 }
 
 function maskIban(iban: string): string {

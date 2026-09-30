@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { CategoryDTO } from "@e-luna/db";
+import type { CategoryDTO } from "@ayvana/db";
 import { VariantMatrix, VariantRow } from "./VariantMatrix";
 import { createProduct, updateProduct, type SizeGuideEntry } from "../../../actions/product";
 

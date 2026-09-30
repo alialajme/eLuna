@@ -1,4 +1,4 @@
-# e-Luna — Phase 7 Test Plan (E2E + coverage to target)
+# AYVANA — Phase 7 Test Plan (E2E + coverage to target)
 
 Plan to take automated testing from the current **75 unit/integration tests** (financial/domain core)
 to the master-prompt targets: **≥90% statements/lines/functions, ≥85% branches globally**, and
@@ -19,8 +19,8 @@ apps building). Effort estimates assume one engineer.
 | Contract (provider adapters) | ❌ none (Stripe/courier/FTA adapters untested at the boundary) |
 | Component (React) | ❌ none |
 | E2E (browser) | ❌ none |
-| App server actions (as wired) | 🟡 core logic tested via extracted `@e-luna/db` services; the action wrappers themselves untested |
-| Coverage gating | 🟡 thresholds enforced on critical `@e-luna/db` modules only; **no global measurement** |
+| App server actions (as wired) | 🟡 core logic tested via extracted `@ayvana/db` services; the action wrappers themselves untested |
+| Coverage gating | 🟡 thresholds enforced on critical `@ayvana/db` modules only; **no global measurement** |
 
 **Gap to close:** the four apps are essentially untested at the UI/route/action-wrapper layer, there
 is no browser-level journey coverage, and coverage isn't measured across the repo.
@@ -42,7 +42,7 @@ is no browser-level journey coverage, and coverage isn't measured across the rep
   build correct requests and map responses/errors (incl. timeouts → `withTimeout`, retries →
   `withRetry`).
 - **Component:** `@testing-library/react` + vitest (`jsdom`) for interactive islands (forms,
-  `LunaChatWidget`, pickers). RSC/server components are covered mainly via E2E.
+  `AyvanaChatWidget`, pickers). RSC/server components are covered mainly via E2E.
 - **E2E:** `@playwright/test` driving the built apps against a seeded test DB.
 
 ---
@@ -67,7 +67,7 @@ Decision: primary seam for journey coverage (speed + determinism); `@clerk/testi
 auth-fidelity suite.
 
 ### 3.2 Database & seeding
-- Reuse the `eluna_test` pattern; each E2E run gets a **freshly migrated + seeded** DB (or a
+- Reuse the `ayvana_test` pattern; each E2E run gets a **freshly migrated + seeded** DB (or a
   transactional/`TRUNCATE`-between-specs reset). Add a deterministic `prisma/seed.e2e.ts` producing:
   active vendors/suppliers with IBAN + TRN, published products with known stock, a customer with a
   known wallet balance and address, and an admin. Seed IDs are stable so specs assert on them.
@@ -75,13 +75,13 @@ auth-fidelity suite.
 
 ### 3.3 Running the apps
 - E2E builds each app (`next build`) and starts it (Playwright `webServer`) with test env
-  (`DATABASE_URL=eluna_test`, test-auth secret, Simulated payment/courier gateways — which are already
+  (`DATABASE_URL=ayvana_test`, test-auth secret, Simulated payment/courier gateways — which are already
   the no-credential default, so no real Stripe/Aramex calls). Card checkout uses the Simulated
   gateway's synchronous-capture path.
 
 ### 3.4 Coverage measurement
 - Turn on vitest coverage per package **and per app** (v8 provider), merge reports, and gate globally
-  in CI. Keep the stricter per-file thresholds on `@e-luna/db` financial modules (already at 90–95%).
+  in CI. Keep the stricter per-file thresholds on `@ayvana/db` financial modules (already at 90–95%).
 - E2E does not contribute to line coverage; it is gated separately by "all critical journeys green".
 
 ---
@@ -182,7 +182,7 @@ idempotency, concurrent payout, outbox double-processing.
   in production (unit test + code review).
 - **Flaky E2E** → seed deterministically, assert on DB state, avoid arbitrary waits (use Playwright
   web-first assertions), shard + retry-once in CI.
-- **RSC/server-action coverage** → keep extracting logic into `@e-luna/db`/services (unit-testable);
+- **RSC/server-action coverage** → keep extracting logic into `@ayvana/db`/services (unit-testable);
   E2E covers the wired path; don't chase line coverage on framework glue.
 - **Coverage gaming** → review that new tests assert behavior/invariants; keep the critical-module
   thresholds high and prefer failure/concurrency/authz cases over trivial ones.

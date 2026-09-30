@@ -6,7 +6,7 @@
 
 **Architecture:** Next.js 15 RSC pages fetch data server-side and pass serialized props to "use client" form components; server actions in `actions/product.ts` handle all mutations with auth guards and Prisma. The dashboard layout (`(dashboard)/layout.tsx`) already handles auth — RSC pages return `null` for missing user/vendor as a safe fallback.
 
-**Tech Stack:** Next.js 15 App Router (RSC + Server Actions), Prisma via `@e-luna/db`, Clerk via `safeCurrentUser()`, Tailwind CSS with Warm Oud tokens, React `useTransition` for async UI states.
+**Tech Stack:** Next.js 15 App Router (RSC + Server Actions), Prisma via `@ayvana/db`, Clerk via `safeCurrentUser()`, Tailwind CSS with Warm Oud tokens, React `useTransition` for async UI states.
 
 ---
 
@@ -18,7 +18,7 @@
   - `lib/vendor.ts` → `getVendorByUserId(userId): Promise<VendorWithStatus | null>` — type includes `id, userId, storeName, storeSlug, status, description, logoUrl, ibanNumber`
   - `lib/slugify.ts` → `slugify(name: string): string`
   - `actions/vendor.ts` → `createVendor`, `updateVendorProfile`, `updateVendorIBAN`
-- Import `prisma` from `"@e-luna/db"`
+- Import `prisma` from `"@ayvana/db"`
 - All Prisma calls in RSC pages must have `.catch(() => [])` or `.catch(() => null)` fallbacks
 - Next.js 15: `searchParams` and `params` in page components are Promises — always `await` them
 - No test suite in this project — TypeScript check (`npx tsc --noEmit`) serves as verification. Only pre-existing error is `tailwind.config.ts` module-not-found. Zero new errors required.
@@ -77,7 +77,7 @@ export async function updateVendorProfile(data: {
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { slugify } from "../lib/slugify";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
@@ -376,12 +376,12 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add apps/vendor/app/actions/vend
 ```typescript
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { archiveProduct } from "../../actions/product";
 
-export const metadata: Metadata = { title: "Products — Luna Vendor" };
+export const metadata: Metadata = { title: "Products — AYVANA Vendor" };
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Draft",
@@ -1133,7 +1133,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/(dashboard)
 import { Metadata } from "next";
 import { ProductForm } from "../components/ProductForm";
 
-export const metadata: Metadata = { title: "New product — Luna Vendor" };
+export const metadata: Metadata = { title: "New product — AYVANA Vendor" };
 
 export default function NewProductPage() {
   return (
@@ -1150,7 +1150,7 @@ export default function NewProductPage() {
 ```typescript
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 import { ProductForm } from "../components/ProductForm";
@@ -1164,8 +1164,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .catch(() => null);
   return {
     title: product
-      ? `${product.title} — Luna Vendor`
-      : "Edit product — Luna Vendor",
+      ? `${product.title} — AYVANA Vendor`
+      : "Edit product — AYVANA Vendor",
   };
 }
 
@@ -1309,12 +1309,12 @@ export function StockInput({ variantId, initialStock }: Props) {
 ```typescript
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { StockInput } from "./components/StockInput";
 
-export const metadata: Metadata = { title: "Inventory — Luna Vendor" };
+export const metadata: Metadata = { title: "Inventory — AYVANA Vendor" };
 
 export default async function InventoryPage() {
   const user = await safeCurrentUser();
@@ -1614,7 +1614,7 @@ import { getVendorByUserId } from "../../lib/vendor";
 import { ProfileForm } from "./components/ProfileForm";
 import { IbanForm } from "./components/IbanForm";
 
-export const metadata: Metadata = { title: "Settings — Luna Vendor" };
+export const metadata: Metadata = { title: "Settings — AYVANA Vendor" };
 
 export default async function SettingsPage() {
   const user = await safeCurrentUser();

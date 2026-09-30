@@ -1,20 +1,11 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, Hanken_Grotesk, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Jost, Inter, IBM_Plex_Sans_Arabic, Reem_Kufi } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
-const bodoni = Bodoni_Moda({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-bodoni",
-  display: "swap",
-});
+const jost = Jost({ subsets: ["latin"], weight: ["300","400","500","700"], variable: "--font-jost", display: "swap" });
 
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-hanken",
-  display: "swap",
-});
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 const ibmArabic = IBM_Plex_Sans_Arabic({
   subsets: ["arabic"],
@@ -23,15 +14,17 @@ const ibmArabic = IBM_Plex_Sans_Arabic({
   display: "swap",
 });
 
+const reemKufi = Reem_Kufi({ subsets: ["arabic"], weight: ["400","500","700"], variable: "--font-reem-kufi", display: "swap" });
+
 export const metadata: Metadata = {
-  title: "Luna Supplier — Materials OS",
-  description: "Supply materials to Luna's boutiques",
+  title: "AYVANA Supplier — Materials OS",
+  description: "Supply materials to AYVANA's boutiques",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en" dir="ltr" className={`${bodoni.variable} ${hanken.variable} ${ibmArabic.variable}`}>
+      <html lang="en" dir="ltr" className={`${jost.variable} ${inter.variable} ${ibmArabic.variable} ${reemKufi.variable}`}>
         <body className="bg-ivory font-sans text-ink antialiased">
           {children}
         </body>

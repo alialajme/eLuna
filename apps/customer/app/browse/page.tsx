@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import { prisma, getCategories } from "@e-luna/db";
+import { prisma, getCategories } from "@ayvana/db";
 import { Decimal } from "@prisma/client/runtime/library";
-import { FilterBar } from "@e-luna/ui";
+import { FilterBar } from "@ayvana/ui";
 import { safeCurrentUser as currentUser } from "../lib/auth";
 import { ProductGrid } from "../components/ProductGrid";
 import { ProductGridSkeleton } from "../components/ProductGridSkeleton";
@@ -17,7 +17,7 @@ function getString(val: string | string[] | undefined): string | undefined {
 }
 
 export const metadata = {
-  title: "Browse Abayas — Luna",
+  title: "Browse Abayas — AYVANA",
   description: "Discover hundreds of abayas from Gulf boutiques",
 };
 

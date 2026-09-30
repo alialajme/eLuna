@@ -1,8 +1,8 @@
 import { Metadata } from "next";
-import { SETTINGS, getAllSettings } from "@e-luna/db";
+import { SETTINGS, getAllSettings } from "@ayvana/db";
 import { SettingsForm } from "./SettingsForm";
 
-export const metadata: Metadata = { title: "Settings — Luna Ops" };
+export const metadata: Metadata = { title: "Settings — AYVANA Ops" };
 
 export default async function SettingsPage() {
   const values = await getAllSettings();

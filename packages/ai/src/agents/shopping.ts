@@ -1,8 +1,8 @@
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
-import type { SizeProfile } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
+import type { SizeProfile } from "@ayvana/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
@@ -153,7 +153,7 @@ function createShoppingTools(sizeProfile: SizeProfile | null) {
         try {
           // Cart cookie is written by the customer app's client-side handler.
           // This tool returns the signal; useChat onToolCall handles the cookie.
-          // TODO: requires onToolCall handler in apps/customer ChatInterface to write to luna_cart cookie
+          // TODO: requires onToolCall handler in apps/customer ChatInterface to write to ayvana_cart cookie
           return {
             success: true,
             variantId,

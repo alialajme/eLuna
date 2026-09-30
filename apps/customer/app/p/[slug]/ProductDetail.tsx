@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ProductGallery, SizeSelector } from "@e-luna/ui";
-import type { SizeProfile } from "@e-luna/db";
+import { ProductGallery, SizeSelector } from "@ayvana/ui";
+import type { SizeProfile } from "@ayvana/db";
 import { addToCart } from "../../actions/cart";
 
 type Variant = {
@@ -100,11 +100,11 @@ export function ProductDetail({
           }}
         />
 
-        {/* Luna Fit strip */}
+        {/* AYVANA Fit strip */}
         {sizeProfile ? (
           recommendedSize ? (
             <div className="rounded-xl bg-ink px-4 py-3 text-body-sm text-ivory">
-              <span className="text-gold">◑</span> Luna thinks{" "}
+              <span className="text-gold">◑</span> AYVANA thinks{" "}
               <strong>{recommendedSize}</strong> fits you well based on your measurements.
             </div>
           ) : null

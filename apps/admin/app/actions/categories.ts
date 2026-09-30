@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, Prisma } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { prisma, Prisma } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 

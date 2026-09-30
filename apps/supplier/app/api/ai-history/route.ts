@@ -1,5 +1,5 @@
 import { safeCurrentUser as currentUser } from "../../lib/auth";
-import { loadAgentMessages, isAgentType } from "@e-luna/ai";
+import { loadAgentMessages, isAgentType } from "@ayvana/ai";
 
 export async function GET(req: Request) {
   const agentType = new URL(req.url).searchParams.get("agentType") ?? "";

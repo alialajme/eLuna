@@ -25,7 +25,7 @@ export function TopBar() {
         ? "Order Detail"
         : pathname.startsWith("/customers/")
           ? "Customer Detail"
-          : "Luna Ops");
+          : "AYVANA Ops");
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-sand bg-ivory px-6">

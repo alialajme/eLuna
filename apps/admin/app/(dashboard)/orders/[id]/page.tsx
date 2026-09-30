@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 
 type Props = { params: Promise<{ id: string }> };
@@ -17,7 +17,7 @@ const ORDER_STATUS_BADGE: Record<string, string> = {
 
 const PAYMENT_LABELS: Record<string, string> = {
   CARD: "Card",
-  LUNA_WALLET: "Luna Wallet",
+  LUNA_WALLET: "AYVANA Wallet",
   TABBY: "Tabby",
   TAMARA: "Tamara",
   CASH_ON_DELIVERY: "Cash on Delivery",
@@ -25,7 +25,7 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Order #${id.slice(-8).toUpperCase()} — Luna Ops` };
+  return { title: `Order #${id.slice(-8).toUpperCase()} — AYVANA Ops` };
 }
 
 function fmtAED(n: number): string {

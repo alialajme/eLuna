@@ -1,5 +1,5 @@
 {
-  "name": "@e-luna/customer",
+  "name": "@ayvana/customer",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -10,12 +10,12 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.39.7",
-    "@e-luna/ai": "workspace:*",
-    "@e-luna/auth": "workspace:*",
-    "@e-luna/db": "workspace:*",
-    "@e-luna/observability": "workspace:*",
-    "@e-luna/payments": "workspace:*",
-    "@e-luna/ui": "workspace:*",
+    "@ayvana/ai": "workspace:*",
+    "@ayvana/auth": "workspace:*",
+    "@ayvana/db": "workspace:*",
+    "@ayvana/observability": "workspace:*",
+    "@ayvana/payments": "workspace:*",
+    "@ayvana/ui": "workspace:*",
     "@prisma/client": "^5.22.0",
     "@stripe/react-stripe-js": "^6.8.0",
     "@stripe/stripe-js": "^9.13.0",
@@ -27,7 +27,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

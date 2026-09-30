@@ -121,7 +121,7 @@ const customer = await prisma.customerProfile.findUnique({
 if (!customer) redirect("/customers");
 ```
 
-`generateMetadata`: title `Customer — Luna Ops` (or the derived name if simple; email is acceptable).
+`generateMetadata`: title `Customer — AYVANA Ops` (or the derived name if simple; email is acceptable).
 
 ### Derivations
 - **Display name**: `customer.orders[0]?.address.fullName ?? "Customer"` (most recent order's address name).
@@ -207,7 +207,7 @@ No automated suite (consistent with Phases 1–6c). Verification per task:
 cd apps/admin && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"   # expect clean
 cd apps/admin && npx next lint 2>&1 | tail -3                           # expect no errors
 ```
-Final task runs the repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit` to keep all 3 CI steps green. New JSX uses `next/link` `<Link>` for internal nav and escaped entities.
+Final task runs the repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit` to keep all 3 CI steps green. New JSX uses `next/link` `<Link>` for internal nav and escaped entities.
 
 ---
 

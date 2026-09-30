@@ -2,16 +2,16 @@
 
 **Date:** 2026-06-22  
 **Phase:** 2 of 8  
-**App:** `apps/customer` (luna.ae)  
+**App:** `apps/customer` (ayvana.ae)  
 **Status:** Approved — ready for implementation planning
 
 ---
 
 ## Overview
 
-Phase 2 builds the customer-facing storefront for luna.ae: home page, browse/search, product detail, vendor boutique pages, and the Luna AI Stylist (full page + persistent floating widget). The AI Stylist is fully wired — real streaming Claude calls with Prisma-backed tool implementations and size profile context injection.
+Phase 2 builds the customer-facing storefront for ayvana.ae: home page, browse/search, product detail, vendor boutique pages, and the AYVANA AI Stylist (full page + persistent floating widget). The AI Stylist is fully wired — real streaming Claude calls with Prisma-backed tool implementations and size profile context injection.
 
-Phase 2 does **not** include: cart page, checkout, Luna Pay, size profile editor, wishlist page, orders, wallet, vendor OS, real AI image generation, or full-text search. These are deferred to Phases 3–8.
+Phase 2 does **not** include: cart page, checkout, AYVANA Pay, size profile editor, wishlist page, orders, wallet, vendor OS, real AI image generation, or full-text search. These are deferred to Phases 3–8.
 
 ---
 
@@ -117,7 +117,7 @@ Filter changes use `router.replace()` (not `push`) so the back button skips inte
 - 1 wishlist item per customer
 
 ### Package.json scripts added
-- Root `package.json`: `"db:seed": "turbo run db:seed --filter=@e-luna/db"`
+- Root `package.json`: `"db:seed": "turbo run db:seed --filter=@ayvana/db"`
 - `packages/db/package.json`: `"db:seed": "tsx prisma/seed.ts"`
 
 ---
@@ -128,7 +128,7 @@ Filter changes use `router.replace()` (not `push`) so the back button skips inte
 
 | Component | Purpose |
 |---|---|
-| `LunaChatWidget.tsx` | Floating bubble + slide-up panel (bottom-right, all pages) |
+| `AyvanaChatWidget.tsx` | Floating bubble + slide-up panel (bottom-right, all pages) |
 | `ChatMessage.tsx` | Message bubble with inline `ProductCard` embed support |
 | `ProductGallery.tsx` | Main image + thumbnail strip, pinch-to-zoom on mobile |
 | `SizeSelector.tsx` | Size grid with stock states, AI recommendation highlight |
@@ -156,7 +156,7 @@ Filter changes use `router.replace()` (not `push`) so the back button skips inte
 3. **Category tiles** — 4 tiles: Occasion / Everyday / Travel / Sport → `/browse?category=[slug]`. Product count badge from server-side `COUNT GROUP BY category`.
 4. **Featured products** — "New Arrivals" horizontal scroll, 6 products (`orderBy: createdAt desc, take: 6`). Uses `ProductCard`.
 5. **Featured boutiques** — 3 boutique cards (name, city, product count). Links to `/vendors/[id]`.
-6. **AI Stylist banner** — full-width espresso strip. Signed-in, no size profile: "Luna knows your size. Ask her anything." + `CHAT WITH LUNA →`. After size profile set: replaced with "Your style, saved" message.
+6. **AI Stylist banner** — full-width espresso strip. Signed-in, no size profile: "AYVANA knows your size. Ask her anything." + `CHAT WITH LUNA →`. After size profile set: replaced with "Your style, saved" message.
 
 **Server data (parallel `Promise.all`):** category counts, 6 newest products, 3 active boutiques, current user size profile status.
 
@@ -182,7 +182,7 @@ Filter changes use `router.replace()` (not `push`) so the back button skips inte
 
 **Size-aware highlighting:** if size profile exists, out-of-stock variants in customer's size show "Low stock in your size" badge.
 
-**Empty state:** "Luna hasn't found a match — try asking her" → `/chat`.
+**Empty state:** "AYVANA hasn't found a match — try asking her" → `/chat`.
 
 ---
 
@@ -203,7 +203,7 @@ Filter changes use `router.replace()` (not `push`) so the back button skips inte
 - Color swatches (if multiple colors)
 - `ADD TO BAG` — disabled until size selected. Server Action appends to cart cookie `[{ variantId, qty, addedAt }]`
 - Wishlist heart toggle
-- **Luna Fit strip:** if size profile → "Luna thinks this fits you well in M". If no profile → "Add your measurements → [Set up size profile]" (links to `/profile/size`)
+- **AYVANA Fit strip:** if size profile → "AYVANA thinks this fits you well in M". If no profile → "Add your measurements → [Set up size profile]" (links to `/profile/size`)
 
 **Below the fold:**
 - Size guide accordion (from `product.sizeGuide` JSON)
@@ -240,7 +240,7 @@ Filter changes use `router.replace()` (not `push`) so the back button skips inte
 
 ---
 
-### Luna AI Stylist — `apps/customer/app/chat/page.tsx` + `LunaChatWidget.tsx`
+### AYVANA AI Stylist — `apps/customer/app/chat/page.tsx` + `AyvanaChatWidget.tsx`
 
 **Server Action — `apps/customer/app/actions/chat.ts`:**
 
@@ -278,7 +278,7 @@ export async function chatAction(messages: CoreMessage[], sessionId: string) {
 - History loaded from `AISession` on mount
 - "Clear conversation" → clears `AISession.messages`, keeps `context`
 
-**Floating widget `LunaChatWidget.tsx`:**
+**Floating widget `AyvanaChatWidget.tsx`:**
 - Bottom-right, all pages — espresso bubble, gold crescent moon icon
 - Click → 380×520px slide-up panel
 - Same `useChat` hook and Server Action
@@ -292,7 +292,7 @@ export async function chatAction(messages: CoreMessage[], sessionId: string) {
 1. Design system token update — Warm Oud (`packages/config/tailwind`)
 2. Seed script (`packages/db/prisma/seed.ts`)
 3. Shopping agent tool wiring — real Prisma queries (`packages/ai/src/agents/shopping.ts`)
-4. New UI components — `FilterBar`, `FilterDrawer`, `ProductGallery`, `SizeSelector`, `ChatMessage`, `LunaChatWidget` (`packages/ui`)
+4. New UI components — `FilterBar`, `FilterDrawer`, `ProductGallery`, `SizeSelector`, `ChatMessage`, `AyvanaChatWidget` (`packages/ui`)
 5. Home page (`apps/customer/app/page.tsx`)
 6. Browse page + filter system (`apps/customer/app/browse/`)
 7. Product detail page (`apps/customer/app/p/[slug]/`)
@@ -303,7 +303,7 @@ export async function chatAction(messages: CoreMessage[], sessionId: string) {
 
 ## Out of Scope (Phase 2)
 
-- `/cart`, `/checkout`, Luna Pay → Phase 3
+- `/cart`, `/checkout`, AYVANA Pay → Phase 3
 - `/profile/size` size profile editor → Phase 3
 - `/wishlist`, `/orders`, `/wallet` → Phase 3
 - Vendor OS → Phase 4

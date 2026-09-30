@@ -2,7 +2,7 @@
 
 ## Goal
 
-Make the e-Luna platform deployable to **Microsoft Azure on Kubernetes (AKS)** in the **UAE North** region for high-availability, 24/7 operation. Deliverable is **infrastructure-as-code committed to the repo** (Dockerfiles, Bicep, Helm, health endpoints, an Azure deploy pipeline, and a runbook). This is **additive** — the existing Vercel configuration is left intact as an alternative target.
+Make the AYVANA platform deployable to **Microsoft Azure on Kubernetes (AKS)** in the **UAE North** region for high-availability, 24/7 operation. Deliverable is **infrastructure-as-code committed to the repo** (Dockerfiles, Bicep, Helm, health endpoints, an Azure deploy pipeline, and a runbook). This is **additive** — the existing Vercel configuration is left intact as an alternative target.
 
 **Boundary:** This environment has no Azure subscription/credentials, so the actual provisioning and "running 24/7" verification are the operator's steps (documented in the runbook). In-repo verification is limited to build + lint + manifest rendering.
 
@@ -21,7 +21,7 @@ Make the e-Luna platform deployable to **Microsoft Azure on Kubernetes (AKS)** i
 ```
                          Internet
                             │
-                 luna.ae / sell.luna.ae / ops.luna.ae   (DNS → ingress public IP)
+                 ayvana.ae / sell.ayvana.ae / ops.ayvana.ae   (DNS → ingress public IP)
                             │  TLS (cert-manager + Let's Encrypt)
                     ┌───────▼────────┐
                     │ ingress-nginx  │   (AKS)
@@ -81,7 +81,7 @@ Add `output: "standalone"` alongside the existing `transpilePackages`:
 ```ts
 const nextConfig: NextConfig = {
   output: "standalone",
-  transpilePackages: ["@e-luna/ui", "@e-luna/auth", "@e-luna/db", "@e-luna/ai"],
+  transpilePackages: ["@ayvana/ui", "@ayvana/auth", "@ayvana/db", "@ayvana/ai"],
 };
 ```
 
@@ -99,8 +99,8 @@ Kept dependency-free (no DB call) so a transient DB blip doesn't cause pods to b
 
 ### Docker (`docker/Dockerfile`)
 Multi-stage, monorepo-aware via Turbo prune:
-1. **prune stage** (`node:20-alpine` + turbo): `turbo prune --scope=@e-luna/${APP} --docker` → produces `/out/json` (lockfile subset) and `/out/full` (source subset).
-2. **install/build stage**: copy pruned `json`, `pnpm install --frozen-lockfile`, copy pruned `full`, `pnpm --filter @e-luna/${APP} build` (runs `prisma generate` via the db package if needed + `next build`).
+1. **prune stage** (`node:20-alpine` + turbo): `turbo prune --scope=@ayvana/${APP} --docker` → produces `/out/json` (lockfile subset) and `/out/full` (source subset).
+2. **install/build stage**: copy pruned `json`, `pnpm install --frozen-lockfile`, copy pruned `full`, `pnpm --filter @ayvana/${APP} build` (runs `prisma generate` via the db package if needed + `next build`).
 3. **runtime stage** (`node:20-alpine`, non-root user): copy `.next/standalone`, `.next/static`, and `public`; `EXPOSE 3000`; `CMD ["node", "apps/${APP}/server.js"]`. (App port normalized to 3000 in-container; the host port differences are dev-only.)
 
 `ARG APP` selects the app; the pipeline builds three images.
@@ -113,7 +113,7 @@ Multi-stage, monorepo-aware via Turbo prune:
 - **keyvault.bicep** — Key Vault (RBAC mode); secret placeholders documented (values set out-of-band).
 - **params/uae-north.bicepparam** — `location = 'uaenorth'`, sizes, node counts.
 
-### Helm chart (`infra/helm/luna`)
+### Helm chart (`infra/helm/ayvana`)
 `values.yaml` lists the three apps with `{ name, host, image, replicas, resources }`. Templates loop over apps to render, per app: `Deployment` (with liveness `/api/health`, readiness `/api/health`, Key Vault CSI volume + `SecretProviderClass` ref, resource requests/limits), `Service` (ClusterIP :80→:3000), `Ingress` (host + TLS secret), `HorizontalPodAutoscaler` (CPU target), `PodDisruptionBudget` (minAvailable: 1). A `SecretProviderClass` maps Key Vault secrets → mounted env.
 
 ### cert-manager `ClusterIssuer`
@@ -126,7 +126,7 @@ Let's Encrypt (production + staging) ACME issuer using the ingress-nginx HTTP-01
 Trigger: `workflow_dispatch` + push to `main` (after existing lint/typecheck CI).
 1. `azure/login@v2` via **OIDC** federated credentials (secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` — IDs, not passwords).
 2. For each app: `az acr build --registry <acr> --image e-luna/<app>:${{ github.sha }} --build-arg APP=<app> -f docker/Dockerfile .` (builds server-side in ACR).
-3. `az aks get-credentials`, then `helm upgrade --install luna infra/helm/luna --set images.tag=${{ github.sha }}`. Rolling update honors readiness probes + PDB → zero downtime.
+3. `az aks get-credentials`, then `helm upgrade --install luna infra/helm/ayvana --set images.tag=${{ github.sha }}`. Rolling update honors readiness probes + PDB → zero downtime.
 
 Infra provisioning is a **separate, one-time/manual step** (documented), not run on each app deploy:
 ```
@@ -155,12 +155,12 @@ No unit-test suite (consistent with the repo). Verification splits by environmen
 
 **In-repo (I run where tooling exists):**
 - `docker build --build-arg APP=<app> -f docker/Dockerfile .` succeeds and the image starts and answers `/api/health`.
-- `helm lint infra/helm/luna` and `helm template infra/helm/luna` render valid manifests (optionally `kubeconform`).
+- `helm lint infra/helm/ayvana` and `helm template infra/helm/ayvana` render valid manifests (optionally `kubeconform`).
 - `az bicep build --file infra/bicep/main.bicep` compiles (if the Azure CLI/Bicep is available); otherwise the Bicep is written to Microsoft's documented schema.
-- Existing repo CI stays green after the `next.config` + health-route additions (`pnpm lint`, `pnpm --filter "@e-luna/*" exec tsc --noEmit`).
+- Existing repo CI stays green after the `next.config` + health-route additions (`pnpm lint`, `pnpm --filter "@ayvana/*" exec tsc --noEmit`).
 
 **Operator (documented in `docs/deployment/azure-aks.md`):**
-- Provision via Bicep → populate Key Vault → run deploy pipeline → point DNS at the ingress IP → `curl https://luna.ae/api/health` (and the vendor/admin hosts) returns `200 {"status":"ok"}` → confirm ≥2 healthy pods per app. Only then is the service genuinely running 24/7.
+- Provision via Bicep → populate Key Vault → run deploy pipeline → point DNS at the ingress IP → `curl https://ayvana.ae/api/health` (and the vendor/admin hosts) returns `200 {"status":"ok"}` → confirm ≥2 healthy pods per app. Only then is the service genuinely running 24/7.
 
 ---
 

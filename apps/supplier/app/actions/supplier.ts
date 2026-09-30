@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
-import { syncClerkRole } from "@e-luna/auth";
+import { prisma } from "@ayvana/db";
+import { syncClerkRole } from "@ayvana/auth";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
 import { sanitizeMaterialTypes } from "../lib/materials";

@@ -4,7 +4,7 @@ Courier integration is **author-complete but credential-gated**. With no keys se
 `SimulatedCourier`, so the vendor enters the tracking number manually (7a behavior) — nothing changes.
 
 ## Model
-The gateway is a **shared package** `packages/courier/` (`@e-luna/courier`), used by both the vendor
+The gateway is a **shared package** `packages/courier/` (`@ayvana/courier`), used by both the vendor
 (customer-order shipments) and the supplier (material-order shipments):
 - `gateway.ts` — the `CourierGateway` interface: `createShipment(params)` returns
   `created` (tracking + externalRef + labelUrl) / `manual` (the shipper types the tracking #) / `failed`;
@@ -31,7 +31,7 @@ and webhook status flow can only be verified with a real merchant account.
 
 ## Supplier → vendor material orders
 
-The supplier's `MaterialOrder` shipping reuses the same `@e-luna/courier` gateway. `shipMaterialOrder`
+The supplier's `MaterialOrder` shipping reuses the same `@ayvana/courier` gateway. `shipMaterialOrder`
 calls `getCourierGateway(courier).createShipment(...)`; with no keys the Simulated gateway asks the supplier
 to enter a tracking number (manual). The webhook `POST /api/webhooks/courier/[courier]` (supplier app) moves
 the order `SHIPPED → COMPLETED` on a `delivered` event.
@@ -44,7 +44,7 @@ shipping-address source and populate `destination.addressLine1`/`city`/`emirate`
 
 A vendor can set `Product.dropshipSupplierId` so a supplier fulfils that product directly to the customer.
 The supplier's **Customer Orders** queue lists paid orders' dropship items (grouped by order + listing
-vendor) with the customer's shipping address; the supplier ships via the same `@e-luna/courier` gateway
+vendor) with the customer's shipping address; the supplier ships via the same `@ayvana/courier` gateway
 (Simulated → manual tracking with no keys), creating a `Shipment { vendorId, supplierId }`. Delivery is
 marked manually by the supplier this phase; real-courier webhook auto-delivery for dropship shipments is a
 later operator step. The customer never sees the supplier — only courier + tracking.

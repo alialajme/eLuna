@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getSupplierByUserId } from "../../../lib/supplier";
 import { PrintButton } from "../../components/PrintButton";
 
-export const metadata: Metadata = { title: "Tax Invoice — Luna Supplier" };
+export const metadata: Metadata = { title: "Tax Invoice — AYVANA Supplier" };
 
 type Props = { params: Promise<{ id: string }> };
 type Line = { name: string; unit: string; unitPrice: number; quantity: number; lineTotal: number };
@@ -39,7 +39,7 @@ export default async function InvoiceDetailPage({ params }: Props) {
             <p className="text-body-sm text-mist">{inv.invoiceNumber}</p>
           </div>
           <div className="text-right text-body-sm">
-            <p className="font-display text-display-sm text-gold">✦ Luna</p>
+            <p className="font-display text-display-sm text-gold">✦ AYVANA</p>
             <p className="text-mist">{inv.issuedAt.toLocaleDateString("en-AE", { day: "numeric", month: "long", year: "numeric" })}</p>
           </div>
         </div>

@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma, type SupplierStatus } from "@e-luna/db";
+import { prisma, type SupplierStatus } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { StatusFilter } from "../components/StatusFilter";
 
-export const metadata: Metadata = { title: "Suppliers — Luna Ops" };
+export const metadata: Metadata = { title: "Suppliers — AYVANA Ops" };
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "bg-gold/20 text-gold",

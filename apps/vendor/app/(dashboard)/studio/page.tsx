@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 
-export const metadata: Metadata = { title: "Luna Studio — Luna Vendor" };
+export const metadata: Metadata = { title: "AYVANA Studio — AYVANA Vendor" };
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "bg-sand text-mist",
@@ -39,9 +39,9 @@ export default async function StudioPage() {
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-display-md text-ink">Luna Studio</h2>
+          <h2 className="font-display text-display-md text-ink">AYVANA Studio</h2>
           <p className="mt-1 text-body-sm text-mist">
-            Upload 3 photos of your abaya — Luna AI detects the garment and
+            Upload 3 photos of your abaya — AYVANA AI detects the garment and
             writes your full product copy.
           </p>
         </div>

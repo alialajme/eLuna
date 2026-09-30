@@ -9,8 +9,8 @@ import {
   computeRefundBreakdown,
   money,
   writeAuditLog,
-} from "@e-luna/db";
-import { getGateway } from "@e-luna/payments";
+} from "@ayvana/db";
+import { getGateway } from "@ayvana/payments";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 

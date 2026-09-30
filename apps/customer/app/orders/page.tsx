@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 import { AccountNav } from "../components/AccountNav";
 
 export const metadata: Metadata = {
-  title: "Orders — Luna",
+  title: "Orders — AYVANA",
 };
 
 const STATUS_STYLES: Record<string, string> = {

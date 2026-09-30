@@ -1,18 +1,18 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import type { UserRole } from "./roles";
 
-type LunaClaims = {
+type AyvanaClaims = {
   metadata?: { role?: UserRole; mfaEnabled?: boolean; vendorId?: string; supplierId?: string };
 };
 
-function parseClaims(sessionClaims: unknown): LunaClaims {
+function parseClaims(sessionClaims: unknown): AyvanaClaims {
   if (
     sessionClaims &&
     typeof sessionClaims === "object" &&
     "metadata" in sessionClaims &&
     (sessionClaims.metadata === null || typeof sessionClaims.metadata === "object")
   ) {
-    return sessionClaims as LunaClaims;
+    return sessionClaims as AyvanaClaims;
   }
   return {};
 }

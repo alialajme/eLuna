@@ -15,12 +15,12 @@
 - **No automated test suite exists.** "Tests" = `npx tsc --noEmit` and `npx next lint`. Do NOT add a test runner.
 - **`noUncheckedIndexedAccess` is ON.** Array index reads are `T | undefined` → use `?? fallback` or `arr[i]?.x`.
 - **Prisma `Decimal`** → `Number(...)` before arithmetic/JSON. `Math.round(amount * 100)` converts AED → fils for Stripe.
-- **Repo uses `prisma db push`** (no migration files). Schema change = edit `schema.prisma` + `pnpm --filter @e-luna/db db:generate` (regenerates client types offline, no DB needed). Applying to a live DB (`db push`) is an operator step.
+- **Repo uses `prisma db push`** (no migration files). Schema change = edit `schema.prisma` + `pnpm --filter @ayvana/db db:generate` (regenerates client types offline, no DB needed). Applying to a live DB (`db push`) is an operator step.
 - **Cookie mutation** (`cookies().delete/set`) is only allowed inside a Server Action or Route Handler — never during a Server Component render. That is why cart-clearing happens inside `placeOrder` / `initiateCardPayment` / `syncOrderPayment` (all invoked from client or as actions), and why the confirm page triggers the sync via a small client component.
 - **Verified current state:**
   - `apps/customer/app/lib/payment/gateway.ts` exports `ChargeParams/ChargeResult/RefundParams/RefundResult` + `interface PaymentGateway { charge, refund }`.
   - `factory.ts` `getGateway(method)` switch; `simulated.ts`, `tabby.ts`, `tamara.ts` implement `charge`.
-  - `actions/checkout.ts` `placeOrder()` calls `getGateway(method).charge(...)` at line 74-75, creates a `CONFIRMED` order + `CAPTURED` tx, `jar.delete("luna_cart")`.
+  - `actions/checkout.ts` `placeOrder()` calls `getGateway(method).charge(...)` at line 74-75, creates a `CONFIRMED` order + `CAPTURED` tx, `jar.delete("ayvana_cart")`.
   - `checkout/CheckoutForm.tsx` client form: `PAYMENT_METHODS` list, `paymentMethod` state, `handlePlaceOrder` calls `placeOrder`, pushes `/checkout/confirm?orderId=...`.
   - `checkout/confirm/page.tsx` server component: `searchParams: Promise<{ orderId?: string }>`, fetches order, ownership-checked, renders success UI unconditionally.
   - Schema: `PaymentMethod = CARD|LUNA_WALLET|TABBY|TAMARA|CASH_ON_DELIVERY` (lines 68-74). `PaymentTransaction { status PaymentStatus, externalRef?, metadata Json }`. `OrderStatus` has `PENDING|CONFIRMED|CANCELLED`. `PaymentStatus` has `PENDING|CAPTURED|FAILED`.
@@ -97,7 +97,7 @@ enum PaymentMethod {
 
 - [ ] **Step 3: Regenerate the Prisma client (offline — no DB needed)**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db db:generate`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db db:generate`
 Expected: "Generated Prisma Client" success. This makes `"TAP" | "NOQODI" | "NEOPAY"` valid `PaymentMethod` values at the type level.
 
 - [ ] **Step 4: Type-check (nothing consumes the new values yet)**
@@ -180,7 +180,7 @@ export function stripeConfig() {
 - [ ] **Step 3: Create `apps/customer/app/lib/payment/reconcile.ts`**
 
 ```ts
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import type { WebhookResult } from "./gateway";
 
 /**
@@ -304,7 +304,7 @@ Replace the charge block (currently lines 74-85):
       currency: "AED",
       orderId: tempOrderId,
       customerEmail: user.emailAddresses[0]?.emailAddress ?? "",
-      description: `Luna order — ${lineItems.length} item(s)`,
+      description: `AYVANA order — ${lineItems.length} item(s)`,
     });
 
     if (!chargeResult.success) {
@@ -319,7 +319,7 @@ with:
       currency: "AED",
       orderId: tempOrderId,
       customerEmail: user.emailAddresses[0]?.emailAddress ?? "",
-      description: `Luna order — ${lineItems.length} item(s)`,
+      description: `AYVANA order — ${lineItems.length} item(s)`,
     });
 
     if (paymentResult.status !== "captured") {
@@ -599,7 +599,7 @@ export async function initiateCardPayment(input: {
     if (!user) return { success: false, error: "Please sign in to place an order" };
 
     const jar = await cookies();
-    const cartItems = parseCart(jar.get("luna_cart")?.value);
+    const cartItems = parseCart(jar.get("ayvana_cart")?.value);
     if (cartItems.length === 0) return { success: false, error: "Your bag is empty" };
 
     const variantIds = cartItems.map((i) => i.variantId);
@@ -669,7 +669,7 @@ export async function initiateCardPayment(input: {
       currency: "AED",
       orderId: order.id,
       customerEmail: user.emailAddresses[0]?.emailAddress ?? "",
-      description: `Luna order — ${lineItems.length} item(s)`,
+      description: `AYVANA order — ${lineItems.length} item(s)`,
       metadata: { orderId: order.id },
     });
 
@@ -698,7 +698,7 @@ export async function initiateCardPayment(input: {
         orderId: order.id,
         externalRef: result.externalRef,
       });
-      jar.delete("luna_cart");
+      jar.delete("ayvana_cart");
       revalidatePath("/cart");
       revalidatePath("/orders");
       return { success: true, orderId: order.id, captured: true };
@@ -744,7 +744,7 @@ export async function syncOrderPayment(orderId: string): Promise<{ status: strin
     const updated = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
     if (updated?.status === "CONFIRMED") {
       const jar = await cookies();
-      jar.delete("luna_cart");
+      jar.delete("ayvana_cart");
       revalidatePath("/cart");
       revalidatePath("/orders");
     }
@@ -1160,7 +1160,7 @@ page's reconciler) flips the order to `CONFIRMED`/`CAPTURED`. Both paths are ide
 ## 2. Apply the schema change
 Run against the live database:
 ```
-pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:push
 ```
 This adds the `TAP`, `NOQODI`, `NEOPAY` `PaymentMethod` values.
 
@@ -1206,7 +1206,7 @@ Expected: all apps pass (pre-existing `<img>` warnings in customer pages are acc
 
 - [ ] **Step 3: Repo-wide type check**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit 2>&1 | tail -15`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit 2>&1 | tail -15`
 Expected: clean.
 
 - [ ] **Step 4: Simulated-fallback proof (reason through, no keys set)**

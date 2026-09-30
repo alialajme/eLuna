@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma, type ProductStatus } from "@e-luna/db";
+import { prisma, type ProductStatus } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { StatusFilter } from "../components/StatusFilter";
 import { ProductActions } from "../components/ProductActions";
 
-export const metadata: Metadata = { title: "Products — Luna Ops" };
+export const metadata: Metadata = { title: "Products — AYVANA Ops" };
 
 const PRODUCT_STATUS_BADGE: Record<string, string> = {
   ACTIVE: "bg-sage/20 text-sage",

@@ -81,7 +81,7 @@ enum PaymentMethod { CARD LUNA_WALLET TABBY TAMARA }
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 
@@ -156,11 +156,11 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add apps/vendor/app/actions/orde
 ```typescript
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 
-export const metadata: Metadata = { title: "Orders — Luna Vendor" };
+export const metadata: Metadata = { title: "Orders — AYVANA Vendor" };
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "Pending",
@@ -510,7 +510,7 @@ Create the `[id]/` directory first if it doesn't exist.
 ```typescript
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 import { FulfillmentPanel } from "../components/FulfillmentPanel";
@@ -519,12 +519,12 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Order #${id.slice(-8).toUpperCase()} — Luna Vendor` };
+  return { title: `Order #${id.slice(-8).toUpperCase()} — AYVANA Vendor` };
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
   CARD: "Card",
-  LUNA_WALLET: "Luna Wallet",
+  LUNA_WALLET: "AYVANA Wallet",
   TABBY: "Tabby",
   TAMARA: "Tamara",
 };

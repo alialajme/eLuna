@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 
-export const metadata: Metadata = { title: "Invoices — Luna Vendor" };
+export const metadata: Metadata = { title: "Invoices — AYVANA Vendor" };
 
 export default async function InvoicesPage() {
   const user = await safeCurrentUser();

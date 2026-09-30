@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAuthUser } from "@e-luna/auth";
+import { getAuthUser } from "@ayvana/auth";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 
