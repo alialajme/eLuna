@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { Colors } from '@/constants/theme';
+import { AccountProvider } from '@/lib/account';
 import { BagProvider } from '@/lib/bag';
 import { WishlistProvider } from '@/lib/wishlist';
 
@@ -50,6 +51,7 @@ export default function RootLayout() {
   };
 
   return (
+    <AccountProvider>
     <BagProvider>
       <WishlistProvider>
         <ThemeProvider value={NavTheme}>
@@ -70,9 +72,14 @@ export default function RootLayout() {
             <Stack.Screen name="orders" options={{ ...headerOptions, title: 'Orders' }} />
             <Stack.Screen name="checkout" options={{ ...headerOptions, title: 'Checkout' }} />
             <Stack.Screen name="chat" options={{ ...headerOptions, title: 'AYVANA Stylist' }} />
+            <Stack.Screen name="sign-in" options={{ ...headerOptions, title: 'Sign in', presentation: 'modal' }} />
+            <Stack.Screen name="settings" options={{ ...headerOptions, title: 'Settings' }} />
+            <Stack.Screen name="address" options={{ ...headerOptions, title: 'Delivery address' }} />
+            <Stack.Screen name="size-profile" options={{ ...headerOptions, title: 'Size profile' }} />
           </Stack>
         </ThemeProvider>
       </WishlistProvider>
     </BagProvider>
+    </AccountProvider>
   );
 }

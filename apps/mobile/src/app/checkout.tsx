@@ -16,19 +16,23 @@ import { Txt } from '@/components/ui/Txt';
 import { Radii, Spacing, Type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatPrice, placeOrder, type ShippingAddress } from '@/lib/api';
+import { useAccount } from '@/lib/account';
 import { useBag } from '@/lib/bag';
 
 export default function CheckoutScreen() {
   const c = useTheme();
   const { lines, subtotal, count, clear } = useBag();
-  const [form, setForm] = useState<ShippingAddress>({
-    fullName: '',
-    phone: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    emirate: '',
-  });
+  const { address, user } = useAccount();
+  const [form, setForm] = useState<ShippingAddress>(
+    address ?? {
+      fullName: user?.name ?? '',
+      phone: '',
+      addressLine1: '',
+      addressLine2: '',
+      city: '',
+      emirate: '',
+    },
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

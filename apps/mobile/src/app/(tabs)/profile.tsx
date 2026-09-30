@@ -7,19 +7,21 @@ import { Txt } from '@/components/ui/Txt';
 import { Wordmark } from '@/components/Wordmark';
 import { BottomTabInset, Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useAccount } from '@/lib/account';
 
 type Row = { icon: keyof typeof Ionicons.glyphMap; label: string; hint: string; href?: string };
 
 const ROWS: Row[] = [
   { icon: 'receipt-outline', label: 'Orders', hint: 'Track and reorder', href: '/orders' },
   { icon: 'heart-outline', label: 'Wishlist', hint: 'Saved abayas', href: '/wishlist' },
-  { icon: 'resize-outline', label: 'Size profile', hint: 'Powers your fit' },
+  { icon: 'resize-outline', label: 'Size profile', hint: 'Powers your fit', href: '/size-profile' },
   { icon: 'wallet-outline', label: 'Wallet & cashback', hint: 'AYVANA credit' },
-  { icon: 'settings-outline', label: 'Settings', hint: 'Preferences' },
+  { icon: 'settings-outline', label: 'Settings', hint: 'Preferences', href: '/settings' },
 ];
 
 export default function ProfileScreen() {
   const c = useTheme();
+  const { user, signedIn } = useAccount();
   const soon = (label: string) => Alert.alert(label, 'Available in the full AYVANA app.');
 
   return (
@@ -35,24 +37,26 @@ export default function ProfileScreen() {
         <View style={styles.identity}>
           <View style={[styles.avatar, { backgroundColor: c.surfaceInk }]}>
             <Txt variant="displayMd" color="textOnInk">
-              G
+              {signedIn ? user!.name.charAt(0).toUpperCase() : 'G'}
             </Txt>
           </View>
           <View style={{ flex: 1 }}>
             <Txt variant="displaySm" color="text">
-              Guest
+              {signedIn ? user!.name : 'Guest'}
             </Txt>
             <Txt variant="bodySm" color="textSecondary" style={{ marginTop: 2 }}>
-              Sign in to sync your bag and orders
+              {signedIn ? user!.email : 'Sign in to sync your bag and orders'}
             </Txt>
           </View>
         </View>
 
-        <Pressable onPress={() => soon('Sign in')} style={[styles.signIn, { backgroundColor: c.surfaceInk }]}>
-          <Txt variant="bodySemiMd" color="textOnInk">
-            Sign in
-          </Txt>
-        </Pressable>
+        {!signedIn && (
+          <Pressable onPress={() => router.push('/sign-in')} style={[styles.signIn, { backgroundColor: c.surfaceInk }]}>
+            <Txt variant="bodySemiMd" color="textOnInk">
+              Sign in
+            </Txt>
+          </Pressable>
+        )}
 
         {/* Grouped list */}
         <View style={[styles.group, { backgroundColor: c.surface, borderColor: c.hairline }]}>
