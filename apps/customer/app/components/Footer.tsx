@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCategories } from "@ayvana/db";
+import { AyvanaLogo } from "@ayvana/ui";
 
 export async function Footer() {
   const categories = await getCategories();
@@ -8,12 +9,7 @@ export async function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div>
-            <p className="font-display text-display-md font-bold tracking-widest text-ivory mb-4">
-              AYVANA
-            </p>
-            <p className="text-body-sm text-mist">
-              The Abaya Marketplace
-            </p>
+            <AyvanaLogo tone="onDark" showTagline size={34} />
           </div>
           <div>
             <h3 className="text-label uppercase text-gold mb-3">Shop</h3>

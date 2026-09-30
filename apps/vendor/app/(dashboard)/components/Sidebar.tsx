@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AyvanaLogo } from "@ayvana/ui";
 import { SignOutButton } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
@@ -28,8 +29,7 @@ export function Sidebar({ storeName }: Props) {
     <aside className="flex w-56 shrink-0 flex-col bg-ink min-h-screen">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-white/10">
-        <p className="font-display text-display-sm text-gold">✦ AYVANA</p>
-        <p className="text-body-xs text-mist mt-0.5">Vendor OS</p>
+        <AyvanaLogo tone="onDark" subtitle="Vendor OS" />
       </div>
 
       {/* Nav */}
