@@ -50,6 +50,24 @@ DATABASE_URL="postgresql://lunaadmin:${PG_ADMIN_PASSWORD}@<postgresFqdn>:5432/lu
 ## 5. Configure GitHub -> Azure (OIDC)
 Create an app registration with a federated credential for this repo, grant it AcrPush + AKS access, and set repo secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`. Update `values.yaml` `image.registry` to the real `acrLoginServer`.
 
+## Build-time environment contract
+`next build` evaluates route modules while prerendering, so these must be present
+**at build time** (not just runtime), or the build fails:
+
+| Var | Why the build needs it |
+|-----|------------------------|
+| `ANTHROPIC_API_KEY` | The AI config throws at import; AI API routes are evaluated during "collect page data". |
+| `DATABASE_URL` | Prisma client initialization. |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Statically-prerendered pages (e.g. customer `/`) mount the Clerk provider, which requires a publishable key "in production". Inlined into the client bundle. |
+| `CLERK_SECRET_KEY` | Clerk server initialization. |
+
+CI's **Production build** job (`.github/workflows/ci.yml`) supplies dummy,
+presence-only values so every PR is gated on a real `turbo build`. The Docker
+image build (`docker/Dockerfile` → `next build`) needs the same values available
+during the image build; supply non-secret placeholders as build args/env for the
+`NEXT_PUBLIC_*` value (it is baked into the client bundle) and inject real secrets
+at runtime from Key Vault.
+
 ## 6. Deploy
 Trigger the **Azure Deploy** GitHub Action (`workflow_dispatch`), or locally:
 ```bash
