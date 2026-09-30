@@ -1,9 +1,14 @@
+import { Platform } from 'react-native';
+
 /**
  * AYVANA catalog client. Talks to the customer web backend's /api/mobile/*
- * JSON endpoints. On the iOS Simulator `localhost` resolves to the Mac host;
- * override with EXPO_PUBLIC_API_BASE for a device or the Android emulator.
+ * JSON endpoints. On the iOS Simulator `localhost` is the Mac host; on the
+ * Android emulator the Mac host is reachable via 10.0.2.2. Override with
+ * EXPO_PUBLIC_API_BASE for a physical device (use the Mac's LAN IP).
  */
-export const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? 'http://localhost:3000';
+export const API_BASE =
+  process.env.EXPO_PUBLIC_API_BASE ??
+  (Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000');
 
 export type Category = { name: string; slug: string };
 
