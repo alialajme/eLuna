@@ -16,8 +16,8 @@ export function AyvanaMark({ size = 40 }: { size?: number }) {
         width: size,
         height: size,
         backgroundImage: "url(/ayvana-logo.jpg)",
-        backgroundSize: "156%",
-        backgroundPosition: "center 24%",
+        backgroundSize: "160%",
+        backgroundPosition: "center 12%",
         backgroundRepeat: "no-repeat",
       }}
     />
