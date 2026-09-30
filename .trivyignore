@@ -1,11 +1,5 @@
-# Trivy ignore list — each entry is individually triaged, with a reason and owner.
-# Enforcement (exit-code 1) is ON; only the advisories listed here are waived.
-
-# @clerk/clerk-react CVE-2026-42349 (HIGH, auth bypass when combining flows).
-# Fixed in clerk-react 5.61.6, but @clerk/nextjs 5.7.6 (latest v5) pins the older
-# clerk-react; remediation requires a Clerk v6+ major upgrade across all four apps
-# (breaking auth changes). Deferred to a dedicated Clerk-upgrade task. Mitigated by
-# defense-in-depth: every server action re-checks the role server-side and the
-# middleware enforces MFA, so the app does not rely on clerk-react alone for authz.
-# Reviewed 2026-09-30. Re-evaluate when the Clerk v6 migration is scheduled.
-CVE-2026-42349
+# Trivy ignore list — each entry must be individually triaged, with a reason and
+# owner. Enforcement (exit-code 1) is ON; only advisories listed below are waived.
+#
+# Currently EMPTY: no waivers. The previous entry (CVE-2026-42349, @clerk/clerk-react
+# auth bypass) was resolved by the Clerk v6 upgrade — clerk-react is now >= 5.61.6.

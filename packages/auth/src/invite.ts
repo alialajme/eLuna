@@ -36,7 +36,9 @@ export async function invitePartner(params: InviteParams): Promise<InviteResult>
     if (params.vendorId) publicMetadata.vendorId = params.vendorId;
     if (params.supplierId) publicMetadata.supplierId = params.supplierId;
 
-    await clerkClient.invitations.createInvitation({
+    // Clerk v6: clerkClient is an async factory.
+    const client = await clerkClient();
+    await client.invitations.createInvitation({
       emailAddress: params.email,
       publicMetadata,
       ...(params.redirectUrl ? { redirectUrl: params.redirectUrl } : {}),
