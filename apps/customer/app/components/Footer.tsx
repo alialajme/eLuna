@@ -9,10 +9,10 @@ export async function Footer() {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div>
             <p className="font-display text-display-md font-bold tracking-widest text-ivory mb-4">
-              LUNA
+              AYVANA
             </p>
             <p className="text-body-sm text-mist">
-              The Gulf&apos;s AI-powered abaya marketplace
+              The Abaya Marketplace
             </p>
           </div>
           <div>

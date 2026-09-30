@@ -75,7 +75,7 @@ export async function Nav() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="font-display text-display-md font-bold tracking-widest text-ink">
-          LUNA
+          AYVANA
         </Link>
 
         {/* Centre links — hidden on mobile */}

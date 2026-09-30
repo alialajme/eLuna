@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "@ayvana/db";
 import type { SizeProfile } from "@ayvana/db";
 import { Decimal } from "@prisma/client/runtime/library";
-import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
+import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 export const CART_ACTION = "ADD_TO_CART" as const;
 
@@ -240,7 +240,7 @@ export async function runShoppingAgent(
     : "";
 
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: SHOPPING_SYSTEM + sizeContext,
     messages,
     tools: createShoppingTools(sizeProfile),

@@ -157,7 +157,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       notes: input.notes ?? null,
     };
 
-    // ── LUNA WALLET ── atomic: reserve stock + create CONFIRMED order + debit wallet (with ledger).
+    // ── AYVANA WALLET ── atomic: reserve stock + create CONFIRMED order + debit wallet (with ledger).
     if (input.paymentMethod === "LUNA_WALLET") {
       const order = await prisma.$transaction(async (tx) => {
         await reserveStockTx(tx, stockLines(lines));

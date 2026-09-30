@@ -531,8 +531,8 @@ const ibmArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "AYVANA — The Gulf's AI-powered abaya marketplace",
-  description: "Discover abayas styled for you by AI",
+  title: "AYVANA — The Abaya Marketplace",
+  description: "Curated abayas and modest luxury across the GCC",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
