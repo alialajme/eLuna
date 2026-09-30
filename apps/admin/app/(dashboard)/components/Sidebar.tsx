@@ -2,24 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AyvanaLogo } from "@ayvana/ui";
+import { AyvanaLogo, Icon } from "@ayvana/ui";
 import { SignOutButton } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
-  { icon: "📊", label: "Overview", href: "/" },
-  { icon: "🔑", label: "Users & Access", href: "/users" },
-  { icon: "🏬", label: "Vendors", href: "/sellers" },
-  { icon: "🧵", label: "Suppliers", href: "/suppliers" },
-  { icon: "📋", label: "Orders", href: "/orders" },
-  { icon: "🛍️", label: "Products", href: "/products" },
-  { icon: "🏷️", label: "Categories", href: "/categories" },
-  { icon: "💸", label: "Payouts", href: "/payouts" },
-  { icon: "🧶", label: "Supplier Payouts", href: "/supplier-payouts" },
-  { icon: "⚖️", label: "Commissions", href: "/commissions" },
-  { icon: "📈", label: "Analytics", href: "/analytics" },
-  { icon: "👥", label: "Customers", href: "/customers" },
-  { icon: "🛡️", label: "Fraud", href: "/fraud" },
-  { icon: "⚙️", label: "Settings", href: "/settings" },
+  { icon: "grid", label: "Overview", href: "/" },
+  { icon: "key", label: "Users & Access", href: "/users" },
+  { icon: "store", label: "Vendors", href: "/sellers" },
+  { icon: "spool", label: "Suppliers", href: "/suppliers" },
+  { icon: "clipboard", label: "Orders", href: "/orders" },
+  { icon: "bag", label: "Products", href: "/products" },
+  { icon: "tag", label: "Categories", href: "/categories" },
+  { icon: "banknote", label: "Payouts", href: "/payouts" },
+  { icon: "wallet", label: "Supplier Payouts", href: "/supplier-payouts" },
+  { icon: "percent", label: "Commissions", href: "/commissions" },
+  { icon: "chart", label: "Analytics", href: "/analytics" },
+  { icon: "users", label: "Customers", href: "/customers" },
+  { icon: "alert", label: "Fraud", href: "/fraud" },
+  { icon: "sliders", label: "Settings", href: "/settings" },
 ] as const;
 
 export function Sidebar() {
@@ -67,7 +67,7 @@ export function Sidebar() {
                   : "text-mist hover:text-ivory hover:bg-white/5"
               }`}
             >
-              <span className="text-base">{icon}</span>
+              <Icon name={icon} className="shrink-0" />
               <span>{label}</span>
             </Link>
           );

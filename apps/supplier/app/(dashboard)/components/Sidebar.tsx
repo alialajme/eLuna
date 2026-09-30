@@ -2,19 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AyvanaLogo } from "@ayvana/ui";
+import { AyvanaLogo, Icon } from "@ayvana/ui";
 import { SignOutButton } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
-  { icon: "📊", label: "Dashboard", href: "/" },
-  { icon: "🧵", label: "Materials", href: "/materials" },
-  { icon: "📋", label: "Incoming Orders", href: "/orders" },
-  { icon: "📦", label: "Customer Orders", href: "/fulfilment" },
-  { icon: "↩️", label: "Returns", href: "/returns" },
-  { icon: "🧾", label: "Invoices", href: "/invoices" },
-  { icon: "💸", label: "Payouts", href: "/payouts" },
-  { icon: "📈", label: "Analytics", href: "/analytics" },
-  { icon: "⚙️", label: "Settings", href: "/settings" },
+  { icon: "grid", label: "Dashboard", href: "/" },
+  { icon: "spool", label: "Materials", href: "/materials" },
+  { icon: "inbox", label: "Incoming Orders", href: "/orders" },
+  { icon: "package", label: "Customer Orders", href: "/fulfilment" },
+  { icon: "undo", label: "Returns", href: "/returns" },
+  { icon: "receipt", label: "Invoices", href: "/invoices" },
+  { icon: "banknote", label: "Payouts", href: "/payouts" },
+  { icon: "chart", label: "Analytics", href: "/analytics" },
+  { icon: "sliders", label: "Settings", href: "/settings" },
 ] as const;
 
 type Props = {
@@ -41,7 +41,7 @@ export function Sidebar({ companyName }: Props) {
                 isActive ? "bg-gold/20 text-gold" : "text-mist hover:text-ivory hover:bg-white/5"
               }`}
             >
-              <span className="text-base">{icon}</span>
+              <Icon name={icon} className="shrink-0" />
               <span>{label}</span>
             </Link>
           );
