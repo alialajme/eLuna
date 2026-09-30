@@ -2,14 +2,14 @@
 
 ## Goal
 
-Bring the unused `Return` model to life as a vendor-driven returns lifecycle: a customer requests a return on a delivered item, the vendor approves/rejects it, marks it received, and issues a refund that runs the real payment gateway, optionally restocks, and reverses the vendor's payout — reusing the Stripe refund built in the Payments phase. As a prerequisite, the payment gateway is extracted into a shared `@e-luna/payments` package so the vendor app can execute refunds.
+Bring the unused `Return` model to life as a vendor-driven returns lifecycle: a customer requests a return on a delivered item, the vendor approves/rejects it, marks it received, and issues a refund that runs the real payment gateway, optionally restocks, and reverses the vendor's payout — reusing the Stripe refund built in the Payments phase. As a prerequisite, the payment gateway is extracted into a shared `@ayvana/payments` package so the vendor app can execute refunds.
 
 ---
 
 ## Scope
 
 **In scope:**
-- Extract `apps/customer/app/lib/payment/*` → `packages/payments` (`@e-luna/payments`); update customer imports; keep customer checkout green.
+- Extract `apps/customer/app/lib/payment/*` → `packages/payments` (`@ayvana/payments`); update customer imports; keep customer checkout green.
 - Customer action `requestReturn`; vendor actions `approveReturn`/`rejectReturn`/`markReturnReceived`/`refundReturn`.
 - A shared, `RETURNED`-aware `recomputeOrderStatus` helper (extracted from 7a's `shipment.ts`).
 - Customer order-page return controls + status; vendor `/returns` queue + a nav link.
@@ -18,7 +18,7 @@ Bring the unused `Return` model to life as a vendor-driven returns lifecycle: a 
 - Partial-quantity returns (a return covers the whole order item; the model has no quantity field).
 - Admin returns oversight (this phase is vendor-driven; admin can be added later).
 - Return shipping labels / courier pickup (no schema for it; the customer ships it back out of band).
-- Refund to Luna wallet as an alternative destination (refund goes to the original payment method via the gateway).
+- Refund to AYVANA wallet as an alternative destination (refund goes to the original payment method via the gateway).
 - The Logistics *agent* (8c).
 
 ---
@@ -35,10 +35,10 @@ Bring the unused `Return` model to life as a vendor-driven returns lifecycle: a 
 - Vendor nav: `apps/vendor/app/(dashboard)/components/Sidebar.tsx` `NAV_ITEMS` array.
 - No schema change is needed for 7b.
 
-### Prerequisite refactor — `packages/payments` (`@e-luna/payments`)
-Move the 11 files (`gateway, config, reconcile, stripe, tap, noqodi, neopay, simulated, tabby, tamara, factory`) from `apps/customer/app/lib/payment/` into `packages/payments/src/` unchanged (their **relative** imports stay valid; `reconcile.ts`'s `@e-luna/db` import stays valid). Add:
-- `packages/payments/package.json` — `{"name":"@e-luna/payments","private":true,"exports":{".":"./src/index.ts"},"dependencies":{"stripe":"^22.0.0","@e-luna/db":"workspace:*"}}`.
-- `packages/payments/tsconfig.json` — extends `@e-luna/config/tsconfig/base`.
+### Prerequisite refactor — `packages/payments` (`@ayvana/payments`)
+Move the 11 files (`gateway, config, reconcile, stripe, tap, noqodi, neopay, simulated, tabby, tamara, factory`) from `apps/customer/app/lib/payment/` into `packages/payments/src/` unchanged (their **relative** imports stay valid; `reconcile.ts`'s `@ayvana/db` import stays valid). Add:
+- `packages/payments/package.json` — `{"name":"@ayvana/payments","private":true,"exports":{".":"./src/index.ts"},"dependencies":{"stripe":"^22.0.0","@ayvana/db":"workspace:*"}}`.
+- `packages/payments/tsconfig.json` — extends `@ayvana/config/tsconfig/base`.
 - `packages/payments/src/index.ts` — barrel:
   ```ts
   export * from "./gateway";
@@ -47,15 +47,15 @@ Move the 11 files (`gateway, config, reconcile, stripe, tap, noqodi, neopay, sim
   export { applyPaymentResult } from "./reconcile";
   export { hasStripe, hasTap, hasNoqodi, hasNeopay, stripeConfig } from "./config";
   ```
-Add `"@e-luna/payments": "workspace:*"` to `apps/customer/package.json` and `apps/vendor/package.json`; run `pnpm install`. Update the two customer files' imports to `@e-luna/payments`. **Delete** `apps/customer/app/lib/payment/`. Customer checkout/webhook must type-check unchanged.
+Add `"@ayvana/payments": "workspace:*"` to `apps/customer/package.json` and `apps/vendor/package.json`; run `pnpm install`. Update the two customer files' imports to `@ayvana/payments`. **Delete** `apps/customer/app/lib/payment/`. Customer checkout/webhook must type-check unchanged.
 
 ### Files
 ```
 packages/payments/**                                              — CREATE (moved gateway + package.json/tsconfig/index)
 apps/customer/app/lib/payment/                                     — DELETE
-apps/customer/app/actions/checkout.ts                             — MODIFY imports → @e-luna/payments
-apps/customer/app/api/webhooks/stripe/route.ts                    — MODIFY imports → @e-luna/payments
-apps/customer/package.json, apps/vendor/package.json              — MODIFY add @e-luna/payments dep
+apps/customer/app/actions/checkout.ts                             — MODIFY imports → @ayvana/payments
+apps/customer/app/api/webhooks/stripe/route.ts                    — MODIFY imports → @ayvana/payments
+apps/customer/package.json, apps/vendor/package.json              — MODIFY add @ayvana/payments dep
 apps/vendor/app/lib/order-status.ts                              — CREATE shared recomputeOrderStatus (RETURNED-aware)
 apps/vendor/app/actions/shipment.ts                             — MODIFY use shared helper (drop local copy)
 apps/customer/app/actions/returns.ts                            — CREATE requestReturn
@@ -73,7 +73,7 @@ apps/vendor/app/(dashboard)/components/Sidebar.tsx             — MODIFY add "R
 
 Extracted from 7a and extended for `RETURNED`.
 ```ts
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
 const AGGREGATE_RANGE = ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"];
 
@@ -174,13 +174,13 @@ Render: if `existingReturn`, a status line ("Return requested / approved / recei
 
 No automated suite (repo-consistent). Per task:
 ```bash
-pnpm install --frozen-lockfile          # after adding @e-luna/payments dep (lockfile updated in the extraction task)
-pnpm --filter @e-luna/db db:generate
+pnpm install --frozen-lockfile          # after adding @ayvana/payments dep (lockfile updated in the extraction task)
+pnpm --filter @ayvana/db db:generate
 cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"   # clean (imports swapped)
 cd apps/vendor   && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"   # clean
 # lint both apps
 ```
-Final task: repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit`.
+Final task: repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit`.
 
 **Extraction guard:** after the move, `grep -rn "lib/payment" apps/customer` returns nothing.
 

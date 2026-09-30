@@ -6,7 +6,7 @@
 
 **Architecture:** Three RSC routes under `apps/admin/app/(dashboard)/` (ADMIN gated by the layout). All read-only — no client components, no server actions, no schema changes. Metrics derive in-memory from existing tables. Reuses established list/detail patterns and the order status-badge map.
 
-**Tech Stack:** Next.js 15 App Router (RSC), Prisma (`@e-luna/db`), Tailwind (Warm Oud tokens).
+**Tech Stack:** Next.js 15 App Router (RSC), Prisma (`@ayvana/db`), Tailwind (Warm Oud tokens).
 
 ---
 
@@ -26,7 +26,7 @@
 
 **Working dir:** `/Users/alialajme/Projects/Luna/e-luna`
 
-**DB:** `import { prisma } from "@e-luna/db"`.
+**DB:** `import { prisma } from "@ayvana/db"`.
 
 **Auth:** ADMIN enforced centrally by `(dashboard)/layout.tsx`. Pages need only a null-user check via `safeCurrentUser()` (from `../../lib/auth`, or `../../../lib/auth` at deeper nesting).
 
@@ -121,7 +121,7 @@ Then extend the fallback chain so `/customers/*` shows "Customer Detail". The cu
       ? "Seller Detail"
       : pathname.startsWith("/orders/")
         ? "Order Detail"
-        : "Luna Ops";
+        : "AYVANA Ops";
 ```
 Change it to:
 ```tsx
@@ -131,7 +131,7 @@ Change it to:
         ? "Order Detail"
         : pathname.startsWith("/customers/")
           ? "Customer Detail"
-          : "Luna Ops";
+          : "AYVANA Ops";
 ```
 
 - [ ] **Step 3: TypeScript + lint check**
@@ -161,10 +161,10 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 
-export const metadata: Metadata = { title: "Customers — Luna Ops" };
+export const metadata: Metadata = { title: "Customers — AYVANA Ops" };
 
 function fmtAED(n: number): string {
   return `AED ${n.toLocaleString("en-AE", { maximumFractionDigits: 0 })}`;
@@ -284,12 +284,12 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 
 type Props = { params: Promise<{ id: string }> };
 
-export const metadata: Metadata = { title: "Customer — Luna Ops" };
+export const metadata: Metadata = { title: "Customer — AYVANA Ops" };
 
 const ORDER_STATUS_BADGE: Record<string, string> = {
   DELIVERED: "bg-sage/20 text-sage",
@@ -461,10 +461,10 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 
-export const metadata: Metadata = { title: "Fraud — Luna Ops" };
+export const metadata: Metadata = { title: "Fraud — AYVANA Ops" };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -621,7 +621,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 - [ ] **Step 1: Full repo typecheck (exact CI command)**
 
 ```bash
-cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit; echo "EXIT: $?"
+cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit; echo "EXIT: $?"
 ```
 Expected: `EXIT: 0`.
 

@@ -145,7 +145,7 @@ if (items.length === 0) redirect("/orders");
 
 The first item's `order` relation gives us order-level metadata (createdAt, paymentMethod, address).
 
-**Metadata:** `"Order #{id.slice(-8).toUpperCase()} — Luna Vendor"`
+**Metadata:** `"Order #{id.slice(-8).toUpperCase()} — AYVANA Vendor"`
 
 **Layout — two columns:**
 
@@ -156,7 +156,7 @@ Left column (main):
 Right sidebar:
 - Order # (last 8 chars, monospace)
 - Placed date
-- Payment method (formatted: `CARD` → "Card", `LUNA_WALLET` → "Luna Wallet", etc.)
+- Payment method (formatted: `CARD` → "Card", `LUNA_WALLET` → "AYVANA Wallet", etc.)
 - Ship-to address: `address.fullName`, `address.addressLine1`, `address.city`, `address.emirate`, "UAE"
 - Your subtotal (sum of this vendor's items)
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCategories } from "@e-luna/db";
+import { getCategories } from "@ayvana/db";
 
 export async function Footer() {
   const categories = await getCategories();
@@ -28,7 +28,7 @@ export async function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-label uppercase text-gold mb-3">Luna</h3>
+            <h3 className="text-label uppercase text-gold mb-3">AYVANA</h3>
             <ul className="space-y-2 text-body-sm text-mist">
               <li><Link href="/chat" className="hover:text-ivory transition-colors">AI Stylist</Link></li>
               <li><Link href="/profile/size" className="hover:text-ivory transition-colors">Size Profile</Link></li>
@@ -39,12 +39,12 @@ export async function Footer() {
             <ul className="space-y-2 text-body-sm text-mist">
               <li><p className="text-mist">Shipping &amp; Returns</p></li>
               <li><p className="text-mist">Size Guide</p></li>
-              <li><a href="https://sell.luna.ae" target="_blank" rel="noopener noreferrer" className="hover:text-ivory transition-colors">Sell on Luna</a></li>
+              <li><a href="https://sell.ayvana.ae" target="_blank" rel="noopener noreferrer" className="hover:text-ivory transition-colors">Sell on AYVANA</a></li>
             </ul>
           </div>
         </div>
         <div className="mt-10 border-t border-sand/30 pt-6 text-center text-body-sm text-mist">
-          © 2026 Luna. All rights reserved.
+          © 2026 AYVANA. All rights reserved.
         </div>
       </div>
     </footer>

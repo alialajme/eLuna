@@ -6,7 +6,7 @@
 
 ## Why
 
-e-Luna is an **online-only** marketplace. The POS ("point of sale") agent stub (`packages/ai/src/agents/pos.ts`) describes an **omnichannel / in-store** world that does not exist in the codebase, so none of its tools can be grounded in real data — which would violate the project's core agent rule: *every agent grounds its answers in real data; never invent numbers*.
+AYVANA is an **online-only** marketplace. The POS ("point of sale") agent stub (`packages/ai/src/agents/pos.ts`) describes an **omnichannel / in-store** world that does not exist in the codebase, so none of its tools can be grounded in real data — which would violate the project's core agent rule: *every agent grounds its answers in real data; never invent numbers*.
 
 The stub's four tools have no backing:
 - `sync_inventory` (online ↔ in-store) — inventory is **single-channel** (`ProductVariant.stock`); there is no second channel to sync with.

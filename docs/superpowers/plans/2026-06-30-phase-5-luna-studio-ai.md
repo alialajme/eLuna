@@ -1,12 +1,12 @@
-# Phase 5: Luna Studio AI Implementation Plan
+# Phase 5: AYVANA Studio AI Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a 3-photo upload wizard for vendors that uses Claude vision to detect garment details and write bilingual product copy, with a polling results page.
 
-**Architecture:** Vendors upload 3 photos via a Next.js API route (base64 data URLs), a server action creates the `StudioUpload` DB record and triggers the AI pipeline (Claude `generateText` for detection + copy), and the results RSC polls with `<meta http-equiv="refresh">` until `status === "COMPLETE"`. Image generation is stubbed. The vendor app gets `@e-luna/ai` as a new workspace dependency.
+**Architecture:** Vendors upload 3 photos via a Next.js API route (base64 data URLs), a server action creates the `StudioUpload` DB record and triggers the AI pipeline (Claude `generateText` for detection + copy), and the results RSC polls with `<meta http-equiv="refresh">` until `status === "COMPLETE"`. Image generation is stubbed. The vendor app gets `@ayvana/ai` as a new workspace dependency.
 
-**Tech Stack:** Next.js 15 App Router, Prisma (`@e-luna/db`), Vercel AI SDK `generateText` + Anthropic claude-sonnet-4-6, Clerk auth, Tailwind CSS (Warm Oud tokens).
+**Tech Stack:** Next.js 15 App Router, Prisma (`@ayvana/db`), Vercel AI SDK `generateText` + Anthropic claude-sonnet-4-6, Clerk auth, Tailwind CSS (Warm Oud tokens).
 
 ---
 
@@ -16,7 +16,7 @@
 |------|--------|----------------|
 | `packages/ai/src/agents/studio.ts` | Modify | Add `detectGarment` + `writeCopy` exported helpers with real Claude calls |
 | `packages/ai/src/index.ts` | Modify | Export `detectGarment` + `writeCopy` |
-| `apps/vendor/package.json` | Modify | Add `"@e-luna/ai": "workspace:*"` dependency |
+| `apps/vendor/package.json` | Modify | Add `"@ayvana/ai": "workspace:*"` dependency |
 | `apps/vendor/app/api/studio/upload/route.ts` | Create | POST handler: accept 3 files, return base64 data URLs |
 | `apps/vendor/app/actions/studio.ts` | Create | `createStudioUpload` + `triggerStudioPipeline` server actions |
 | `apps/vendor/app/(dashboard)/studio/page.tsx` | Create | RSC: campaign list |
@@ -39,8 +39,8 @@ if (!vendor) redirect("/");  // or return { error: "Vendor not found" }
 
 **`safeCurrentUser`** — `apps/vendor/app/lib/auth.ts`  
 **`getVendorByUserId`** — `apps/vendor/app/lib/vendor.ts`  
-**DB** — `import { prisma } from "@e-luna/db"`  
-**AI** — `import { detectGarment, writeCopy } from "@e-luna/ai"`  
+**DB** — `import { prisma } from "@ayvana/db"`  
+**AI** — `import { detectGarment, writeCopy } from "@ayvana/ai"`  
 **Next.js 15** — `params` and `searchParams` are Promises, always `await`
 
 **`StudioUpload` model:**
@@ -144,7 +144,7 @@ export async function writeCopy(garment: {
 }> {
   const { text } = await generateText({
     model: anthropic(LUNA_MODEL),
-    prompt: `You are a luxury Gulf fashion copywriter for e-Luna, the Gulf's premier abaya marketplace.
+    prompt: `You are a luxury Gulf fashion copywriter for AYVANA, the Gulf's premier abaya marketplace.
 Write product copy for this garment:
 ${JSON.stringify(garment, null, 2)}
 
@@ -257,9 +257,9 @@ export { runPaymentAgent, paymentTools } from "./agents/payment";
 export { runPOSAgent, posTools } from "./agents/pos";
 ```
 
-- [ ] **Step 3: Add `@e-luna/ai` to vendor app dependencies**
+- [ ] **Step 3: Add `@ayvana/ai` to vendor app dependencies**
 
-Read `apps/vendor/package.json`, then add `"@e-luna/ai": "workspace:*"` to the `dependencies` object (after `"@e-luna/db"`).
+Read `apps/vendor/package.json`, then add `"@ayvana/ai": "workspace:*"` to the `dependencies` object (after `"@ayvana/db"`).
 
 - [ ] **Step 4: Install the new dependency**
 
@@ -280,7 +280,7 @@ Expected: no output.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /Users/alialajme/Projects/Luna/e-luna && git add packages/ai/src/agents/studio.ts packages/ai/src/index.ts apps/vendor/package.json package-lock.json && git commit -m "feat: implement detectGarment and writeCopy AI helpers for Luna Studio"
+cd /Users/alialajme/Projects/Luna/e-luna && git add packages/ai/src/agents/studio.ts packages/ai/src/index.ts apps/vendor/package.json package-lock.json && git commit -m "feat: implement detectGarment and writeCopy AI helpers for AYVANA Studio"
 ```
 
 ---
@@ -360,8 +360,8 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/api/studio/
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
-import { detectGarment, writeCopy } from "@e-luna/ai";
+import { prisma } from "@ayvana/db";
+import { detectGarment, writeCopy } from "@ayvana/ai";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 
@@ -471,11 +471,11 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/actions/stu
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 
-export const metadata: Metadata = { title: "Luna Studio — Luna Vendor" };
+export const metadata: Metadata = { title: "AYVANA Studio — AYVANA Vendor" };
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "bg-sand text-mist",
@@ -509,9 +509,9 @@ export default async function StudioPage() {
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-display-md text-ink">Luna Studio</h2>
+          <h2 className="font-display text-display-md text-ink">AYVANA Studio</h2>
           <p className="mt-1 text-body-sm text-mist">
-            Upload 3 photos of your abaya — Luna AI detects the garment and
+            Upload 3 photos of your abaya — AYVANA AI detects the garment and
             writes your full product copy.
           </p>
         </div>
@@ -616,7 +616,7 @@ Expected: no output.
 - [ ] **Step 3: Commit**
 
 ```bash
-cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/(dashboard)/studio/page.tsx" && git commit -m "feat: Luna Studio campaign list page"
+cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/(dashboard)/studio/page.tsx" && git commit -m "feat: AYVANA Studio campaign list page"
 ```
 
 ---
@@ -824,7 +824,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/(dashboard)
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 
@@ -848,7 +848,7 @@ type CopyResult = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Campaign ${id.slice(-8).toUpperCase()} — Luna Studio` };
+  return { title: `Campaign ${id.slice(-8).toUpperCase()} — AYVANA Studio` };
 }
 
 export default async function StudioResultPage({ params }: Props) {
@@ -919,7 +919,7 @@ export default async function StudioResultPage({ params }: Props) {
         <div className="flex flex-col items-center gap-3 py-16">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-sand border-t-gold" />
           <p className="text-body-sm text-mist">
-            Luna AI is analysing your photos…
+            AYVANA AI is analysing your photos…
           </p>
         </div>
       )}
@@ -1110,10 +1110,10 @@ cd /Users/alialajme/Projects/Luna/e-luna && git log --oneline -7
 Expected commits (newest first):
 - feat: Studio results page with garment tags, bilingual copy, and polling
 - feat: Studio upload wizard with 3-slot photo input
-- feat: Luna Studio campaign list page
+- feat: AYVANA Studio campaign list page
 - feat: createStudioUpload and triggerStudioPipeline server actions
 - feat: studio photo upload API route with 10MB validation
-- feat: implement detectGarment and writeCopy AI helpers for Luna Studio
+- feat: implement detectGarment and writeCopy AI helpers for AYVANA Studio
 - (previous Phase 4d commit)
 
 Report the actual SHAs.

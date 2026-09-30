@@ -12,14 +12,14 @@ import {
   money,
   isDomainError,
   type DomainError,
-} from "@e-luna/db";
+} from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
-import { logger } from "@e-luna/observability";
-import { getGateway, providerAvailable } from "@e-luna/payments";
+import { logger } from "@ayvana/observability";
+import { getGateway, providerAvailable } from "@ayvana/payments";
 import { parseCart } from "../lib/cart-utils";
-import { hasStripe } from "@e-luna/payments";
-import { StripeGateway } from "@e-luna/payments";
-import { applyPaymentResult } from "@e-luna/payments";
+import { hasStripe } from "@ayvana/payments";
+import { StripeGateway } from "@ayvana/payments";
+import { applyPaymentResult } from "@ayvana/payments";
 
 export type PlaceOrderInput = {
   addressId: string;
@@ -39,7 +39,7 @@ function friendlyDomainMessage(e: DomainError): string {
     case "INSUFFICIENT_INVENTORY":
       return "Sorry — one or more items just sold out. Please review your bag.";
     case "INSUFFICIENT_FUNDS":
-      return "Your Luna Wallet balance is too low for this order.";
+      return "Your AYVANA Wallet balance is too low for this order.";
     default:
       return "We couldn't complete your order. Please try again.";
   }
@@ -62,7 +62,7 @@ type ResolvedCart =
 
 async function resolveCart(): Promise<ResolvedCart> {
   const jar = await cookies();
-  const cartItems = parseCart(jar.get("luna_cart")?.value);
+  const cartItems = parseCart(jar.get("ayvana_cart")?.value);
   if (cartItems.length === 0) return { ok: false, error: "Your bag is empty" };
 
   const variantIds = cartItems.map((i) => i.variantId);
@@ -109,7 +109,7 @@ function stockLines(lines: PricedLine[]) {
 
 async function clearCartAndRevalidate() {
   const jar = await cookies();
-  jar.delete("luna_cart");
+  jar.delete("ayvana_cart");
   revalidatePath("/cart");
   revalidatePath("/orders");
 }
@@ -175,7 +175,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
           customerProfileId: customerProfile!.id,
           amount: pricing.total,
           orderId: created.id,
-          note: "Luna Wallet checkout",
+          note: "AYVANA Wallet checkout",
         });
         return created;
       });
@@ -224,7 +224,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       currency: "AED",
       orderId: order.id,
       customerEmail: user.emailAddresses[0]?.emailAddress ?? "",
-      description: `Luna order — ${lines.length} item(s)`,
+      description: `AYVANA order — ${lines.length} item(s)`,
     });
 
     if (paymentResult.status === "captured") {
@@ -321,7 +321,7 @@ export async function initiateCardPayment(input: {
       currency: "AED",
       orderId: order.id,
       customerEmail: user.emailAddresses[0]?.emailAddress ?? "",
-      description: `Luna order — ${lines.length} item(s)`,
+      description: `AYVANA order — ${lines.length} item(s)`,
       metadata: { orderId: order.id },
     });
 

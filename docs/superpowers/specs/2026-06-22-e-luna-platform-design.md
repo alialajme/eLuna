@@ -1,26 +1,26 @@
-# e-Luna Platform — Design Specification
+# AYVANA Platform — Design Specification
 
 **Date:** 2026-06-22  
 **Status:** Approved  
 **Version:** 1.0  
-**Project:** e-Luna Commerce OS  
+**Project:** AYVANA Commerce OS  
 **Location:** `/Users/alialajme/Projects/Luna/e-luna/`
 
 ---
 
 ## 1. Product Overview
 
-e-Luna is an AI-powered marketplace and commerce operating system for the abaya and modest fashion industry in the Gulf region (UAE, GCC). It is not a single-brand store — it is a multi-vendor OS connecting customers, boutiques, designers, and manufacturers through a single platform powered by a mesh of cooperating AI agents.
+AYVANA is an AI-powered marketplace and commerce operating system for the abaya and modest fashion industry in the Gulf region (UAE, GCC). It is not a single-brand store — it is a multi-vendor OS connecting customers, boutiques, designers, and manufacturers through a single platform powered by a mesh of cooperating AI agents.
 
 ### 1.1 Core Value Proposition
 
 - **For customers:** Discover and purchase abayas guided by an AI stylist that knows your size, taste, and occasion — no manual searching
-- **For vendors:** Go from 3 product photos to a full campaign in under a minute via Luna Studio AI, and manage your entire business from one dashboard
+- **For vendors:** Go from 3 product photos to a full campaign in under a minute via AYVANA Studio AI, and manage your entire business from one dashboard
 - **For the platform owner:** Full visibility into GMV, vendor health, fraud signals, and payouts across the entire commerce network
 
 ### 1.2 Competitive Context
 
-Primary reference competitor: **ananline.ae** — a single-brand luxury abaya store built on Odoo with no AI features, no multi-vendor capability, and no logistics OS. e-Luna is architecturally different in every dimension.
+Primary reference competitor: **ananline.ae** — a single-brand luxury abaya store built on Odoo with no AI features, no multi-vendor capability, and no logistics OS. AYVANA is architecturally different in every dimension.
 
 ---
 
@@ -33,13 +33,13 @@ Turborepo monorepo. Three independently deployable Next.js 15 apps sharing five 
 ```
 e-luna/
 ├── apps/
-│   ├── customer/          → luna.ae
-│   ├── vendor/            → sell.luna.ae
-│   └── admin/             → ops.luna.ae
+│   ├── customer/          → ayvana.ae
+│   ├── vendor/            → sell.ayvana.ae
+│   └── admin/             → ops.ayvana.ae
 └── packages/
-    ├── ui/                → Luna design system (shadcn/ui + Tailwind tokens)
+    ├── ui/                → AYVANA design system (shadcn/ui + Tailwind tokens)
     ├── db/                → Prisma schema + PostgreSQL client
-    ├── ai/                → All 6 Luna AI agents (Vercel AI SDK + Claude)
+    ├── ai/                → All 6 AYVANA AI agents (Vercel AI SDK + Claude)
     ├── auth/              → Clerk auth logic + role definitions
     └── config/            → ESLint, TypeScript, Tailwind base config
 ```
@@ -51,7 +51,7 @@ e-luna/
 | Framework | Next.js 15 (App Router) | Full-stack, RSC, server actions, no separate API needed |
 | Monorepo | Turborepo | Build caching, parallel task execution, independent deploys |
 | Language | TypeScript | Type safety across all apps and packages |
-| Styling | Tailwind CSS + shadcn/ui | Speed, consistency, Luna custom tokens |
+| Styling | Tailwind CSS + shadcn/ui | Speed, consistency, AYVANA custom tokens |
 | Database | PostgreSQL via Prisma | Relational integrity, type-safe queries |
 | Auth | Clerk | MFA built-in, multi-role, session management |
 | AI | Vercel AI SDK + Claude claude-sonnet-4-6 | Streaming, tool use, multi-agent context |
@@ -238,7 +238,7 @@ Address, Review, Wishlist, Notification, Payout, StudioUpload, PaymentTransactio
 
 ## 5. App Structure & Routes
 
-### 5.1 Customer App — `apps/customer` → luna.ae
+### 5.1 Customer App — `apps/customer` → ayvana.ae
 
 #### Discovery
 | Route | Description |
@@ -252,7 +252,7 @@ Address, Review, Wishlist, Notification, Payout, StudioUpload, PaymentTransactio
 #### AI Stylist
 | Route | Description |
 |-------|-------------|
-| `/chat` | Full-page Luna AI Stylist conversation |
+| `/chat` | Full-page AYVANA AI Stylist conversation |
 | *(widget)* | Persistent chat bubble on all pages — same agent, same session context |
 
 #### Commerce
@@ -270,7 +270,7 @@ Address, Review, Wishlist, Notification, Payout, StudioUpload, PaymentTransactio
 | `/orders` | Order history |
 | `/orders/[id]` | Live order tracking with courier timeline |
 | `/wishlist` | Saved products |
-| `/wallet` | Luna Wallet balance, cashback, loyalty points |
+| `/wallet` | AYVANA Wallet balance, cashback, loyalty points |
 
 #### Auth
 | Route | Description |
@@ -280,7 +280,7 @@ Address, Review, Wishlist, Notification, Payout, StudioUpload, PaymentTransactio
 
 ---
 
-### 5.2 Vendor App — `apps/vendor` → sell.luna.ae
+### 5.2 Vendor App — `apps/vendor` → sell.ayvana.ae
 
 #### Overview
 | Route | Description |
@@ -295,7 +295,7 @@ Address, Review, Wishlist, Notification, Payout, StudioUpload, PaymentTransactio
 | `/products/[id]` | Edit product — metadata, variants, stock |
 | `/inventory` | Stock levels per variant across all products |
 
-#### Luna Studio AI
+#### AYVANA Studio AI
 | Route | Description |
 |-------|-------------|
 | `/studio` | Upload 3 garment photos → trigger AI campaign generation |
@@ -323,7 +323,7 @@ Address, Review, Wishlist, Notification, Payout, StudioUpload, PaymentTransactio
 
 ---
 
-### 5.3 Admin App — `apps/admin` → ops.luna.ae
+### 5.3 Admin App — `apps/admin` → ops.ayvana.ae
 
 #### Platform Overview
 | Route | Description |
@@ -436,9 +436,9 @@ Delivery updates → pushed to customer via Notification
 |-------|-----|------|
 | `color-ink` | `#1a1a2e` | Primary background, dark surfaces |
 | `color-ivory` | `#fdf9f4` | Light background, page bg |
-| `color-gold` | `#c9a96e` | Accent, CTAs, highlights, Luna branding |
+| `color-gold` | `#c9a96e` | Accent, CTAs, highlights, AYVANA branding |
 | `color-sand` | `#e8d9c4` | Borders, dividers, subtle backgrounds |
-| `color-lilac` | `#c4a0f0` | AI features, Studio agent, Luna chat |
+| `color-lilac` | `#c4a0f0` | AI features, Studio agent, AYVANA chat |
 | `color-sage` | `#6dbf8e` | Success states, Admin app accent |
 | `color-coral` | `#e57373` | Error states, fraud alerts, destructive actions |
 | `color-mist` | `#888888` | Secondary text, placeholders |
@@ -467,7 +467,7 @@ Delivery updates → pushed to customer via Notification
 | Component | Description |
 |-----------|-------------|
 | `ProductCard` | Image, product name, price, vendor badge, wishlist toggle |
-| `LunaChat` | Streaming AI chat bubble with inline product embed cards |
+| `AyvanaChat` | Streaming AI chat bubble with inline product embed cards |
 | `SizeGuide` | Profile-aware size selector — pre-selects from SizeProfile, flags fit warnings |
 | `StatCard` | KPI tile for vendor and admin dashboards (value, delta, trend sparkline) |
 | `StudioUploader` | 3-slot drag-and-drop photo uploader with progress and preview |
@@ -492,7 +492,7 @@ All three apps support Arabic (`ar`) locale. `RTLProvider` switches `dir`, font 
 - Turborepo monorepo with all 3 apps and 5 packages scaffolded
 - Complete Prisma schema (all entities, migrations)
 - Clerk auth with MFA for all roles
-- Luna design system with base components and Tailwind tokens
+- AYVANA design system with base components and Tailwind tokens
 - Customer storefront: home, browse, filter, product detail, boutique pages
 - Customer size profile (`/profile/size`) wired to product display
 - Cart and checkout: Stripe cards, Apple Pay, Tabby, Tamara
@@ -525,12 +525,12 @@ All three apps support Arabic (`ar`) locale. `RTLProvider` switches `dir`, font 
 *Sub-projects 5, 8a*
 
 **What ships:**
-- Luna Studio AI: 3-photo upload → garment detection → AI studio images → AI model imagery → product copy → publish to listing
-- Luna Shopping Agent: persistent chat widget, size-aware recommendations, outfit styling, AI add-to-cart
+- AYVANA Studio AI: 3-photo upload → garment detection → AI studio images → AI model imagery → product copy → publish to listing
+- AYVANA Shopping Agent: persistent chat widget, size-aware recommendations, outfit styling, AI add-to-cart
 - Seller Agent: proactive action cards on vendor dashboard (reprice, restock, trigger Studio)
-- AISession persistence — Luna remembers customer preferences across sessions
+- AISession persistence — AYVANA remembers customer preferences across sessions
 
-**Definition of done:** A customer can chat with Luna to find and buy a product without using search. A vendor can generate a full product campaign from 3 photos in under 2 minutes.
+**Definition of done:** A customer can chat with AYVANA to find and buy a product without using search. A vendor can generate a full product campaign from 3 photos in under 2 minutes.
 
 ---
 
@@ -540,7 +540,7 @@ All three apps support Arabic (`ar`) locale. `RTLProvider` switches `dir`, font 
 **What ships:**
 - Admin Console: GMV dashboard, seller KYC approval queue, product moderation, fraud monitoring, payout management, commission rules, feature flags
 - Logistics: Logistics Agent wired to order flow, Aramex/Fetchr/DHL courier integrations, automated label generation, live tracking, returns
-- Full Agent Mesh: Payment Agent (Luna Wallet, cashback, loyalty), POS Agent (Retail Connect inventory sync, click & collect, QR commerce), end-to-end agent handoff chain
+- Full Agent Mesh: Payment Agent (AYVANA Wallet, cashback, loyalty), POS Agent (Retail Connect inventory sync, click & collect, QR commerce), end-to-end agent handoff chain
 
 **Definition of done:** The platform owner has full visibility and control. Orders route automatically through courier selection. Physical stores sync in real time.
 
@@ -550,7 +550,7 @@ All three apps support Arabic (`ar`) locale. `RTLProvider` switches `dir`, font 
 
 | Topic | Question | Deferred to |
 |-------|----------|-------------|
-| Luna Wallet | Stripe wallet product or custom ledger? | Phase 4 design |
+| AYVANA Wallet | Stripe wallet product or custom ledger? | Phase 4 design |
 | AI image generation | Which model for Studio? (Stable Diffusion, Runway, DALL-E, Midjourney API) | Phase 3 design |
 | AI video generation | Runway, Kling, or other? | Phase 3 design |
 | Social commerce | Instagram/TikTok/Snapchat product tagging | Post-Phase 4 |

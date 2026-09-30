@@ -2,25 +2,25 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** An admin platform-settings store — a `PlatformSetting` key/value model + typed registry/helper in `@e-luna/db`, an ADMIN-gated `/settings` CRUD page, and real wiring (checkout free-shipping + a maintenance banner).
+**Goal:** An admin platform-settings store — a `PlatformSetting` key/value model + typed registry/helper in `@ayvana/db`, an ADMIN-gated `/settings` CRUD page, and real wiring (checkout free-shipping + a maintenance banner).
 
-**Architecture:** `PlatformSetting { key @id, value }`; a fixed typed `SETTINGS` registry with `getSetting`/`getAllSettings`/`setSetting` (default-fallback, `.catch`-guarded) in `@e-luna/db`; an admin page/form + `updateSetting` action; customer checkout + root layout read `getSetting`.
+**Architecture:** `PlatformSetting { key @id, value }`; a fixed typed `SETTINGS` registry with `getSetting`/`getAllSettings`/`setSetting` (default-fallback, `.catch`-guarded) in `@ayvana/db`; an admin page/form + `updateSetting` action; customer checkout + root layout read `getSetting`.
 
-**Tech Stack:** Next.js 15 (App Router), Prisma + PostgreSQL (`db push`, no migration files), TypeScript (`noUncheckedIndexedAccess` on), Clerk, `@e-luna/auth` `getAuthUser`.
+**Tech Stack:** Next.js 15 (App Router), Prisma + PostgreSQL (`db push`, no migration files), TypeScript (`noUncheckedIndexedAccess` on), Clerk, `@ayvana/auth` `getAuthUser`.
 
 ---
 
 ## Context for the implementer (read once)
 
-- **No automated test suite.** "Tests" = `npx tsc --noEmit` and `npx next lint`. Repo uses **`prisma db push`** (no migration files); after editing `schema.prisma`, run `pnpm --filter @e-luna/db db:generate` (offline) to regen the client. `db push` to a live DB is an operator step.
+- **No automated test suite.** "Tests" = `npx tsc --noEmit` and `npx next lint`. Repo uses **`prisma db push`** (no migration files); after editing `schema.prisma`, run `pnpm --filter @ayvana/db db:generate` (offline) to regen the client. `db push` to a live DB is an operator step.
 - **`noUncheckedIndexedAccess` is ON** (`arr[k] ?? fallback`).
 - **Verified state:**
   - `packages/db/src/index.ts` = `export { prisma } from "./client"; export * from "@prisma/client";`. Prisma accessor for the new model: `prisma.platformSetting`.
-  - Admin actions: `import { getAuthUser } from "@e-luna/auth";` then `if (!user) return { error: "Unauthorized" }; if (user.role !== "ADMIN") return { error: "Forbidden" };`. `ActionResult = { success: true } | { error: string }`.
+  - Admin actions: `import { getAuthUser } from "@ayvana/auth";` then `if (!user) return { error: "Unauthorized" }; if (user.role !== "ADMIN") return { error: "Forbidden" };`. `ActionResult = { success: true } | { error: string }`.
   - Admin nav `apps/admin/app/(dashboard)/components/Sidebar.tsx` — `NAV_ITEMS` array (Overview/Sellers/Approvals/Orders/Products/Payouts/Commissions/Analytics/Customers/Fraud); active-check ends in a `pathname === href` fallback (a new item needs no ternary edit). The `(dashboard)` layout + middleware already gate ADMIN.
-  - `apps/customer/app/actions/checkout.ts`: `import { prisma } from "@e-luna/db";` (line ~5); module consts `SHIPPING_THRESHOLD = 500` (line 13) / `SHIPPING_FEE = 15` (line 14); `const shippingFee = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;` at **line 81** (`placeOrder`) and **line 196** (`initiateCardPayment`).
-  - `apps/customer/app/checkout/page.tsx`: `import { prisma } from "@e-luna/db";` (line 4); consts at lines 14-15; usage `const shippingFee = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;` at line 50; the component is already `async`.
-  - `apps/customer/app/layout.tsx`: `export default function RootLayout(...)` (NON-async) rendering `<RTLProvider><Nav /><main>{children}</main><Footer /><LunaChatWidget .../></RTLProvider>`.
+  - `apps/customer/app/actions/checkout.ts`: `import { prisma } from "@ayvana/db";` (line ~5); module consts `SHIPPING_THRESHOLD = 500` (line 13) / `SHIPPING_FEE = 15` (line 14); `const shippingFee = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;` at **line 81** (`placeOrder`) and **line 196** (`initiateCardPayment`).
+  - `apps/customer/app/checkout/page.tsx`: `import { prisma } from "@ayvana/db";` (line 4); consts at lines 14-15; usage `const shippingFee = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;` at line 50; the component is already `async`.
+  - `apps/customer/app/layout.tsx`: `export default function RootLayout(...)` (NON-async) rendering `<RTLProvider><Nav /><main>{children}</main><Footer /><AyvanaChatWidget .../></RTLProvider>`.
 
 ---
 
@@ -125,12 +125,12 @@ export * from "./settings";
 
 - [ ] **Step 4: Regenerate the Prisma client (offline)**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db db:generate`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db db:generate`
 Expected: "Generated Prisma Client" success (`prisma.platformSetting` now exists).
 
 - [ ] **Step 5: Type-check the db package**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db exec tsc --noEmit 2>&1 | tail -6`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db exec tsc --noEmit 2>&1 | tail -6`
 Expected: clean.
 
 - [ ] **Step 6: Commit**
@@ -158,8 +158,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { setSetting, type SettingKey } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { setSetting, type SettingKey } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -182,7 +182,7 @@ export async function updateSetting(key: SettingKey, value: string): Promise<Act
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { SettingKey } from "@e-luna/db";
+import type { SettingKey } from "@ayvana/db";
 import { updateSetting } from "../../actions/settings";
 
 type Field = { key: string; label: string; type: "number" | "boolean" | "string" };
@@ -255,10 +255,10 @@ export function SettingsForm({ fields, values }: Props) {
 
 ```tsx
 import { Metadata } from "next";
-import { SETTINGS, getAllSettings } from "@e-luna/db";
+import { SETTINGS, getAllSettings } from "@ayvana/db";
 import { SettingsForm } from "./SettingsForm";
 
-export const metadata: Metadata = { title: "Settings — Luna Ops" };
+export const metadata: Metadata = { title: "Settings — AYVANA Ops" };
 
 export default async function SettingsPage() {
   const values = await getAllSettings();
@@ -313,9 +313,9 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 1: `checkout.ts` — import `getSetting` + remove the module consts**
 
-Change `import { prisma } from "@e-luna/db";` to:
+Change `import { prisma } from "@ayvana/db";` to:
 ```ts
-import { prisma, getSetting } from "@e-luna/db";
+import { prisma, getSetting } from "@ayvana/db";
 ```
 Delete the two module-level lines:
 ```ts
@@ -339,7 +339,7 @@ with:
 
 - [ ] **Step 3: `checkout/page.tsx` — same treatment**
 
-Change `import { prisma } from "@e-luna/db";` to `import { prisma, getSetting } from "@e-luna/db";`. Delete the consts:
+Change `import { prisma } from "@ayvana/db";` to `import { prisma, getSetting } from "@ayvana/db";`. Delete the consts:
 ```ts
 const SHIPPING_THRESHOLD = 500;
 const SHIPPING_FEE = 15;
@@ -358,7 +358,7 @@ with:
 
 - [ ] **Step 4: `layout.tsx` — async + maintenance banner**
 
-Add `import { getSetting } from "@e-luna/db";` to the imports. Change the signature:
+Add `import { getSetting } from "@ayvana/db";` to the imports. Change the signature:
 ```tsx
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 ```
@@ -411,7 +411,7 @@ Run:
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna
 pnpm install --frozen-lockfile 2>&1 | tail -3
-pnpm --filter @e-luna/db db:generate 2>&1 | tail -2
+pnpm --filter @ayvana/db db:generate 2>&1 | tail -2
 ```
 Expected: no lockfile change; client regen succeeds.
 
@@ -427,8 +427,8 @@ Expected: all apps pass (pre-existing `<img>` warnings acceptable).
 
 - [ ] **Step 4: Repo-wide type check**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit 2>&1 | tail -12`
-Expected: clean (includes `@e-luna/db` with the new settings module).
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit 2>&1 | tail -12`
+Expected: clean (includes `@ayvana/db` with the new settings module).
 
 - [ ] **Step 5: Confirm the wiring (inspection)**
 
@@ -454,7 +454,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 7: Manual/operator smoke note (not automated)**
 
-`pnpm --filter @e-luna/db db:push` applies `PlatformSetting`. Smoke (running apps + DB): admin `/settings` → change the free-shipping threshold → a customer's checkout uses the new value; set a maintenance banner → it appears site-wide; clear it → gone. Absent settings = today's defaults (no change on deploy).
+`pnpm --filter @ayvana/db db:push` applies `PlatformSetting`. Smoke (running apps + DB): admin `/settings` → change the free-shipping threshold → a customer's checkout uses the new value; set a maintenance banner → it appears site-wide; clear it → gone. Absent settings = today's defaults (no change on deploy).
 
 ---
 

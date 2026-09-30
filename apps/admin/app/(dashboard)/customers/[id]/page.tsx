@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 
 type Props = { params: Promise<{ id: string }> };
 
-export const metadata: Metadata = { title: "Customer — Luna Ops" };
+export const metadata: Metadata = { title: "Customer — AYVANA Ops" };
 
 const ORDER_STATUS_BADGE: Record<string, string> = {
   DELIVERED: "bg-sage/20 text-sage",

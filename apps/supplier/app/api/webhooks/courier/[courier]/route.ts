@@ -1,6 +1,6 @@
-import { prisma } from "@e-luna/db";
-import type { CourierStatusEvent } from "@e-luna/courier";
-import { getCourierGateway } from "@e-luna/courier";
+import { prisma } from "@ayvana/db";
+import type { CourierStatusEvent } from "@ayvana/courier";
+import { getCourierGateway } from "@ayvana/courier";
 import { applyMaterialOrderDelivery } from "../../../../lib/courier/apply-status";
 
 export async function POST(req: Request, { params }: { params: Promise<{ courier: string }> }) {

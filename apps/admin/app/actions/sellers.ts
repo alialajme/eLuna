@@ -2,13 +2,13 @@
 
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
-import { prisma, type VendorStatus, writeAuditLog } from "@e-luna/db";
-import { getAuthUser, syncClerkRole, invitePartner } from "@e-luna/auth";
+import { prisma, type VendorStatus, writeAuditLog } from "@ayvana/db";
+import { getAuthUser, syncClerkRole, invitePartner } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 type CreateResult = { success: true; id: string; invited: boolean } | { error: string };
 
-const VENDOR_APP_URL = process.env.VENDOR_APP_URL ?? "https://sell.luna.ae";
+const VENDOR_APP_URL = process.env.VENDOR_APP_URL ?? "https://sell.ayvana.ae";
 
 async function setVendorStatus(
   id: string,

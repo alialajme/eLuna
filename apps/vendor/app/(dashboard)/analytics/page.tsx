@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { PeriodToggle } from "./components/PeriodToggle";
 
-export const metadata: Metadata = { title: "Analytics — Luna Vendor" };
+export const metadata: Metadata = { title: "Analytics — AYVANA Vendor" };
 
 function pctChange(curr: number, prev: number): number | null {
   if (prev === 0) return null;

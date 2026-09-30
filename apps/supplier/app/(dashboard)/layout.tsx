@@ -4,7 +4,7 @@ import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
 import { Sidebar } from "./components/Sidebar";
 import { OnboardingBanner } from "./components/OnboardingBanner";
-import { LunaChatWidget } from "@e-luna/ui";
+import { AyvanaChatWidget } from "@ayvana/ui";
 
 export default async function DashboardLayout({
   children,
@@ -53,7 +53,7 @@ export default async function DashboardLayout({
           {children}
         </main>
       </div>
-      <LunaChatWidget
+      <AyvanaChatWidget
         apiPath="/api/assistant"
         title="Supplier Assistant"
         greeting="Hi! I can flag low material stock, surface orders needing a response, summarise sales, and benchmark your pricing. What would you like to look at?"

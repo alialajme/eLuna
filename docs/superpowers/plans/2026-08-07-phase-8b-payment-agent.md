@@ -4,7 +4,7 @@
 
 **Goal:** Wire an advisory, read-only Payment Agent that explains payment options and computes previews (wallet coverage, BNPL split, refund eligibility, supported methods) on the checkout page, without ever moving money.
 
-**Architecture:** Rewrite the Payment agent stub into a customer-scoped tool factory (`buildPaymentTools(customerId)`) + `runPaymentAgent(messages, { customerId })`, mirroring the Seller agent (8a). `customerId` (= `CustomerProfile.id`) is resolved server-side from the Clerk session and captured in a closure — never an LLM parameter. A new customer route `/api/payment-help` streams it through the reused `LunaChatWidget`, which gains a `hiddenPaths` prop so the Shopping widget hides on `/checkout` while the Payment widget shows there.
+**Architecture:** Rewrite the Payment agent stub into a customer-scoped tool factory (`buildPaymentTools(customerId)`) + `runPaymentAgent(messages, { customerId })`, mirroring the Seller agent (8a). `customerId` (= `CustomerProfile.id`) is resolved server-side from the Clerk session and captured in a closure — never an LLM parameter. A new customer route `/api/payment-help` streams it through the reused `AyvanaChatWidget`, which gains a `hiddenPaths` prop so the Shopping widget hides on `/checkout` while the Payment widget shows there.
 
 **Tech Stack:** Next.js 15 (App Router), Vercel AI SDK (`streamText`, `tool`, `CoreMessage`, `toDataStreamResponse`), Anthropic `claude-sonnet-4-6`, Prisma + PostgreSQL, Zod, TypeScript (`noUncheckedIndexedAccess` on).
 
@@ -35,13 +35,13 @@
 ```
 packages/ai/src/agents/payment.ts                 — REWRITE: buildPaymentTools(customerId) + runPaymentAgent(messages,{customerId})
 packages/ai/src/index.ts                           — MODIFY line 6: export runPaymentAgent + buildPaymentTools (drop paymentTools)
-packages/ui/src/components/LunaChatWidget.tsx      — MODIFY: add optional hiddenPaths prop (default ["/chat"])
+packages/ui/src/components/AyvanaChatWidget.tsx      — MODIFY: add optional hiddenPaths prop (default ["/chat"])
 apps/customer/app/api/payment-help/route.ts        — CREATE: POST → auth → customer profile → runPaymentAgent → stream
 apps/customer/app/checkout/page.tsx                — MODIFY: mount the Payment widget in the authenticated return
 apps/customer/app/layout.tsx                        — MODIFY line 55: Shopping widget hiddenPaths={["/chat","/checkout"]}
 ```
 
-No schema changes. `packages/ai` already depends on `@e-luna/db`; the customer app already depends on `@e-luna/ai` and `ai` (used by `/api/chat`). `packages/ui` already depends on `ai` (`useChat`).
+No schema changes. `packages/ai` already depends on `@ayvana/db`; the customer app already depends on `@ayvana/ai` and `ai` (used by `/api/chat`). `packages/ui` already depends on `ai` (`useChat`).
 
 ---
 
@@ -57,16 +57,16 @@ No schema changes. `packages/ai` already depends on `@e-luna/db`; the customer a
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const PAYMENT_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Payment Agent — a READ-ONLY checkout helper for a Luna customer.
+You are the Payment Agent — a READ-ONLY checkout helper for a AYVANA customer.
 Explain payment options and compute previews using your tools. You do NOT charge
 cards, apply credits, or issue refunds — never claim you have. To pay, the customer
 uses the checkout button; for refunds, direct them to the returns flow on their orders page.
-Supported methods today: Card, Luna Wallet, Tabby, Tamara, Cash on Delivery.
+Supported methods today: Card, AYVANA Wallet, Tabby, Tamara, Cash on Delivery.
 Coming soon (via Stripe and regional gateways): Apple Pay, Google Pay, Tap Payments, Noqodi.
 Ground every answer in the tools; never invent balances, methods, or eligibility. Be concise.`;
 
@@ -80,7 +80,7 @@ const DAY = 86_400_000;
 export function buildPaymentTools(customerId: string) {
   return {
     wallet_and_loyalty: tool({
-      description: "Get the customer's current Luna wallet balance (AED) and loyalty points.",
+      description: "Get the customer's current AYVANA wallet balance (AED) and loyalty points.",
       parameters: z.object({}),
       execute: async () => {
         const p = await prisma.customerProfile
@@ -178,7 +178,7 @@ export function buildPaymentTools(customerId: string) {
         "List the payment methods available today and the ones coming soon. Use this instead of guessing.",
       parameters: z.object({}),
       execute: async () => ({
-        live: ["Card", "Luna Wallet", "Tabby", "Tamara", "Cash on Delivery"],
+        live: ["Card", "AYVANA Wallet", "Tabby", "Tamara", "Cash on Delivery"],
         comingSoon: [
           "Apple Pay (via Stripe)",
           "Google Pay (via Stripe)",
@@ -241,26 +241,26 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ---
 
-## Task 2: Add `hiddenPaths` prop to `LunaChatWidget`
+## Task 2: Add `hiddenPaths` prop to `AyvanaChatWidget`
 
 **Files:**
-- Modify: `packages/ui/src/components/LunaChatWidget.tsx:21-27` (props type + signature) and `:54` (hide rule)
+- Modify: `packages/ui/src/components/AyvanaChatWidget.tsx:21-27` (props type + signature) and `:54` (hide rule)
 
 - [ ] **Step 1: Extend the props type (currently lines 21-25)**
 
 Replace:
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in the app
-  title?: string; // header title; default "Luna Stylist"
+  title?: string; // header title; default "AYVANA Stylist"
   greeting?: string; // empty-state assistant greeting; default the customer copy
 };
 ```
 with:
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in the app
-  title?: string; // header title; default "Luna Stylist"
+  title?: string; // header title; default "AYVANA Stylist"
   greeting?: string; // empty-state assistant greeting; default the customer copy
   hiddenPaths?: string[]; // pathnames where the widget renders nothing; default ["/chat"]
 };
@@ -270,11 +270,11 @@ type LunaChatWidgetProps = {
 
 Replace:
 ```ts
-export function LunaChatWidget({ apiPath, title, greeting }: LunaChatWidgetProps) {
+export function AyvanaChatWidget({ apiPath, title, greeting }: AyvanaChatWidgetProps) {
 ```
 with:
 ```ts
-export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths }: LunaChatWidgetProps) {
+export function AyvanaChatWidget({ apiPath, title, greeting, hiddenPaths }: AyvanaChatWidgetProps) {
 ```
 
 - [ ] **Step 3: Generalize the hide rule (currently line 54)**
@@ -298,8 +298,8 @@ Expected: clean. (The default `["/chat"]` preserves existing behavior, so no exi
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/ui/src/components/LunaChatWidget.tsx
-git commit -m "feat(ui): add hiddenPaths prop to LunaChatWidget (8b)
+git add packages/ui/src/components/AyvanaChatWidget.tsx
+git commit -m "feat(ui): add hiddenPaths prop to AyvanaChatWidget (8b)
 
 Optional string[] of pathnames where the widget renders null; defaults to
 ['/chat'] so existing callers are unchanged.
@@ -318,8 +318,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ```ts
 import { safeCurrentUser as currentUser } from "../../lib/auth";
-import { prisma } from "@e-luna/db";
-import { runPaymentAgent } from "@e-luna/ai";
+import { prisma } from "@ayvana/db";
+import { runPaymentAgent } from "@ayvana/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -359,7 +359,7 @@ export async function POST(req: Request) {
 - [ ] **Step 2: Type-check the customer app**
 
 Run: `cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"`
-Expected: clean (ignore any pre-existing `tailwind.config.ts` noise). `runPaymentAgent` and `CoreMessage` resolve from `@e-luna/ai` / `ai`.
+Expected: clean (ignore any pre-existing `tailwind.config.ts` noise). `runPaymentAgent` and `CoreMessage` resolve from `@ayvana/ai` / `ai`.
 
 - [ ] **Step 3: Commit**
 
@@ -385,18 +385,18 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 Replace:
 ```tsx
-            <LunaChatWidget apiPath="/api/chat" />
+            <AyvanaChatWidget apiPath="/api/chat" />
 ```
 with:
 ```tsx
-            <LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />
+            <AyvanaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />
 ```
 
-- [ ] **Step 2: Import `LunaChatWidget` in the checkout page — `apps/customer/app/checkout/page.tsx`**
+- [ ] **Step 2: Import `AyvanaChatWidget` in the checkout page — `apps/customer/app/checkout/page.tsx`**
 
-Add to the imports at the top (after the existing `@e-luna/db` import on line 4):
+Add to the imports at the top (after the existing `@ayvana/db` import on line 4):
 ```tsx
-import { LunaChatWidget } from "@e-luna/ui";
+import { AyvanaChatWidget } from "@ayvana/ui";
 ```
 
 - [ ] **Step 3: Mount the Payment widget in the authenticated return — `apps/customer/app/checkout/page.tsx`**
@@ -424,7 +424,7 @@ with:
         cartTotal={total}
         itemCount={itemCount}
       />
-      <LunaChatWidget
+      <AyvanaChatWidget
         apiPath="/api/payment-help"
         title="Payment Help"
         greeting="Ask about your wallet balance, a Tabby/Tamara split, or refund eligibility — I explain options; you complete payment with the button."
@@ -437,7 +437,7 @@ with:
 - [ ] **Step 4: Type-check the customer app**
 
 Run: `cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"`
-Expected: clean. `LunaChatWidget` resolves from `@e-luna/ui`; the fragment is valid because a client component can be a child of a server component.
+Expected: clean. `AyvanaChatWidget` resolves from `@ayvana/ui`; the fragment is valid because a client component can be a child of a server component.
 
 - [ ] **Step 5: Lint the customer app**
 
@@ -465,7 +465,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 1: Install (frozen) to mirror CI**
 
 Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm install --frozen-lockfile 2>&1 | tail -5`
-Expected: no lockfile change needed (no new dependencies were added — `@e-luna/ai`, `ai`, `@e-luna/ui`, `@e-luna/db` were all already dependencies). If it reports the lockfile is out of date, STOP and report — the plan expects no dependency changes.
+Expected: no lockfile change needed (no new dependencies were added — `@ayvana/ai`, `ai`, `@ayvana/ui`, `@ayvana/db` were all already dependencies). If it reports the lockfile is out of date, STOP and report — the plan expects no dependency changes.
 
 - [ ] **Step 2: Repo-wide lint**
 
@@ -474,7 +474,7 @@ Expected: all apps pass (no errors).
 
 - [ ] **Step 3: Repo-wide type check**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit 2>&1 | tail -15`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit 2>&1 | tail -15`
 Expected: clean across packages.
 
 - [ ] **Step 4: Confirm the advisory guarantee (no money mutation in the agent)**

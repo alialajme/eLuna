@@ -1,11 +1,11 @@
-# e-Luna — Production Readiness Checklist
+# AYVANA — Production Readiness Checklist
 
 Status as of the hardening effort (PRs #1–#4 delivered; docs on this branch). No item is marked PASS
 without evidence in the repo. Legend: ✅ PASS · 🟡 PARTIAL · ❌ FAIL/NOT DONE.
 
 | Area | Status | Evidence / Notes |
 |------|:------:|------------------|
-| **Architecture** | ✅ | Modular monolith, domain logic in `@e-luna/db`; ADRs in `docs/adr`; diagrams in `docs/architecture` |
+| **Architecture** | ✅ | Modular monolith, domain logic in `@ayvana/db`; ADRs in `docs/adr`; diagrams in `docs/architecture` |
 | **Security — authz** | ✅ | Role + ownership re-checked in every server action; audit found no HPE |
 | **Security — headers** | 🟡 | HSTS/nosniff/frame-ancestors/Referrer/Permissions on all apps; CSP has no `script-src` yet |
 | **Security — rate limiting** | 🟡 | Redis-backed limiter on AI endpoints (in-memory fallback) + Azure Front Door/WAF Bicep (managed rules + per-IP rate limit); cluster validation + Front Door origin wiring outstanding |

@@ -1,9 +1,9 @@
 import { Metadata } from "next";
-import { prisma, computeSupplierBalance } from "@e-luna/db";
+import { prisma, computeSupplierBalance } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 
-export const metadata: Metadata = { title: "Earnings & Payouts — Luna Supplier" };
+export const metadata: Metadata = { title: "Earnings & Payouts — AYVANA Supplier" };
 
 const STATUS_CLASSES: Record<string, string> = {
   PENDING: "bg-sand text-mist",
@@ -40,7 +40,7 @@ export default async function SupplierPayoutsPage() {
       <div>
         <h1 className="font-display text-display-lg text-ink">Earnings &amp; Payouts</h1>
         <p className="mt-1 text-body-md text-mist">
-          Wholesale earnings from completed material orders. Payouts are issued by Luna operations to
+          Wholesale earnings from completed material orders. Payouts are issued by AYVANA operations to
           your IBAN on file.
         </p>
       </div>

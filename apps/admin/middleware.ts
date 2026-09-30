@@ -1,6 +1,6 @@
-import { createLunaMiddleware } from "@e-luna/auth/middleware";
+import { createAyvanaMiddleware } from "@ayvana/auth/middleware";
 
-export default createLunaMiddleware("ADMIN");
+export default createAyvanaMiddleware("ADMIN");
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],

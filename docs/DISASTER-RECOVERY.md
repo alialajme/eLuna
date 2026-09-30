@@ -1,4 +1,4 @@
-# e-Luna — Disaster Recovery
+# AYVANA — Disaster Recovery
 
 Honest statement of **configured** capability vs **planned** targets. Where a target is not yet
 backed by configuration it is marked ⬜ so no capability is overstated (per hardening principle §60).
@@ -29,7 +29,7 @@ AKS reschedules; PDB keeps ≥1 replica; HPA scales. No action.
 Zone-redundant Postgres HA fails over automatically; AKS reschedules to healthy zones. No data loss.
 
 ### 3. Accidental data corruption / bad deploy
-1. Roll back the app: `helm rollback luna <REV>` (or redeploy previous image tag).
+1. Roll back the app: `helm rollback ayvana <REV>` (or redeploy previous image tag).
 2. If data is corrupted: restore the DB to a point-in-time before the incident (Azure Portal/CLI PITR
    → new server), repoint `DATABASE_URL` (Key Vault secret), restart pods.
 

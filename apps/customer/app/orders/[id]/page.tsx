@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
-import { courierName, trackingUrl } from "@e-luna/ui/couriers";
+import { prisma } from "@ayvana/db";
+import { courierName, trackingUrl } from "@ayvana/ui/couriers";
 import { safeCurrentUser } from "../../lib/auth";
 import { TrackingTimeline } from "../components/TrackingTimeline";
 import { ReturnButton } from "../components/ReturnButton";
@@ -11,7 +11,7 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Order #${id.slice(-8).toUpperCase()} — Luna` };
+  return { title: `Order #${id.slice(-8).toUpperCase()} — AYVANA` };
 }
 
 export default async function OrderDetailPage({ params }: Props) {
@@ -249,7 +249,7 @@ export default async function OrderDetailPage({ params }: Props) {
       <div className="rounded-xl border border-sand bg-sand/30 p-4 flex items-center justify-between">
         <p className="text-body-md text-ink">Need help with this order?</p>
         <Link href="/chat" className="text-body-sm text-gold hover:underline">
-          Ask Luna →
+          Ask AYVANA →
         </Link>
       </div>
     </div>

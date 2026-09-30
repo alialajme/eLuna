@@ -1,7 +1,7 @@
 # Supplier Trade-Licence Verification
 
 Suppliers can verify their UAE trade licence from **Settings → Trade licence** in
-the supplier app (`supply.luna.ae`). Verification is **credential-gated**, following
+the supplier app (`supply.ayvana.ae`). Verification is **credential-gated**, following
 the same honesty boundary as Payments, Couriers and E-invoicing:
 
 | Environment | Behaviour |

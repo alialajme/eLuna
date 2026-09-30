@@ -5,7 +5,7 @@
 
 ## Goal
 
-Let a Luna **supplier** issue a UAE-tax-compliant invoice for a fulfilled material order (S3
+Let a AYVANA **supplier** issue a UAE-tax-compliant invoice for a fulfilled material order (S3
 `MaterialOrder`, supplier → vendor), with 5% VAT and the supplier's TRN. It follows the project's
 **credential-gated gateway** pattern (as used for Payments and Couriers): a `SimulatedEInvoice` issuer
 that produces a fully-numbered, VAT-correct, FTA-field-complete invoice **locally** (the no-keys default),
@@ -154,8 +154,8 @@ Supplier-scoped (resolve supplier from Clerk session, never a client param).
 ## Testing
 
 No automated suite — types + lint + manual:
-1. `pnpm --filter @e-luna/db db:generate` + `db:push` (new model/enum/field).
-2. `pnpm --filter "@e-luna/*" exec tsc --noEmit` — clean.
+1. `pnpm --filter @ayvana/db db:generate` + `db:push` (new model/enum/field).
+2. `pnpm --filter "@ayvana/*" exec tsc --noEmit` — clean.
 3. `pnpm lint` — clean.
 4. gitleaks — clean.
 5. Manual: set TRN; from an ACCEPTED order issue an invoice → net + 5% VAT + total correct, unique number,

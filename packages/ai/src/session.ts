@@ -1,4 +1,4 @@
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
 export type StoredMessage = { id: string; role: "user" | "assistant"; content: string };
 

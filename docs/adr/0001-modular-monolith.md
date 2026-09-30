@@ -3,13 +3,13 @@
 **Status:** Accepted
 
 ## Context
-e-Luna serves four personas (customer, vendor, admin, supplier) over one relational domain (orders,
+AYVANA serves four personas (customer, vendor, admin, supplier) over one relational domain (orders,
 inventory, payments, payouts). The team is small and correctness/velocity matter more than
 independent horizontal scaling of individual services today.
 
 ## Decision
 Build a **modular monolith**: a Turborepo of four Next.js apps sharing typed packages. Enforce strong
-internal boundaries — domain/financial logic lives in `@e-luna/db` services, integrations in
+internal boundaries — domain/financial logic lives in `@ayvana/db` services, integrations in
 dedicated packages (`payments`, `courier`, `einvoice`, `ai`), so a module *could* later be extracted
 to a service without a rewrite.
 

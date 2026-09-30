@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, recomputeOrderStatus, applyShipmentStatus } from "@e-luna/db";
-import { getCourier } from "@e-luna/ui/couriers";
+import { prisma, recomputeOrderStatus, applyShipmentStatus } from "@ayvana/db";
+import { getCourier } from "@ayvana/ui/couriers";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
-import { getCourierGateway } from "@e-luna/courier";
+import { getCourierGateway } from "@ayvana/courier";
 
 export async function createShipment(input: {
   orderId: string;

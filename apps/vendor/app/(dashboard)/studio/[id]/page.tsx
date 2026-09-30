@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 
@@ -25,7 +25,7 @@ type CopyResult = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Campaign ${id.slice(-8).toUpperCase()} — Luna Studio` };
+  return { title: `Campaign ${id.slice(-8).toUpperCase()} — AYVANA Studio` };
 }
 
 export default async function StudioResultPage({ params }: Props) {
@@ -95,7 +95,7 @@ export default async function StudioResultPage({ params }: Props) {
         <div className="flex flex-col items-center gap-3 py-16">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-sand border-t-gold" />
           <p className="text-body-sm text-mist">
-            Luna AI is analysing your photos…
+            AYVANA AI is analysing your photos…
           </p>
         </div>
       )}

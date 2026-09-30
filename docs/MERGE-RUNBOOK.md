@@ -1,8 +1,8 @@
-# e-Luna — Production-Hardening Merge Runbook
+# AYVANA — Production-Hardening Merge Runbook
 
 How to land the 10 hardening PRs safely. Both stacks branch off `main` and, per `git merge-tree`,
 **merge with zero conflicts** — including the two files touched by both stacks
-(`.github/workflows/azure-deploy.yml`, `infra/helm/luna/values.yaml`; changes are on disjoint
+(`.github/workflows/azure-deploy.yml`, `infra/helm/ayvana/values.yaml`; changes are on disjoint
 lines/sections). Verify again at merge time, but no manual resolution is expected.
 
 ## The two stacks
@@ -56,12 +56,12 @@ After each merge, wait for CI on the newly-retargeted PR to go green before the 
 ```bash
 git checkout main && git pull
 pnpm install --frozen-lockfile
-pnpm --filter @e-luna/db db:generate
-pnpm --filter "@e-luna/*" exec tsc --noEmit          # expect: 0
+pnpm --filter @ayvana/db db:generate
+pnpm --filter "@ayvana/*" exec tsc --noEmit          # expect: 0
 pnpm lint                                             # expect: clean (pre-existing <img> warns only)
 node scripts/check-deploy-parity.mjs                  # expect: 4/4 apps
-# tests need a Postgres; CI runs them, or locally against eluna_test:
-pnpm --filter @e-luna/db --filter @e-luna/auth --filter @e-luna/observability test
+# tests need a Postgres; CI runs them, or locally against ayvana_test:
+pnpm --filter @ayvana/db --filter @ayvana/auth --filter @ayvana/observability test
 ```
 
 ### Step C — docs + infra stack (bottom-up)
@@ -83,7 +83,7 @@ migrator step / migration section from #7; keep both.
 ## Post-merge operational steps (deploy time)
 1. **Apply schema** to each environment before/at rollout. Preferred: enable the single-executor
    migration Job (ADR-0007) — set `migration.enabled: true` after validating it in a cluster; it runs
-   as a pre-upgrade hook. Interim: `pnpm --filter @e-luna/db exec prisma db push` against the target
+   as a pre-upgrade hook. Interim: `pnpm --filter @ayvana/db exec prisma db push` against the target
    `DATABASE_URL` (additive, safe).
 2. **Triage the first security scan.** CodeQL + Trivy (`security.yml`) run on push to `main` — review
    the Security tab and remediate CRITICAL/HIGH.
@@ -100,7 +100,7 @@ migrator step / migration section from #7; keep both.
 ## Rollback
 - **A PR after merge:** `gh pr revert <num>` (or revert the merge commit) — all changes are additive
   and revertible; new tables can be left in place (unused) or dropped separately.
-- **A bad rollout (not code):** `helm rollback luna <REV>` / redeploy the previous image tag. Schema
+- **A bad rollout (not code):** `helm rollback ayvana <REV>` / redeploy the previous image tag. Schema
   additions are backward-compatible, so an app rollback does not require a DB rollback.
 
 ## Done when

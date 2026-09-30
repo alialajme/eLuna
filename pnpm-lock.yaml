@@ -29,13 +29,13 @@ importers:
       '@clerk/nextjs':
         specifier: ^6.39.7
         version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@e-luna/auth':
+      '@ayvana/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@e-luna/db':
+      '@ayvana/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@e-luna/ui':
+      '@ayvana/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       next:
@@ -48,7 +48,7 @@ importers:
         specifier: ^19.0.0
         version: 19.2.7(react@19.2.7)
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':
@@ -72,22 +72,22 @@ importers:
       '@clerk/nextjs':
         specifier: ^6.39.7
         version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@e-luna/ai':
+      '@ayvana/ai':
         specifier: workspace:*
         version: link:../../packages/ai
-      '@e-luna/auth':
+      '@ayvana/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@e-luna/db':
+      '@ayvana/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@e-luna/observability':
+      '@ayvana/observability':
         specifier: workspace:*
         version: link:../../packages/observability
-      '@e-luna/payments':
+      '@ayvana/payments':
         specifier: workspace:*
         version: link:../../packages/payments
-      '@e-luna/ui':
+      '@ayvana/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@prisma/client':
@@ -118,7 +118,7 @@ importers:
         specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':
@@ -145,22 +145,22 @@ importers:
       '@clerk/nextjs':
         specifier: ^6.39.7
         version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@e-luna/ai':
+      '@ayvana/ai':
         specifier: workspace:*
         version: link:../../packages/ai
-      '@e-luna/auth':
+      '@ayvana/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@e-luna/courier':
+      '@ayvana/courier':
         specifier: workspace:*
         version: link:../../packages/courier
-      '@e-luna/db':
+      '@ayvana/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@e-luna/einvoice':
+      '@ayvana/einvoice':
         specifier: workspace:*
         version: link:../../packages/einvoice
-      '@e-luna/ui':
+      '@ayvana/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       ai:
@@ -176,7 +176,7 @@ importers:
         specifier: ^19.0.0
         version: 19.2.7(react@19.2.7)
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':
@@ -200,25 +200,25 @@ importers:
       '@clerk/nextjs':
         specifier: ^6.39.7
         version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@e-luna/ai':
+      '@ayvana/ai':
         specifier: workspace:*
         version: link:../../packages/ai
-      '@e-luna/auth':
+      '@ayvana/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@e-luna/courier':
+      '@ayvana/courier':
         specifier: workspace:*
         version: link:../../packages/courier
-      '@e-luna/db':
+      '@ayvana/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@e-luna/einvoice':
+      '@ayvana/einvoice':
         specifier: workspace:*
         version: link:../../packages/einvoice
-      '@e-luna/payments':
+      '@ayvana/payments':
         specifier: workspace:*
         version: link:../../packages/payments
-      '@e-luna/ui':
+      '@ayvana/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       ai:
@@ -234,7 +234,7 @@ importers:
         specifier: ^19.0.0
         version: 19.2.7(react@19.2.7)
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':
@@ -258,7 +258,7 @@ importers:
       '@ai-sdk/anthropic':
         specifier: ^1.2.12
         version: 1.2.12(zod@3.25.76)
-      '@e-luna/db':
+      '@ayvana/db':
         specifier: workspace:*
         version: link:../db
       '@prisma/client':
@@ -271,7 +271,7 @@ importers:
         specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -290,7 +290,7 @@ importers:
         specifier: ^5.4.0
         version: 5.11.1
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../config
       next:
@@ -323,7 +323,7 @@ importers:
 
   packages/courier:
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -339,7 +339,7 @@ importers:
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -366,7 +366,7 @@ importers:
 
   packages/einvoice:
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -378,7 +378,7 @@ importers:
 
   packages/observability:
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -393,14 +393,14 @@ importers:
 
   packages/payments:
     dependencies:
-      '@e-luna/db':
+      '@ayvana/db':
         specifier: workspace:*
         version: link:../db
       stripe:
         specifier: ^22.4.0
         version: 22.4.0(@types/node@20.19.43)
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../config
       typescript:
@@ -419,7 +419,7 @@ importers:
         specifier: ^19.0.0
         version: 19.2.7(react@19.2.7)
     devDependencies:
-      '@e-luna/config':
+      '@ayvana/config':
         specifier: workspace:*
         version: link:../config
       '@types/react':

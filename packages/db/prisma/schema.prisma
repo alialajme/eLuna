@@ -138,7 +138,7 @@ enum PaymentStatus {
   PARTIALLY_REFUNDED
 }
 
-// Immutable Luna Wallet ledger. Every balance movement is one append-only row;
+// Immutable AYVANA Wallet ledger. Every balance movement is one append-only row;
 // balance history is never mutated — corrections are new REVERSAL/ADJUSTMENT rows.
 enum WalletTxnType {
   CREDIT // funds added (top-up, cashback, refund credit)

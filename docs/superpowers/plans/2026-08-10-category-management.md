@@ -4,23 +4,23 @@
 
 **Goal:** Replace three inconsistent hardcoded category lists with an admin-managed `Category` table that the vendor product form/validation and the customer storefront read from.
 
-**Architecture:** `Category { name, slug, sortOrder, isActive }` + a `getCategories()` helper (default-fallback) in `@e-luna/db`; admin CRUD; vendor product form/validation + customer home/browse/category-route/footer all read `getCategories()`. `Product.category` stays a slug string (no FK/migration).
+**Architecture:** `Category { name, slug, sortOrder, isActive }` + a `getCategories()` helper (default-fallback) in `@ayvana/db`; admin CRUD; vendor product form/validation + customer home/browse/category-route/footer all read `getCategories()`. `Product.category` stays a slug string (no FK/migration).
 
-**Tech Stack:** Next.js 15 (App Router), Prisma + PostgreSQL (`db push`, no migration files), TypeScript (`noUncheckedIndexedAccess` on), Clerk, `@e-luna/auth` `getAuthUser`.
+**Tech Stack:** Next.js 15 (App Router), Prisma + PostgreSQL (`db push`, no migration files), TypeScript (`noUncheckedIndexedAccess` on), Clerk, `@ayvana/auth` `getAuthUser`.
 
 ---
 
 ## Context for the implementer (read once)
 
-- **No test suite.** "Tests" = `npx tsc --noEmit` + `npx next lint`. Repo uses **`prisma db push`**; after schema edits run `pnpm --filter @e-luna/db db:generate`. `db push` to a live DB is an operator step. `noUncheckedIndexedAccess` is ON (`arr[0]?.x`).
+- **No test suite.** "Tests" = `npx tsc --noEmit` + `npx next lint`. Repo uses **`prisma db push`**; after schema edits run `pnpm --filter @ayvana/db db:generate`. `db push` to a live DB is an operator step. `noUncheckedIndexedAccess` is ON (`arr[0]?.x`).
 - **Verified state:**
   - `Product.category` is a free-form `String`. `packages/db/src/index.ts` = `export { prisma } from "./client"; export * from "@prisma/client";`. Prisma accessor: `prisma.category`.
-  - Admin actions gate: `getAuthUser()` from `@e-luna/auth` → `if (!user) return {error:"Unauthorized"}; if (user.role !== "ADMIN") return {error:"Forbidden"};`. `Prisma` (for `PrismaClientKnownRequestError`) is re-exported from `@e-luna/db`.
+  - Admin actions gate: `getAuthUser()` from `@ayvana/auth` → `if (!user) return {error:"Unauthorized"}; if (user.role !== "ADMIN") return {error:"Forbidden"};`. `Prisma` (for `PrismaClientKnownRequestError`) is re-exported from `@ayvana/db`.
   - Admin nav `apps/admin/app/(dashboard)/components/Sidebar.tsx` — `NAV_ITEMS` array (…Customers/Fraud/Settings); active-check has a `pathname === href` fallback.
-  - Vendor `apps/vendor/app/actions/product.ts`: imports `{ prisma }` from `@e-luna/db`; `VALID_CATEGORIES = ["OCCASION","EVERYDAY","TRAVEL","SPORT"]` + `type Category` (lines 9-10); guard `if (!VALID_CATEGORIES.includes(data.category as Category)) return { success:false, error:"Invalid category" };` appears in BOTH `createProduct` (~line 74) and `updateProduct` (~line 143).
+  - Vendor `apps/vendor/app/actions/product.ts`: imports `{ prisma }` from `@ayvana/db`; `VALID_CATEGORIES = ["OCCASION","EVERYDAY","TRAVEL","SPORT"]` + `type Category` (lines 9-10); guard `if (!VALID_CATEGORIES.includes(data.category as Category)) return { success:false, error:"Invalid category" };` appears in BOTH `createProduct` (~line 74) and `updateProduct` (~line 143).
   - Vendor `ProductForm.tsx` (client): `import { createProduct, updateProduct } from "../../../actions/product";`; `Props = { productId?, initialData? }`; `const CATEGORIES = [{value:"OCCASION",label:"Occasion"},…] as const` (lines 28-33); `const [category, setCategory] = useState(initialData?.category ?? "OCCASION")` (line 42); the `<select value={category}>` maps `CATEGORIES` (`cat.value`/`cat.label`) at lines 154-164. Rendered by `products/new/page.tsx` (`<ProductForm />`) and `products/[id]/page.tsx` (`<ProductForm productId initialData />`).
-  - Customer `page.tsx`: `import { prisma } from "@e-luna/db";`; `CATEGORIES` const (lines 6-11, `{label,slug,emoji}`); `categoryStats = groupBy(["category"])`; `countMap = Object.fromEntries(categoryStats.map(c => [c.category, c._count._all]))`; `categoryCounts = CATEGORIES.map(cat => ({...cat, count: countMap[cat.slug] ?? 0}))`; render maps `categoryCounts` using `cat.emoji`, `cat.label`, `cat.slug`, `cat.count` (lines ~61-70).
-  - Customer `browse/page.tsx`: the first `Promise.all` entry (lines ~57-61) fetches distinct product categories → `string[]` named `categories`, passed to the filter UI. `import { prisma } from "@e-luna/db";`.
+  - Customer `page.tsx`: `import { prisma } from "@ayvana/db";`; `CATEGORIES` const (lines 6-11, `{label,slug,emoji}`); `categoryStats = groupBy(["category"])`; `countMap = Object.fromEntries(categoryStats.map(c => [c.category, c._count._all]))`; `categoryCounts = CATEGORIES.map(cat => ({...cat, count: countMap[cat.slug] ?? 0}))`; render maps `categoryCounts` using `cat.emoji`, `cat.label`, `cat.slug`, `cat.count` (lines ~61-70).
+  - Customer `browse/page.tsx`: the first `Promise.all` entry (lines ~57-61) fetches distinct product categories → `string[]` named `categories`, passed to the filter UI. `import { prisma } from "@ayvana/db";`.
   - Customer `browse/[category]/page.tsx:4`: `const VALID_CATEGORIES = ["occasion","everyday","travel","sport"];`; guard `if (!VALID_CATEGORIES.includes(category.toLowerCase())) notFound();` (~line 23).
   - Customer `components/Footer.tsx`: four hardcoded `<li><Link href="/browse?category=Occasion">…` links (lines ~19-22); rendered in `layout.tsx`.
 
@@ -105,12 +105,12 @@ export * from "./categories";
 
 - [ ] **Step 4: Regenerate the Prisma client**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db db:generate`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db db:generate`
 Expected: "Generated Prisma Client" success (`prisma.category` exists).
 
 - [ ] **Step 5: Type-check the db package**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db exec tsc --noEmit 2>&1 | tail -6`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db exec tsc --noEmit 2>&1 | tail -6`
 Expected: clean.
 
 - [ ] **Step 6: Commit**
@@ -135,8 +135,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, Prisma } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { prisma, Prisma } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -361,10 +361,10 @@ function CategoryRow({
 
 ```tsx
 import { Metadata } from "next";
-import { getAllCategories } from "@e-luna/db";
+import { getAllCategories } from "@ayvana/db";
 import { CategoryManager } from "./CategoryManager";
 
-export const metadata: Metadata = { title: "Categories — Luna Ops" };
+export const metadata: Metadata = { title: "Categories — AYVANA Ops" };
 
 export default async function CategoriesPage() {
   const categories = await getAllCategories();
@@ -412,9 +412,9 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 1: `product.ts` — import `getCategories`, drop the const, validate against managed slugs**
 
-Change `import { prisma } from "@e-luna/db";` to:
+Change `import { prisma } from "@ayvana/db";` to:
 ```ts
-import { prisma, getCategories } from "@e-luna/db";
+import { prisma, getCategories } from "@ayvana/db";
 ```
 Delete the two lines:
 ```ts
@@ -439,7 +439,7 @@ with:
 
 Add the import (type only):
 ```tsx
-import type { CategoryDTO } from "@e-luna/db";
+import type { CategoryDTO } from "@ayvana/db";
 ```
 Change `Props` to add `categories`:
 ```tsx
@@ -472,7 +472,7 @@ Change the `<select>`'s option map (was `CATEGORIES.map((cat) => (<option key={c
 
 - [ ] **Step 3: `products/new/page.tsx` — fetch + pass categories**
 
-Add `import { getCategories } from "@e-luna/db";`, make the component `async` if it isn't, and change `<ProductForm />` to:
+Add `import { getCategories } from "@ayvana/db";`, make the component `async` if it isn't, and change `<ProductForm />` to:
 ```tsx
       <ProductForm categories={await getCategories()} />
 ```
@@ -480,7 +480,7 @@ Add `import { getCategories } from "@e-luna/db";`, make the component `async` if
 
 - [ ] **Step 4: `products/[id]/page.tsx` — pass categories**
 
-Add `import { getCategories } from "@e-luna/db";` (the page is already `async`). Change `<ProductForm productId={product.id} initialData={initialData} />` to:
+Add `import { getCategories } from "@ayvana/db";` (the page is already `async`). Change `<ProductForm productId={product.id} initialData={initialData} />` to:
 ```tsx
       <ProductForm productId={product.id} initialData={initialData} categories={await getCategories()} />
 ```
@@ -513,9 +513,9 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 1: `page.tsx` — managed categories + case-insensitive counts**
 
-Add `getCategories` to the `@e-luna/db` import:
+Add `getCategories` to the `@ayvana/db` import:
 ```ts
-import { prisma, getCategories } from "@e-luna/db";
+import { prisma, getCategories } from "@ayvana/db";
 ```
 Delete the `const CATEGORIES = [...]` block (lines 6-11). After the `Promise.all` that produces `categoryStats`, add a fetch of categories and change the count logic. Replace:
 ```ts
@@ -542,7 +542,7 @@ to:
 
 - [ ] **Step 2: `browse/page.tsx` — filter category list from the managed list**
 
-Add `getCategories` to the import: `import { prisma, getCategories } from "@e-luna/db";`. Replace the distinct-products category fetch (the first entry of the `Promise.all`):
+Add `getCategories` to the import: `import { prisma, getCategories } from "@ayvana/db";`. Replace the distinct-products category fetch (the first entry of the `Promise.all`):
 ```ts
     prisma.product.findMany({
       where: { status: "ACTIVE" },
@@ -558,7 +558,7 @@ with:
 
 - [ ] **Step 3: `browse/[category]/page.tsx` — validate against managed slugs**
 
-Add `import { getCategories } from "@e-luna/db";`. Delete `const VALID_CATEGORIES = ["occasion", "everyday", "travel", "sport"];`. Replace the guard:
+Add `import { getCategories } from "@ayvana/db";`. Delete `const VALID_CATEGORIES = ["occasion", "everyday", "travel", "sport"];`. Replace the guard:
 ```tsx
   if (!VALID_CATEGORIES.includes(category.toLowerCase())) {
     notFound();
@@ -575,7 +575,7 @@ with:
 
 - [ ] **Step 4: `components/Footer.tsx` — async, links from the managed list**
 
-Add `import { getCategories } from "@e-luna/db";`. Make the component `async` (`export async function Footer(...)` or `export default async function Footer(...)` — match the existing export style). Add `const categories = await getCategories();` at the top of the body. Replace the four hardcoded category `<li>` links:
+Add `import { getCategories } from "@ayvana/db";`. Make the component `async` (`export async function Footer(...)` or `export default async function Footer(...)` — match the existing export style). Add `const categories = await getCategories();` at the top of the body. Replace the four hardcoded category `<li>` links:
 ```tsx
               <li><Link href="/browse?category=Occasion" className="hover:text-ivory transition-colors">Occasion</Link></li>
               <li><Link href="/browse?category=Everyday" className="hover:text-ivory transition-colors">Everyday</Link></li>
@@ -626,7 +626,7 @@ Run:
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna
 pnpm install --frozen-lockfile 2>&1 | tail -3
-pnpm --filter @e-luna/db db:generate 2>&1 | tail -2
+pnpm --filter @ayvana/db db:generate 2>&1 | tail -2
 ```
 Expected: no lockfile change; regen succeeds.
 
@@ -647,8 +647,8 @@ Expected: all apps pass (pre-existing `<img>` warnings acceptable).
 
 - [ ] **Step 4: Repo-wide type check**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit 2>&1 | tail -12`
-Expected: clean (includes `@e-luna/db` with the new categories module).
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit 2>&1 | tail -12`
+Expected: clean (includes `@ayvana/db` with the new categories module).
 
 - [ ] **Step 5: Wiring inspection**
 
@@ -673,7 +673,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 7: Manual/operator smoke note (not automated)**
 
-`pnpm --filter @e-luna/db db:push` adds `Category` (optionally seed the 4 canonical rows; the fallback covers pre-seed). Smoke (running apps + DB): admin `/categories` add/edit/deactivate a category → it appears/disappears in the vendor product-form dropdown + customer home/browse/footer; a product filed under an existing slug shows under that category in browse; before any rows exist, the storefront shows the 4 default categories (fallback).
+`pnpm --filter @ayvana/db db:push` adds `Category` (optionally seed the 4 canonical rows; the fallback covers pre-seed). Smoke (running apps + DB): admin `/categories` add/edit/deactivate a category → it appears/disappears in the vendor product-form dropdown + customer home/browse/footer; a product filed under an existing slug shows under that category in browse; before any rows exist, the storefront shows the 4 default categories (fallback).
 
 ---
 

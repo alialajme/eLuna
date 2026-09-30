@@ -6,7 +6,7 @@
 
 **Architecture:** One RSC route under `apps/admin/app/(dashboard)/` (ADMIN gated by the layout). Charts are pure server components returning inline SVG from numeric props (no `"use client"`, no deps). The only client component is a period toggle. All metrics derive in-memory from a single rich "current period orders" query plus a couple of small comparison queries. No schema changes.
 
-**Tech Stack:** Next.js 15 App Router (RSC + server actions not needed here — read-only), Prisma (`@e-luna/db`), Tailwind (Warm Oud tokens), inline SVG.
+**Tech Stack:** Next.js 15 App Router (RSC + server actions not needed here — read-only), Prisma (`@ayvana/db`), Tailwind (Warm Oud tokens), inline SVG.
 
 ---
 
@@ -27,7 +27,7 @@
 
 **Working dir:** `/Users/alialajme/Projects/Luna/e-luna`
 
-**DB:** `import { prisma } from "@e-luna/db"`.
+**DB:** `import { prisma } from "@ayvana/db"`.
 
 **Auth:** ADMIN enforced centrally by `(dashboard)/layout.tsx`. Page needs only a null-user check via `safeCurrentUser()` (from `../../lib/auth`).
 
@@ -292,13 +292,13 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { PeriodToggle } from "../components/PeriodToggle";
 import { LineChart } from "../components/LineChart";
 import { BarChart } from "../components/BarChart";
 
-export const metadata: Metadata = { title: "Analytics — Luna Ops" };
+export const metadata: Metadata = { title: "Analytics — AYVANA Ops" };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -527,7 +527,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/admin/app/(dashboard)/
 - [ ] **Step 1: Full repo typecheck (exact CI command)**
 
 ```bash
-cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit; echo "EXIT: $?"
+cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit; echo "EXIT: $?"
 ```
 Expected: `EXIT: 0`.
 

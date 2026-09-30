@@ -6,7 +6,7 @@ import { parseCart } from "../lib/cart-utils";
 
 export type { CartItem } from "../lib/cart-utils";
 
-const CART_COOKIE = "luna_cart";
+const CART_COOKIE = "ayvana_cart";
 const MAX_ITEMS = 20;
 
 export async function getCart() {

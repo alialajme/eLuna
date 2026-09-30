@@ -12,12 +12,12 @@
 
 ## Context for the implementer (read once)
 
-- **No test suite.** "Tests" = `npx tsc --noEmit` + `npx next lint`. Repo uses **`prisma db push`**; after schema edits run `pnpm --filter @e-luna/db db:generate`. `db push` to a live DB is operator. `noUncheckedIndexedAccess` ON.
+- **No test suite.** "Tests" = `npx tsc --noEmit` + `npx next lint`. Repo uses **`prisma db push`**; after schema edits run `pnpm --filter @ayvana/db db:generate`. `db push` to a live DB is operator. `noUncheckedIndexedAccess` ON.
 - **Verified state:**
-  - `apps/vendor/app/actions/shipment.ts` — full current source (imports `prisma` `@e-luna/db`, `getCourier` `@e-luna/ui/couriers`, `safeCurrentUser` `../lib/auth`, `getVendorByUserId` `../lib/vendor`, `recomputeOrderStatus` `../lib/order-status`). `createShipment({orderId,courier,trackingNumber,estimatedDelivery?})` validates `trackingNumber` non-empty + `getCourier`, gathers PENDING/PROCESSING items, `$transaction` creates `Shipment` (`status:"IN_TRANSIT"`) + links items SHIPPED, `recomputeOrderStatus`, revalidates. `markShipmentDelivered(shipmentId)` — auth + ownership + already-delivered guards → `$transaction` DELIVERED + items DELIVERED → recompute → revalidate.
-  - `@e-luna/db` re-exports `ShipmentStatus` type + `Prisma`. `ShipmentStatus = CREATED|PICKED_UP|IN_TRANSIT|OUT_FOR_DELIVERY|DELIVERED|FAILED|RETURNED`.
+  - `apps/vendor/app/actions/shipment.ts` — full current source (imports `prisma` `@ayvana/db`, `getCourier` `@ayvana/ui/couriers`, `safeCurrentUser` `../lib/auth`, `getVendorByUserId` `../lib/vendor`, `recomputeOrderStatus` `../lib/order-status`). `createShipment({orderId,courier,trackingNumber,estimatedDelivery?})` validates `trackingNumber` non-empty + `getCourier`, gathers PENDING/PROCESSING items, `$transaction` creates `Shipment` (`status:"IN_TRANSIT"`) + links items SHIPPED, `recomputeOrderStatus`, revalidates. `markShipmentDelivered(shipmentId)` — auth + ownership + already-delivered guards → `$transaction` DELIVERED + items DELIVERED → recompute → revalidate.
+  - `@ayvana/db` re-exports `ShipmentStatus` type + `Prisma`. `ShipmentStatus = CREATED|PICKED_UP|IN_TRANSIT|OUT_FOR_DELIVERY|DELIVERED|FAILED|RETURNED`.
   - `Order.address` is a required relation (`{ fullName, addressLine1, city, emirate }`, emirate nullable).
-  - `FulfillmentPanel.tsx` (client): `type Shipment = { id: string; courier: string; trackingNumber: string | null; status: string };` (line 10); `submitShipment` has a client guard `if (!tracking.trim()) { setError("Enter a tracking number"); return; }`; the shipment rows map `shipments` (line ~87) showing courier name + tracking + status + Mark Delivered; the tracking `<input>` has `placeholder="Tracking number"` (line ~137). It imports `createShipment`/`markShipmentDelivered` from `../../../actions/shipment` and `COURIERS` from `@e-luna/ui/couriers`.
+  - `FulfillmentPanel.tsx` (client): `type Shipment = { id: string; courier: string; trackingNumber: string | null; status: string };` (line 10); `submitShipment` has a client guard `if (!tracking.trim()) { setError("Enter a tracking number"); return; }`; the shipment rows map `shipments` (line ~87) showing courier name + tracking + status + Mark Delivered; the tracking `<input>` has `placeholder="Tracking number"` (line ~137). It imports `createShipment`/`markShipmentDelivered` from `../../../actions/shipment` and `COURIERS` from `@ayvana/ui/couriers`.
   - `apps/vendor/app/(dashboard)/orders/[id]/page.tsx` — `const shipments = await prisma.shipment.findMany({ where:{ orderId:id, vendorId:vendor.id }, orderBy:{createdAt:"asc"}, select:{ id:true, courier:true, trackingNumber:true, status:true } })` (line ~43-47), passed to `<FulfillmentPanel shipments={shipments} ... />`.
 
 ---
@@ -59,7 +59,7 @@ Add these fields (near the other scalar fields) and the index (near the existing
 
 - [ ] **Step 2: Regenerate the Prisma client**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db db:generate`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db db:generate`
 Expected: "Generated Prisma Client" success.
 
 - [ ] **Step 3: Type-check the vendor app (nothing consumes the fields yet)**
@@ -86,7 +86,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 1: `gateway.ts`**
 
 ```ts
-import type { ShipmentStatus } from "@e-luna/db";
+import type { ShipmentStatus } from "@ayvana/db";
 
 export type CreateShipmentParams = {
   orderId: string;
@@ -178,7 +178,7 @@ export function getCourierGateway(courierId: string): CourierGateway {
 - [ ] **Step 6: `apply-status.ts`**
 
 ```ts
-import { prisma, type ShipmentStatus } from "@e-luna/db";
+import { prisma, type ShipmentStatus } from "@ayvana/db";
 import { recomputeOrderStatus } from "../order-status";
 
 /** Idempotently apply a shipment status; DELIVERED also flips items + timestamps and recomputes the order. */
@@ -353,7 +353,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 1: Create the route**
 
 ```ts
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { getCourierGateway } from "../../../../lib/courier/factory";
 import { applyShipmentStatus } from "../../../../lib/courier/apply-status";
 
@@ -549,7 +549,7 @@ Run:
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna
 pnpm install --frozen-lockfile 2>&1 | tail -3
-pnpm --filter @e-luna/db db:generate 2>&1 | tail -2
+pnpm --filter @ayvana/db db:generate 2>&1 | tail -2
 ```
 Expected: no lockfile change; regen succeeds.
 
@@ -560,7 +560,7 @@ Expected: all apps pass (pre-existing `<img>` warnings acceptable).
 
 - [ ] **Step 3: Repo-wide type check**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit 2>&1 | tail -12`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit 2>&1 | tail -12`
 Expected: clean.
 
 - [ ] **Step 4: Simulated-fallback proof (inspection)**

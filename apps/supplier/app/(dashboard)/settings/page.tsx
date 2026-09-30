@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 import { TrnForm } from "../components/TrnForm";
@@ -7,7 +7,7 @@ import { TradeLicenseForm } from "../components/TradeLicenseForm";
 import { IbanForm } from "../components/IbanForm";
 import { hasTradeLicenseRegistry } from "../../lib/trade-license/config";
 
-export const metadata: Metadata = { title: "Settings — Luna Supplier" };
+export const metadata: Metadata = { title: "Settings — AYVANA Supplier" };
 
 const ftaConfigured = !!process.env.FTA_ACCESS_POINT_URL && !!process.env.FTA_API_KEY;
 

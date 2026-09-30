@@ -1,13 +1,13 @@
-# e-Luna — Architecture
+# AYVANA — Architecture
 
-This document describes the e-Luna platform architecture as it stands after the production-hardening
+This document describes the AYVANA platform architecture as it stands after the production-hardening
 effort (see `docs/PRODUCTION-HARDENING.md` and PRs #1–#4). Diagrams are Mermaid so they render on
 GitHub and stay in-repo next to the code.
 
 - **Style:** modular monolith — a Turborepo of four Next.js 15 apps sharing typed packages. Strong
   internal module boundaries; not split into microservices (see ADR-0001).
-- **Personas / apps:** `customer` (luna.ae), `vendor` (sell.luna.ae), `admin` (ops.luna.ae),
-  `supplier` (supply.luna.ae).
+- **Personas / apps:** `customer` (ayvana.ae), `vendor` (sell.ayvana.ae), `admin` (ops.ayvana.ae),
+  `supplier` (supply.ayvana.ae).
 - **Shared packages:** `ui`, `db` (Prisma + domain services), `ai`, `auth`, `config`, `payments`,
   `courier`, `einvoice`, `observability`.
 
@@ -17,12 +17,12 @@ GitHub and stay in-repo next to the code.
 
 ```mermaid
 graph TB
-  Customer([Customer]) --> C[customer app<br/>luna.ae]
-  Vendor([Vendor]) --> V[vendor app<br/>sell.luna.ae]
-  Admin([Admin]) --> A[admin app<br/>ops.luna.ae]
-  Supplier([Supplier]) --> S[supplier app<br/>supply.luna.ae]
+  Customer([Customer]) --> C[customer app<br/>ayvana.ae]
+  Vendor([Vendor]) --> V[vendor app<br/>sell.ayvana.ae]
+  Admin([Admin]) --> A[admin app<br/>ops.ayvana.ae]
+  Supplier([Supplier]) --> S[supplier app<br/>supply.ayvana.ae]
 
-  subgraph eLuna[e-Luna platform]
+  subgraph eAYVANA[AYVANA platform]
     C & V & A & S --> DB[(PostgreSQL)]
   end
 
@@ -65,7 +65,7 @@ graph LR
   PAY --> DB
 ```
 
-Domain/financial logic lives in `@e-luna/db` (money, inventory reservation, wallet ledger, financial
+Domain/financial logic lives in `@ayvana/db` (money, inventory reservation, wallet ledger, financial
 ledger, order/payment/payout state machines, outbox, typed errors) so it is unit/integration-tested
 independently of the Next.js layer. Server actions stay thin: authenticate → validate → call a
 service → map result.
@@ -202,9 +202,9 @@ sequenceDiagram
 - **AuthZ:** every server action re-checks role AND resource ownership (`where: { id, vendorId }` /
   post-load owner check) — audited, no horizontal privilege escalation (see THREAT-MODEL).
 - **Headers:** shared HSTS/nosniff/frame-ancestors/Referrer-Policy/Permissions-Policy on all apps.
-- **Rate limiting:** `@e-luna/auth` limiter on AI endpoints (Redis-swappable interface).
+- **Rate limiting:** `@ayvana/auth` limiter on AI endpoints (Redis-swappable interface).
 - **Audit log:** immutable `AuditLog`, written transactionally for payout/vendor/refund actions.
-- **Observability:** `@e-luna/observability` structured JSON logger with correlation IDs + secret
+- **Observability:** `@ayvana/observability` structured JSON logger with correlation IDs + secret
   redaction; adopted in checkout + webhook (rollout ongoing).
 
 See `docs/adr/` for the decisions behind these, and `docs/PRODUCTION-HARDENING.md` for status.

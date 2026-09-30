@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { SupplierStatus } from "@e-luna/db";
+import type { SupplierStatus } from "@ayvana/db";
 import {
   approveSupplier,
   rejectSupplier,

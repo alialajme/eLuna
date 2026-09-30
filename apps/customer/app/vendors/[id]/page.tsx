@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { prisma } from "@e-luna/db";
-import { FilterBar } from "@e-luna/ui";
+import { prisma } from "@ayvana/db";
+import { FilterBar } from "@ayvana/ui";
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { ProductGrid, PAGE_SIZE } from "../../components/ProductGrid";
 import { ProductGridSkeleton } from "../../components/ProductGridSkeleton";
@@ -36,8 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const vendor = await getVendor(id);
   if (!vendor) return { title: "Not Found" };
   return {
-    title: `${vendor.storeName} — Luna`,
-    description: `Shop abayas from ${vendor.storeName} on Luna`,
+    title: `${vendor.storeName} — AYVANA`,
+    description: `Shop abayas from ${vendor.storeName} on AYVANA`,
   };
 }
 
@@ -165,7 +165,7 @@ export default async function VendorBoutiquePage({ params, searchParams }: Props
         <div className="mt-4 flex items-center gap-2 rounded-xl border border-sand p-4 max-w-sm">
           <span className="text-gold">◑</span>
           <p className="text-body-sm text-mist">
-            Standard platform return policy applies to all Luna boutiques.
+            Standard platform return policy applies to all AYVANA boutiques.
           </p>
         </div>
       </section>

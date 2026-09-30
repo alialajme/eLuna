@@ -23,7 +23,7 @@ working unchanged after the package extraction.
 
 ## Confirmed Decisions
 
-- **Extract a shared `@e-luna/courier` package** from `apps/vendor/app/lib/courier/` (the pure gateway:
+- **Extract a shared `@ayvana/courier` package** from `apps/vendor/app/lib/courier/` (the pure gateway:
   interface + config + Simulated + Aramex/DHL scaffolds + factory), reused by supplier + vendor; repoint the
   vendor. Each app keeps its **own** `apply-status` (the DB-write semantics differ: vendor → `Shipment`,
   supplier → `MaterialOrder`).
@@ -33,7 +33,7 @@ working unchanged after the package extraction.
   `SHIPPED → COMPLETED`. The supplier's manual "Mark complete" stays. Locally (Simulated, no webhook)
   nothing changes — manual complete remains the only path.
 - **Add DHL scaffold** alongside the existing Aramex scaffold (both config-gated, both fall back to
-  Simulated without keys). The shared `@e-luna/ui/couriers` registry already includes Aramex + DHL +
+  Simulated without keys). The shared `@ayvana/ui/couriers` registry already includes Aramex + DHL +
   tracking deep-links.
 - Structured courier fields live **on `MaterialOrder`** (no separate shipment table — a material order is a
   single supplier → single parcel; unlike a customer order that fans out to multiple vendors).
@@ -45,10 +45,10 @@ working unchanged after the package extraction.
 - Returns/RMA on material orders; multi-parcel/partial shipments; label re-print history.
 - Changing the customer-order (`Shipment`) courier behavior beyond the mechanical repoint + neutral-status map.
 
-## Part A — Extract the shared `@e-luna/courier` package
+## Part A — Extract the shared `@ayvana/courier` package
 
 Move `apps/vendor/app/lib/courier/{gateway,config,simulated,aramex,factory}.ts` into a new workspace package
-**`packages/courier`** (`@e-luna/courier`), exporting raw TS (`./src/index.ts`, like `@e-luna/db`/`@e-luna/einvoice`).
+**`packages/courier`** (`@ayvana/courier`), exporting raw TS (`./src/index.ts`, like `@ayvana/db`/`@ayvana/einvoice`).
 
 **`gateway.ts` (generalized):**
 ```ts
@@ -85,14 +85,14 @@ export interface CourierGateway {
 
 **Repoint the vendor:** `apps/vendor/app/lib/courier/` keeps **only** `apply-status.ts` (customer-order
 `Shipment` semantics). The vendor `createShipment` action, the webhook route, and `apply-status` import the
-gateway/factory from `@e-luna/courier`. Because the event status is now neutral, the vendor webhook maps
+gateway/factory from `@ayvana/courier`. Because the event status is now neutral, the vendor webhook maps
 `"delivered" → ShipmentStatus.DELIVERED`, `"in_transit"/"exception" → IN_TRANSIT` before calling
 `applyShipmentStatus`. `CreateShipmentParams.orderId` call-site becomes `reference: input.orderId`. Add
-`@e-luna/courier` to the vendor app deps + `transpilePackages`.
+`@ayvana/courier` to the vendor app deps + `transpilePackages`.
 
-`packages/courier/package.json` = `@e-luna/courier`, `devDependencies`: `@e-luna/config`, `typescript`,
-`@types/node` (for `process.env`), `@e-luna/db` only if a type is needed (it is **not** after the neutral
-status — the package no longer imports `@e-luna/db`). tsconfig extends `@e-luna/config/tsconfig/base`.
+`packages/courier/package.json` = `@ayvana/courier`, `devDependencies`: `@ayvana/config`, `typescript`,
+`@types/node` (for `process.env`), `@ayvana/db` only if a type is needed (it is **not** after the neutral
+status — the package no longer imports `@ayvana/db`). tsconfig extends `@ayvana/config/tsconfig/base`.
 
 ## Part B — Data model (Prisma, `db push`)
 
@@ -115,7 +115,7 @@ already has `SHIPPED`/`COMPLETED`.
 - **`actions/incoming-order.ts` → `shipMaterialOrder`** changes signature to
   `shipMaterialOrder(orderId, input: { courier: string; trackingNumber?: string; trackingNote?: string })`:
   - Resolve ACTIVE supplier server-side; load owned order; require `status === "ACCEPTED"`.
-  - Validate `getCourier(input.courier)` exists (`@e-luna/ui/couriers`).
+  - Validate `getCourier(input.courier)` exists (`@ayvana/ui/couriers`).
   - Load the buying vendor's address for the destination (`order.vendor` → a shipping address; if the
     `Vendor` has no structured address, pass `storeName` as `name` and blank address lines — the gateway
     only needs it for a real API, and Simulated ignores it). **Decision:** destination `name =
@@ -171,8 +171,8 @@ already has `SHIPPED`/`COMPLETED`.
 ## Testing
 
 No automated suite — types + lint + manual:
-1. `pnpm install` (new `@e-luna/courier` + vendor/supplier deps) + `db:generate` + `db:push`.
-2. `pnpm --filter "@e-luna/*" exec tsc --noEmit` — clean (incl. the repointed vendor).
+1. `pnpm install` (new `@ayvana/courier` + vendor/supplier deps) + `db:generate` + `db:push`.
+2. `pnpm --filter "@ayvana/*" exec tsc --noEmit` — clean (incl. the repointed vendor).
 3. `pnpm lint` — clean.
 4. gitleaks — clean.
 5. Manual: supplier ships an ACCEPTED order via Simulated (enter tracking) → order SHIPPED, vendor sees the
@@ -184,12 +184,12 @@ No automated suite — types + lint + manual:
 - Create: `packages/courier/` (`package.json`, `tsconfig.json`, `src/{gateway,config,simulated,aramex,dhl,factory,index}.ts`).
 - Modify: `apps/vendor/app/lib/courier/` — delete `{gateway,config,simulated,aramex,factory}.ts` (moved),
   keep `apply-status.ts`; repoint `actions/shipment.ts`, `api/webhooks/courier/[courier]/route.ts`,
-  `apply-status.ts` imports to `@e-luna/courier` + neutral-status map; `apps/vendor/package.json` +
-  `next.config.ts` (add `@e-luna/courier`).
+  `apply-status.ts` imports to `@ayvana/courier` + neutral-status map; `apps/vendor/package.json` +
+  `next.config.ts` (add `@ayvana/courier`).
 - Modify: `packages/db/prisma/schema.prisma` (`MaterialOrder` courier fields).
 - Supplier: create `app/lib/courier/apply-status.ts`, `api/webhooks/courier/[courier]/route.ts`, a ship-form
   island; modify `actions/incoming-order.ts` (`shipMaterialOrder`), the supplier order-detail page,
-  `package.json` + `next.config.ts` (add `@e-luna/courier`).
+  `package.json` + `next.config.ts` (add `@ayvana/courier`).
 - Vendor buyer view: modify `(dashboard)/sourcing/orders/[id]/page.tsx`.
 - Fix: `apps/vendor/app/actions/invoice.ts` (I1).
 - `.env.example`: `DHL_API_KEY` / `DHL_WEBHOOK_SECRET` (Aramex vars already present); doc note in

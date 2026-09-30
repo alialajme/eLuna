@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { SizeProfileForm } from "./SizeProfileForm";
 
 export const metadata: Metadata = {
-  title: "Size Profile — Luna",
+  title: "Size Profile — AYVANA",
 };
 
 export default async function SizeProfilePage() {
@@ -54,7 +54,7 @@ export default async function SizeProfilePage() {
       </nav>
       <h1 className="font-display text-display-lg text-ink mb-2">Size Profile</h1>
       <p className="text-body-md text-mist mb-8">
-        Luna uses your measurements to recommend your perfect fit.
+        AYVANA uses your measurements to recommend your perfect fit.
       </p>
       <SizeProfileForm initial={initial} />
     </div>

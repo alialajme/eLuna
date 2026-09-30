@@ -1,14 +1,14 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
-import { courierName, trackingUrl } from "@e-luna/ui/couriers";
+import { prisma } from "@ayvana/db";
+import { courierName, trackingUrl } from "@ayvana/ui/couriers";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getSupplierByUserId } from "../../../lib/supplier";
 import { OrderActions } from "../../components/OrderActions";
 import { IssueInvoiceButton } from "../../components/IssueInvoiceButton";
 
-export const metadata: Metadata = { title: "Order — Luna Supplier" };
+export const metadata: Metadata = { title: "Order — AYVANA Supplier" };
 
 type Props = { params: Promise<{ id: string }> };
 

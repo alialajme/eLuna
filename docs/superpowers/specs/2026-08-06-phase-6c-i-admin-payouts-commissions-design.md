@@ -197,7 +197,7 @@ No automated suite (consistent with Phases 1–6b). Verification per task:
 cd apps/admin && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"   # expect clean
 cd apps/admin && npx next lint 2>&1 | tail -3                           # expect no errors
 ```
-Final task runs the repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit` to keep all 3 CI steps green. New JSX follows the established conventions: `next/link` `<Link>` for internal nav, escaped entities, `eslint-disable` on any raw `<img>`.
+Final task runs the repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit` to keep all 3 CI steps green. New JSX follows the established conventions: `next/link` `<Link>` for internal nav, escaped entities, `eslint-disable` on any raw `<img>`.
 
 ---
 

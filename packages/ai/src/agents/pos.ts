@@ -5,7 +5,7 @@ import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 const POS_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
 You are the POS Agent. You handle background synchronization tasks — inventory sync across channels,
-loyalty point merging, in-store returns, and QR code lookups for the e-Luna platform.`;
+loyalty point merging, in-store returns, and QR code lookups for the AYVANA platform.`;
 
 export const posTools = {
   sync_inventory: tool({
@@ -20,7 +20,7 @@ export const posTools = {
   }),
 
   merge_loyalty: tool({
-    description: "Merge loyalty points earned in-store with the customer's online Luna account",
+    description: "Merge loyalty points earned in-store with the customer's online AYVANA account",
     parameters: z.object({
       customerId: z.string(),
       pointsToMerge: z.number(),

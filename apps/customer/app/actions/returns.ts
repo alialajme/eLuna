@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, money } from "@e-luna/db";
+import { prisma, money } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 
 const RETURN_WINDOW_MS = 14 * 86_400_000;

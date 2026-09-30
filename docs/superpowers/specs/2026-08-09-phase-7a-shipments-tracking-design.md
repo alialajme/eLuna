@@ -13,7 +13,7 @@ Turn the unused `Shipment` model into a real, per-vendor shipment + customer-tra
 - Vendor actions: `createShipment`, `markShipmentDelivered`, and a `recomputeOrderStatus` aggregation helper.
 - Vendor `FulfillmentPanel` gains a Create-Shipment form + Mark-Delivered.
 - Customer order-detail tracking section (status milestones, ETA, delivered date, courier deep-link).
-- A shared courier registry (`@e-luna/ui/couriers`).
+- A shared courier registry (`@ayvana/ui/couriers`).
 
 **Out of scope (later phases):**
 - Returns + refund/restock (7b).
@@ -57,7 +57,7 @@ model Vendor {
   shipments Shipment[]
 }
 ```
-`courier` stays a `String`, constrained by the UI to the courier registry ids. Optional `OrderItem.shipment` relation defaults to `onDelete: SetNull` (shipments are not deleted in practice). Apply with `pnpm --filter @e-luna/db db:push` (operator/dev step); `db:generate` regenerates types offline.
+`courier` stays a `String`, constrained by the UI to the courier registry ids. Optional `OrderItem.shipment` relation defaults to `onDelete: SetNull` (shipments are not deleted in practice). Apply with `pnpm --filter @ayvana/db db:push` (operator/dev step); `db:generate` regenerates types offline.
 
 ### Courier registry — `packages/ui/src/couriers.ts`
 Pure-data module (no React, no `"use client"`), exported as an **isolated subpath** so it never pulls the client-component barrel into server components:
@@ -85,7 +85,7 @@ export function trackingUrl(id: string, tn: string): string | null {
   return c ? c.trackingUrl(tn) : null;
 }
 ```
-`packages/ui/package.json` `exports` gains `"./couriers": "./src/couriers.ts"`. Both apps import via `@e-luna/ui/couriers`.
+`packages/ui/package.json` `exports` gains `"./couriers": "./src/couriers.ts"`. Both apps import via `@ayvana/ui/couriers`.
 
 ### Files
 ```
@@ -135,7 +135,7 @@ This is what advances an order to `DELIVERED`, which the **8b Payment agent's `r
 
 ## Vendor actions — `apps/vendor/app/actions/shipment.ts`
 
-`"use server"`. Auth via `safeCurrentUser` + `getVendorByUserId` (same pattern as the existing `order.ts`). Courier validated against `getCourier(...)` from `@e-luna/ui/couriers`.
+`"use server"`. Auth via `safeCurrentUser` + `getVendorByUserId` (same pattern as the existing `order.ts`). Courier validated against `getCourier(...)` from `@ayvana/ui/couriers`.
 
 ### `createShipment`
 ```ts
@@ -263,13 +263,13 @@ It highlights milestones up to and including the current status; `FAILED`/`RETUR
 
 No automated suite (repo-consistent). Per task:
 ```bash
-pnpm --filter @e-luna/db db:generate                                      # regenerate client for new relations (offline)
+pnpm --filter @ayvana/db db:generate                                      # regenerate client for new relations (offline)
 cd apps/vendor && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"     # clean
 cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"   # clean
 cd apps/vendor && npx next lint 2>&1 | tail -3                             # no new errors
 cd apps/customer && npx next lint 2>&1 | tail -3                           # no new errors
 ```
-Final task runs repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit`.
+Final task runs repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit`.
 
 **Manual smoke (documented, needs a running app + DB):** vendor opens an order → Create Shipment (courier + tracking) → items become `SHIPPED`, order → `SHIPPED`; customer order page shows the shipment + tracking deep-link + timeline; vendor Mark Delivered → items + order → `DELIVERED`; the 8b Payment agent's `refund_eligibility` now returns eligible for that order.
 

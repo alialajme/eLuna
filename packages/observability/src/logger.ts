@@ -1,4 +1,4 @@
-// Structured logging for e-Luna.
+// Structured logging for AYVANA.
 //
 // One JSON object per line (stdout/stderr) so logs are machine-parseable by
 // Azure Log Analytics / Application Insights. Loggers carry bound context

@@ -1,16 +1,16 @@
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 import { median } from "../median";
 
 const SELLER_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Seller Agent for a Luna vendor. Help them manage and grow their boutique.
+You are the Seller Agent for a AYVANA vendor. Help them manage and grow their boutique.
 Use your tools to ground every answer in the vendor's real data — never invent numbers.
 Be concise and data-driven; vendors are busy. When you recommend creating marketing
-imagery, use the studio_link tool to point them to Luna Studio.`;
+imagery, use the studio_link tool to point them to AYVANA Studio.`;
 
 // vendorId is captured from the authenticated session — NEVER an LLM parameter.
 export function buildSellerTools(vendorId: string) {
@@ -133,7 +133,7 @@ export function buildSellerTools(vendorId: string) {
 
     studio_link: tool({
       description:
-        "Return a link to Luna Studio where the vendor can upload photos to generate a marketing campaign.",
+        "Return a link to AYVANA Studio where the vendor can upload photos to generate a marketing campaign.",
       parameters: z.object({
         productId: z.string().optional(),
       }),
@@ -141,7 +141,7 @@ export function buildSellerTools(vendorId: string) {
         return {
           url: "/studio/new",
           message:
-            "Upload 3 photos of the product to generate a full marketing campaign in Luna Studio.",
+            "Upload 3 photos of the product to generate a full marketing campaign in AYVANA Studio.",
         };
       },
     }),

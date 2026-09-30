@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add the **Supplier** persona (materials/fabric supplier serving vendors) as a fourth, separately-authenticated app — `SUPPLIER` role, `Supplier` profile, a `supply.luna.ae` app (own login + onboarding + dashboard shell), and admin approval. Foundation only; no catalog/sourcing/orders.
+**Goal:** Add the **Supplier** persona (materials/fabric supplier serving vendors) as a fourth, separately-authenticated app — `SUPPLIER` role, `Supplier` profile, a `supply.ayvana.ae` app (own login + onboarding + dashboard shell), and admin approval. Foundation only; no catalog/sourcing/orders.
 
 **Architecture:** A new Next.js app `apps/supplier` is a structural clone of `apps/vendor`, stripped to sign-in + onboarding + a status-gated dashboard shell. Auth reuses the vendor app's hand-rolled `clerkMiddleware` pattern (signed-in check + public routes). Admins approve suppliers from a new `suppliers/approvals` section in the admin console that mirrors `sellers/approvals`.
 
-**Tech Stack:** Turborepo + pnpm@9, Next.js 15 App Router (React 19), Prisma + PostgreSQL (`prisma db push`, NO migration files), Clerk auth, Tailwind (Warm Oud tokens via `@e-luna/config`).
+**Tech Stack:** Turborepo + pnpm@9, Next.js 15 App Router (React 19), Prisma + PostgreSQL (`prisma db push`, NO migration files), Clerk auth, Tailwind (Warm Oud tokens via `@ayvana/config`).
 
 **Spec:** `docs/superpowers/specs/2026-08-10-supplier-s1-foundation-design.md`
 
@@ -17,13 +17,13 @@
 - **No automated test suite exists.** Every prior phase verified with type-check + lint. So in this
   plan, each task's "test" step is: regenerate the Prisma client when the schema changed, then
   `tsc --noEmit` and `next lint` on the touched packages/apps. That is the repo's real quality gate.
-- Prisma: edit `packages/db/prisma/schema.prisma`, then `pnpm --filter @e-luna/db db:generate`
-  (regenerates client offline) and `pnpm --filter @e-luna/db db:push` (applies to local DB). The
-  `@e-luna/db` barrel re-exports `prisma` and Prisma model/enum types.
+- Prisma: edit `packages/db/prisma/schema.prisma`, then `pnpm --filter @ayvana/db db:generate`
+  (regenerates client offline) and `pnpm --filter @ayvana/db db:push` (applies to local DB). The
+  `@ayvana/db` barrel re-exports `prisma` and Prisma model/enum types.
 - Server actions return `{ success: boolean; error?: string }` (onboarding) or
   `{ success: true } | { error: string }` (admin actions) — match the neighbouring file.
 - DB reads use `.catch(() => fallback)`.
-- Deviation from spec, intentional: the spec mentioned `createLunaMiddleware("SUPPLIER")` and a
+- Deviation from spec, intentional: the spec mentioned `createAyvanaMiddleware("SUPPLIER")` and a
   no-Clerk-keys dev fallback. The **actual** vendor app (the sibling this clones) uses a hand-rolled
   `clerkMiddleware` with no role-claim gate and no keyless fallback — persona separation is achieved
   by each app having its own Clerk instance. This plan clones the real vendor pattern for
@@ -135,7 +135,7 @@ In `model User`, find the vendor back-relation line (`vendor        Vendor?` —
 
 Run:
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:generate && pnpm --filter @ayvana/db db:push
 ```
 Expected: generate succeeds; `db:push` prints "Your database is now in sync with your Prisma schema." (Requires local Postgres at `localhost:5432` per `.env`.)
 
@@ -145,7 +145,7 @@ Run:
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna && node -e "const db=require('./packages/db'); console.log(Object.keys(db).includes('prisma'))"
 ```
-Expected: prints `true`. (Confirms the client rebuilt. `SupplierStatus` is now a type in `@e-luna/db`.)
+Expected: prints `true`. (Confirms the client rebuilt. `SupplierStatus` is now a type in `@ayvana/db`.)
 
 - [ ] **Step 7: Commit**
 
@@ -188,9 +188,9 @@ export type ClerkSessionClaims = {
 
 Run:
 ```bash
-pnpm --filter @e-luna/auth exec tsc --noEmit
+pnpm --filter @ayvana/auth exec tsc --noEmit
 ```
-Expected: no errors. (If `@e-luna/auth` has no `tsc` script path, run from the repo root: `pnpm exec tsc --noEmit -p packages/auth/tsconfig.json`.)
+Expected: no errors. (If `@ayvana/auth` has no `tsc` script path, run from the repo root: `pnpm exec tsc --noEmit -p packages/auth/tsconfig.json`.)
 
 - [ ] **Step 3: Commit**
 
@@ -219,7 +219,7 @@ git commit -m "feat(auth): add SUPPLIER role to UserRole, ROLES, and session cla
 
 ```json
 {
-  "name": "@e-luna/supplier",
+  "name": "@ayvana/supplier",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -230,15 +230,15 @@ git commit -m "feat(auth): add SUPPLIER role to UserRole, ROLES, and session cla
   },
   "dependencies": {
     "@clerk/nextjs": "^5.0.0",
-    "@e-luna/ui": "workspace:*",
-    "@e-luna/auth": "workspace:*",
-    "@e-luna/db": "workspace:*",
+    "@ayvana/ui": "workspace:*",
+    "@ayvana/auth": "workspace:*",
+    "@ayvana/db": "workspace:*",
     "next": "15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -255,7 +255,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  transpilePackages: ["@e-luna/ui", "@e-luna/auth", "@e-luna/db"],
+  transpilePackages: ["@ayvana/ui", "@ayvana/auth", "@ayvana/db"],
 };
 
 export default nextConfig;
@@ -265,7 +265,7 @@ export default nextConfig;
 
 ```json
 {
-  "extends": "@e-luna/config/tsconfig/nextjs",
+  "extends": "@ayvana/config/tsconfig/nextjs",
   "compilerOptions": {
     "paths": { "@/*": ["./*"] }
   },
@@ -278,10 +278,10 @@ export default nextConfig;
 
 ```ts
 import type { Config } from "tailwindcss";
-import { lunaPreset } from "@e-luna/config/tailwind";
+import { ayvanaPreset } from "@ayvana/config/tailwind";
 
 const config: Config = {
-  presets: [lunaPreset as Config],
+  presets: [ayvanaPreset as Config],
   content: [
     "./app/**/*.{ts,tsx}",
     "../../packages/ui/src/**/*.{ts,tsx}",
@@ -296,7 +296,7 @@ export default config;
 ```json
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd ../.. && npx turbo build --filter=@e-luna/supplier",
+  "buildCommand": "cd ../.. && npx turbo build --filter=@ayvana/supplier",
   "installCommand": "cd ../.. && pnpm install",
   "outputDirectory": ".next",
   "framework": "nextjs"
@@ -350,8 +350,8 @@ const ibmArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "Luna Supplier — Materials OS",
-  description: "Supply materials to Luna's boutiques",
+  title: "AYVANA Supplier — Materials OS",
+  description: "Supply materials to AYVANA's boutiques",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -410,7 +410,7 @@ Expected: install completes; `apps/supplier/node_modules` now exists with worksp
 
 ```bash
 git add apps/supplier/package.json apps/supplier/next.config.ts apps/supplier/tsconfig.json apps/supplier/tailwind.config.ts apps/supplier/vercel.json apps/supplier/next-env.d.ts apps/supplier/app/globals.css apps/supplier/app/layout.tsx apps/supplier/app/lib/auth.ts apps/supplier/app/lib/slugify.ts pnpm-lock.yaml
-git commit -m "feat(supplier): scaffold supply.luna.ae app shell and config"
+git commit -m "feat(supplier): scaffold supply.ayvana.ae app shell and config"
 ```
 
 ---
@@ -447,8 +447,8 @@ export function sanitizeMaterialTypes(input: string[]): string[] {
 - [ ] **Step 2: `apps/supplier/app/lib/supplier.ts`**
 
 ```ts
-import { prisma } from "@e-luna/db";
-import type { SupplierStatus } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
+import type { SupplierStatus } from "@ayvana/db";
 
 export type SupplierWithStatus = {
   id: string;
@@ -488,9 +488,9 @@ export async function getSupplierByUserId(
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
-Expected: no errors (`SupplierStatus` resolves from `@e-luna/db`; `getSupplierByUserId` typed).
+Expected: no errors (`SupplierStatus` resolves from `@ayvana/db`; `getSupplierByUserId` typed).
 
 - [ ] **Step 4: Commit**
 
@@ -511,7 +511,7 @@ git commit -m "feat(supplier): add material-types constant and supplier lookup h
 ```ts
 "use server";
 
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 import { sanitizeMaterialTypes } from "../lib/materials";
 
@@ -587,7 +587,7 @@ export async function createSupplier(
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Expected: no errors.
 
@@ -667,7 +667,7 @@ import { getSupplierByUserId } from "../../lib/supplier";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 export const metadata: Metadata = {
-  title: "Set up your supplier account — Luna Supplier",
+  title: "Set up your supplier account — AYVANA Supplier",
 };
 
 export default async function OnboardingPage() {
@@ -677,7 +677,7 @@ export default async function OnboardingPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-ink">
         <div className="text-center">
-          <p className="font-display text-display-md text-gold mb-4">Luna Supplier OS</p>
+          <p className="font-display text-display-md text-gold mb-4">AYVANA Supplier OS</p>
           <Link
             href="/sign-in"
             className="inline-flex rounded-full bg-gold px-6 py-3 text-body-md font-medium text-ink"
@@ -700,7 +700,7 @@ export default async function OnboardingPage() {
   return (
     <main className="min-h-screen bg-ivory">
       <div className="border-b border-sand px-6 py-4">
-        <span className="font-display text-display-sm text-gold">✦ Luna</span>
+        <span className="font-display text-display-sm text-gold">✦ AYVANA</span>
         <span className="text-body-md text-mist ml-2">Supplier setup</span>
       </div>
       <OnboardingWizard userEmail={userEmail} />
@@ -789,7 +789,7 @@ export function OnboardingWizard({ userEmail }: Props) {
         <div className="space-y-6">
           <div>
             <h1 className="font-display text-display-md text-ink">Tell us about your business</h1>
-            <p className="text-body-md text-mist mt-1">Vendors will source materials from you on Luna.</p>
+            <p className="text-body-md text-mist mt-1">Vendors will source materials from you on AYVANA.</p>
           </div>
           <div className="space-y-4">
             <div>
@@ -808,7 +808,7 @@ export function OnboardingWizard({ userEmail }: Props) {
               <label htmlFor="company-slug" className="text-label text-mist block mb-2">SUPPLIER URL</label>
               <div className="flex items-center rounded-xl border border-sand overflow-hidden">
                 <span className="px-3 py-3 text-body-sm text-mist bg-sand/50 border-r border-sand">
-                  supply.luna.ae/
+                  supply.ayvana.ae/
                 </span>
                 <input
                   id="company-slug"
@@ -867,7 +867,7 @@ export function OnboardingWizard({ userEmail }: Props) {
           <div>
             <h1 className="font-display text-display-md text-ink">Secure your account</h1>
             <p className="text-body-md text-mist mt-1">
-              Luna requires two-factor authentication for all suppliers to protect your business.
+              AYVANA requires two-factor authentication for all suppliers to protect your business.
             </p>
           </div>
           <div className="rounded-2xl border border-sand bg-sand/30 p-5 space-y-3">
@@ -903,7 +903,7 @@ import { SignOutButton } from "@clerk/nextjs";
 import { safeCurrentUser } from "../lib/auth";
 
 export const metadata: Metadata = {
-  title: "Application Under Review — Luna Supplier",
+  title: "Application Under Review — AYVANA Supplier",
 };
 
 export default async function PendingPage() {
@@ -913,7 +913,7 @@ export default async function PendingPage() {
   return (
     <main className="flex min-h-screen flex-col bg-ivory">
       <div className="bg-ink px-6 py-4 flex items-center justify-between">
-        <span className="font-display text-display-sm text-gold">✦ Luna</span>
+        <span className="font-display text-display-sm text-gold">✦ AYVANA</span>
         {user && (
           <SignOutButton>
             <button className="text-body-sm text-mist hover:text-ivory transition-colors">
@@ -945,13 +945,13 @@ export default async function PendingPage() {
               <li>✦ We verify your company details</li>
               <li>✦ We review the materials you supply</li>
               <li>✦ You receive an approval email</li>
-              <li>✦ Your supplier account goes live on Luna</li>
+              <li>✦ Your supplier account goes live on AYVANA</li>
             </ul>
           </div>
           <p className="text-body-sm text-mist">
             Questions?{" "}
-            <a href="mailto:suppliers@luna.ae" className="text-gold hover:underline">
-              suppliers@luna.ae
+            <a href="mailto:suppliers@ayvana.ae" className="text-gold hover:underline">
+              suppliers@ayvana.ae
             </a>
           </p>
         </div>
@@ -965,7 +965,7 @@ export default async function PendingPage() {
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: no type errors; lint clean.
 
@@ -1015,7 +1015,7 @@ export function Sidebar({ companyName }: Props) {
   return (
     <aside className="flex w-56 shrink-0 flex-col bg-ink min-h-screen">
       <div className="px-4 py-5 border-b border-white/10">
-        <p className="font-display text-display-sm text-gold">✦ Luna</p>
+        <p className="font-display text-display-sm text-gold">✦ AYVANA</p>
         <p className="text-body-xs text-mist mt-0.5">Supplier OS</p>
       </div>
 
@@ -1132,7 +1132,7 @@ import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
 
 export const metadata: Metadata = {
-  title: "Dashboard — Luna Supplier",
+  title: "Dashboard — AYVANA Supplier",
 };
 
 function getGreeting(): string {
@@ -1176,7 +1176,7 @@ export default async function DashboardPage() {
           <p className="text-label text-gold mb-1">COMING SOON</p>
           <p className="text-body-md font-medium text-ink">Incoming orders</p>
           <p className="text-body-sm text-mist mt-1">
-            Receive and fulfil material orders placed by Luna vendors.
+            Receive and fulfil material orders placed by AYVANA vendors.
           </p>
         </div>
       </div>
@@ -1207,7 +1207,7 @@ export default async function DashboardPage() {
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: no type errors; lint clean.
 
@@ -1233,8 +1233,8 @@ Mirrors `apps/admin/app/actions/sellers.ts` exactly, for `Supplier`.
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, type SupplierStatus } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { prisma, type SupplierStatus } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -1280,7 +1280,7 @@ export async function reactivateSupplier(id: string): Promise<ActionResult> {
 
 Run:
 ```bash
-pnpm --filter @e-luna/admin exec tsc --noEmit
+pnpm --filter @ayvana/admin exec tsc --noEmit
 ```
 Expected: no errors (`SupplierStatus` resolves; `getAuthUser` already used by `sellers.ts`).
 
@@ -1309,7 +1309,7 @@ Mirrors `VendorActions.tsx` for suppliers.
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { SupplierStatus } from "@e-luna/db";
+import type { SupplierStatus } from "@ayvana/db";
 import {
   approveSupplier,
   rejectSupplier,
@@ -1394,11 +1394,11 @@ Mirrors the sellers approvals page. (`safeCurrentUser` lives at `apps/admin/app/
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { SupplierActions } from "../../components/SupplierActions";
 
-export const metadata: Metadata = { title: "Supplier Approvals — Luna Ops" };
+export const metadata: Metadata = { title: "Supplier Approvals — AYVANA Ops" };
 
 export default async function SupplierApprovalsPage() {
   const user = await safeCurrentUser();
@@ -1428,7 +1428,7 @@ export default async function SupplierApprovalsPage() {
               <div className="mb-3 flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-body-md font-medium text-ink">{s.companyName}</p>
-                  <p className="text-body-xs text-mist">supply.luna.ae/{s.companySlug}</p>
+                  <p className="text-body-xs text-mist">supply.ayvana.ae/{s.companySlug}</p>
                   {s.materialTypes.length > 0 && (
                     <p className="text-body-xs text-mist mt-1 capitalize">
                       Supplies: {s.materialTypes.join(", ")}
@@ -1467,7 +1467,7 @@ is correct — no change to the `isActive` logic needed.
 
 Run:
 ```bash
-pnpm --filter @e-luna/admin exec tsc --noEmit && pnpm --filter @e-luna/admin lint
+pnpm --filter @ayvana/admin exec tsc --noEmit && pnpm --filter @ayvana/admin lint
 ```
 Expected: no type errors; lint clean.
 
@@ -1489,7 +1489,7 @@ git commit -m "feat(admin): add supplier approvals page, actions component, and 
 
 Under the `# Clerk` block at the top, append this comment line (keep existing lines intact):
 ```bash
-# NOTE: In production, the supplier app (supply.luna.ae) should use its OWN Clerk
+# NOTE: In production, the supplier app (supply.ayvana.ae) should use its OWN Clerk
 # instance keys — persona logins are kept separate. Local dev can reuse these test keys.
 ```
 
@@ -1497,9 +1497,9 @@ Under the `# Clerk` block at the top, append this comment line (keep existing li
 
 Run:
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter "@e-luna/*" exec tsc --noEmit
+pnpm --filter @ayvana/db db:generate && pnpm --filter "@ayvana/*" exec tsc --noEmit
 ```
-Expected: no type errors across all packages/apps (including the new `@e-luna/supplier`).
+Expected: no type errors across all packages/apps (including the new `@ayvana/supplier`).
 
 - [ ] **Step 3: Full lint**
 
@@ -1523,7 +1523,7 @@ git commit -m "docs(env): note supplier app uses its own Clerk instance in produ
 **Spec coverage:**
 - `SUPPLIER` role + `SupplierStatus` + `Supplier` model + `User` back-relation → Task 1. ✅
 - auth `UserRole`/`ROLES`/`supplierId` claim → Task 2. ✅
-- New `supply.luna.ae` app (config, layout, middleware, port 3003) → Tasks 3, 6. ✅
+- New `supply.ayvana.ae` app (config, layout, middleware, port 3003) → Tasks 3, 6. ✅
 - `materialTypes String[]` captured at onboarding, no `commissionRate` → Tasks 1, 4, 5. ✅
 - Sign-in + onboarding wizard (name + slug + material multiselect) + `createSupplier` (validation, P2002, role upsert, PENDING) → Tasks 5, 6. ✅
 - Status-gated dashboard shell with "Materials/Orders — coming soon" seams → Task 7. ✅
@@ -1535,7 +1535,7 @@ git commit -m "docs(env): note supplier app uses its own Clerk instance in produ
 
 **Placeholder scan:** No TBD/TODO; every code step contains full file contents or an exact anchored edit.
 
-**Type consistency:** `SupplierStatus` (from `@e-luna/db`) used identically in Tasks 4, 8, 9.
+**Type consistency:** `SupplierStatus` (from `@ayvana/db`) used identically in Tasks 4, 8, 9.
 `createSupplier(name, slug, materialTypes)` signature matches its call in Task 6. `getSupplierByUserId`
 return shape (`companyName`, `materialTypes`, `status`) matches its consumers in Tasks 6, 7.
 `sanitizeMaterialTypes` defined in Task 4, used in Task 5. `SupplierActions` prop names
@@ -1544,4 +1544,4 @@ return shape (`companyName`, `materialTypes`, `status`) matches its consumers in
 in Task 9. ✅
 
 **Deviation flagged:** middleware clones the real vendor `clerkMiddleware` pattern (not the spec's
-`createLunaMiddleware`) — documented in "Repo Conventions" above.
+`createAyvanaMiddleware`) — documented in "Repo Conventions" above.

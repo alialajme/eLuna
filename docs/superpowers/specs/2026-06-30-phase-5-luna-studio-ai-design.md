@@ -1,4 +1,4 @@
-# Phase 5: Luna Studio AI — Design Spec
+# Phase 5: AYVANA Studio AI — Design Spec
 
 ## Goal
 
@@ -127,8 +127,8 @@ export async function POST(req: NextRequest) {
 "use server"
 import { revalidatePath } from "next/cache";
 import { generateText } from "ai";
-import { prisma } from "@e-luna/db";
-import { anthropic, LUNA_MODEL } from "@e-luna/ai";
+import { prisma } from "@ayvana/db";
+import { anthropic, LUNA_MODEL } from "@ayvana/ai";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 ```
@@ -265,8 +265,8 @@ const uploads = await prisma.studioUpload.findMany({
 ```
 
 **Layout:**
-- Header: "Luna Studio" h2 + "✦ New Campaign" button (→ `/studio/new`)
-- Subtitle: "Upload 3 photos of your abaya — Luna AI detects the garment and writes your full product copy."
+- Header: "AYVANA Studio" h2 + "✦ New Campaign" button (→ `/studio/new`)
+- Subtitle: "Upload 3 photos of your abaya — AYVANA AI detects the garment and writes your full product copy."
 - Campaign cards: thumbnail strip (3 grey squares if sourceImages empty, else `<img>` from first 3 URLs), name (from `generatedAssets.copy.titleEn` or "Untitled Campaign"), date, status badge, "View →" link
 - Empty state: "No campaigns yet. Upload your first product photos to get started."
 
@@ -324,7 +324,7 @@ const errorMsg = assets.error as string | undefined;
 ```
 
 **Status-based rendering:**
-- `PENDING` or `PROCESSING`: show spinner + "Luna AI is analysing your photos…" + `<meta http-equiv="refresh" content="3">` for auto-refresh
+- `PENDING` or `PROCESSING`: show spinner + "AYVANA AI is analysing your photos…" + `<meta http-equiv="refresh" content="3">` for auto-refresh
 - `FAILED`: show `bg-coral/10` error card with `errorMsg`, "Try again" button → `/studio/new`
 - `COMPLETE`: two-column results layout
 

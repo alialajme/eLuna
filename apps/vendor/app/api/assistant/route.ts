@@ -1,7 +1,7 @@
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
-import { runSellerAgent, persistOnFinish } from "@e-luna/ai";
-import { getAiRateLimiter, rateLimitOr429 } from "@e-luna/auth";
+import { runSellerAgent, persistOnFinish } from "@ayvana/ai";
+import { getAiRateLimiter, rateLimitOr429 } from "@ayvana/auth";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {

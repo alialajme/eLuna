@@ -1,8 +1,8 @@
 import { Metadata } from "next";
-import { prisma, getCategories } from "@e-luna/db";
+import { prisma, getCategories } from "@ayvana/db";
 import { ProductForm } from "../components/ProductForm";
 
-export const metadata: Metadata = { title: "New product — Luna Vendor" };
+export const metadata: Metadata = { title: "New product — AYVANA Vendor" };
 
 export default async function NewProductPage() {
   const [categories, suppliers] = await Promise.all([

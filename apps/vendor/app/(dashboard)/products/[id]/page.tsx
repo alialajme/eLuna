@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma, getCategories } from "@e-luna/db";
+import { prisma, getCategories } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 import { ProductForm } from "../components/ProductForm";
@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await prisma.product
     .findUnique({ where: { id }, select: { title: true } })
     .catch(() => null);
-  return { title: product ? `${product.title} — Luna Vendor` : "Edit product — Luna Vendor" };
+  return { title: product ? `${product.title} — AYVANA Vendor` : "Edit product — AYVANA Vendor" };
 }
 
 export default async function EditProductPage({ params }: Props) {

@@ -14,8 +14,8 @@
 
 - **No automated test suite.** Each task's "test" step = `db:generate` (when schema changed) + `tsc --noEmit`
   + `next lint` on the touched app. That is the quality gate.
-- Prisma: edit `packages/db/prisma/schema.prisma`, then `pnpm --filter @e-luna/db db:generate` +
-  `pnpm --filter @e-luna/db db:push` (local Postgres at `localhost:5432`, db `eluna`, role `postgres`/`password`).
+- Prisma: edit `packages/db/prisma/schema.prisma`, then `pnpm --filter @ayvana/db db:generate` +
+  `pnpm --filter @ayvana/db db:push` (local Postgres at `localhost:5432`, db `eluna`, role `postgres`/`password`).
 - Server actions return `{ success: boolean; error?: string }` (create also `id`). Scoping ids are
   server-resolved from the Clerk session, never client params. DB reads `.catch(() => fallback)`.
 - Money is Prisma `Decimal`; pass JS `number` into writes, `Number(...)` out. VAT rule = **net**:
@@ -97,7 +97,7 @@ In `model Supplier` add (alongside `materialOrders MaterialOrder[]`):
 
 - [ ] **Step 5: Generate + push**
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:generate && pnpm --filter @ayvana/db db:push
 ```
 Expected: "Your database is now in sync with your Prisma schema."
 
@@ -205,7 +205,7 @@ export function getEInvoiceGateway(): EInvoiceGateway {
 
 - [ ] **Step 6: Type-check**
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Expected: no errors.
 
@@ -226,7 +226,7 @@ git commit -m "feat(supplier): e-invoice gateway (Simulated default + FTA scaffo
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 import { getEInvoiceGateway } from "../lib/einvoice/factory";
 
@@ -351,7 +351,7 @@ export async function issueMaterialInvoice(
 
 - [ ] **Step 2: Type-check**
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Expected: no errors. (`prisma.materialInvoice`, `order.invoice`, `supplier.trn` exist after Task 1.)
 
@@ -427,12 +427,12 @@ export function TrnForm({ initialTrn }: { initialTrn: string | null }) {
 - [ ] **Step 2: `settings/page.tsx`**
 ```tsx
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 import { TrnForm } from "../components/TrnForm";
 
-export const metadata: Metadata = { title: "Settings — Luna Supplier" };
+export const metadata: Metadata = { title: "Settings — AYVANA Supplier" };
 
 const ftaConfigured = !!process.env.FTA_ACCESS_POINT_URL && !!process.env.FTA_API_KEY;
 
@@ -475,7 +475,7 @@ export default async function SettingsPage() {
 
 - [ ] **Step 3: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: clean.
 
@@ -555,11 +555,11 @@ export function PrintButton() {
 ```tsx
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 
-export const metadata: Metadata = { title: "Invoices — Luna Supplier" };
+export const metadata: Metadata = { title: "Invoices — AYVANA Supplier" };
 
 export default async function InvoicesPage() {
   const user = await safeCurrentUser();
@@ -609,12 +609,12 @@ export default async function InvoicesPage() {
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getSupplierByUserId } from "../../../lib/supplier";
 import { PrintButton } from "../../components/PrintButton";
 
-export const metadata: Metadata = { title: "Tax Invoice — Luna Supplier" };
+export const metadata: Metadata = { title: "Tax Invoice — AYVANA Supplier" };
 
 type Props = { params: Promise<{ id: string }> };
 type Line = { name: string; unit: string; unitPrice: number; quantity: number; lineTotal: number };
@@ -647,7 +647,7 @@ export default async function InvoiceDetailPage({ params }: Props) {
             <p className="text-body-sm text-mist">{inv.invoiceNumber}</p>
           </div>
           <div className="text-right text-body-sm">
-            <p className="font-display text-display-sm text-gold">✦ Luna</p>
+            <p className="font-display text-display-sm text-gold">✦ AYVANA</p>
             <p className="text-mist">{inv.issuedAt.toLocaleDateString("en-AE", { day: "numeric", month: "long", year: "numeric" })}</p>
           </div>
         </div>
@@ -704,7 +704,7 @@ export default async function InvoiceDetailPage({ params }: Props) {
 
 - [ ] **Step 5: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: clean.
 
@@ -758,7 +758,7 @@ Immediately before the final `<OrderActions ... />` line, add:
 
 - [ ] **Step 3: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: clean. (`Link` is already imported in this file.)
 
@@ -797,7 +797,7 @@ const NAV_ITEMS = [
 
 - [ ] **Step 2: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: clean.
 
@@ -861,7 +861,7 @@ git commit -m "docs(einvoicing): FTA env vars + operator activation guide"
 
 - [ ] **Step 1: Regenerate + full type-check**
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter "@e-luna/*" exec tsc --noEmit
+pnpm --filter @ayvana/db db:generate && pnpm --filter "@ayvana/*" exec tsc --noEmit
 ```
 Expected: no type errors across all packages/apps.
 

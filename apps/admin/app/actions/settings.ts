@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { setSetting, type SettingKey } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { setSetting, type SettingKey } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 

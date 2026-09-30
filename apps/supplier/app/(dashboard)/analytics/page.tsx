@@ -1,13 +1,13 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 import { PeriodToggle } from "./components/PeriodToggle";
 import { LineChart } from "./components/LineChart";
 import { BarChart } from "./components/BarChart";
 
-export const metadata: Metadata = { title: "Analytics — Luna Supplier" };
+export const metadata: Metadata = { title: "Analytics — AYVANA Supplier" };
 
 function pctChange(curr: number, prev: number): number | null {
   if (prev === 0) return null;

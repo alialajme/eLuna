@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { CommissionEditor } from "../components/CommissionEditor";
 
-export const metadata: Metadata = { title: "Commissions — Luna Ops" };
+export const metadata: Metadata = { title: "Commissions — AYVANA Ops" };
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING: "bg-gold/20 text-gold",

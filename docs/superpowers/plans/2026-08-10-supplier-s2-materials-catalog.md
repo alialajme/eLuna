@@ -16,8 +16,8 @@
 
 - **No automated test suite.** Each task's "test" step = regenerate the Prisma client when the schema
   changed, then `tsc --noEmit` and `next lint` on the touched app. That is the real quality gate here.
-- Prisma: edit `packages/db/prisma/schema.prisma`, then `pnpm --filter @e-luna/db db:generate` +
-  `pnpm --filter @e-luna/db db:push`. The `@e-luna/db` barrel re-exports `prisma` and model/enum types.
+- Prisma: edit `packages/db/prisma/schema.prisma`, then `pnpm --filter @ayvana/db db:generate` +
+  `pnpm --filter @ayvana/db db:push`. The `@ayvana/db` barrel re-exports `prisma` and model/enum types.
   A local Postgres runs at `localhost:5432` (role `postgres` / db `eluna`).
 - Server actions return `{ success: boolean; error?: string }` (create also returns `id`).
 - DB reads use `.catch(() => fallback)`. `noUncheckedIndexedAccess` is ON.
@@ -109,7 +109,7 @@ surrounding alignment):
 
 Run:
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:generate && pnpm --filter @ayvana/db db:push
 ```
 Expected: generate succeeds; `db:push` prints "Your database is now in sync with your Prisma schema."
 
@@ -161,7 +161,7 @@ export type MaterialUnitValue = (typeof MATERIAL_UNITS)[number]["value"];
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Expected: no errors. (`ALLOWED` is already module-scoped in this file, so `isMaterialType` can use it.)
 
@@ -186,7 +186,7 @@ Create `apps/supplier/app/actions/material.ts` with exactly:
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { slugify } from "../lib/slugify";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
@@ -386,7 +386,7 @@ export async function deleteMaterial(
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Expected: no errors. (`getSupplierByUserId` returns a `status` field — see `lib/supplier.ts`. `prisma.material` exists after Task 1's generate.)
 
@@ -633,7 +633,7 @@ export function MaterialForm({ initial }: Props) {
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: no type errors; lint clean.
 
@@ -658,11 +658,11 @@ git commit -m "feat(supplier): add MaterialForm create/edit island"
 ```tsx
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getSupplierByUserId } from "../../lib/supplier";
 
-export const metadata: Metadata = { title: "Materials — Luna Supplier" };
+export const metadata: Metadata = { title: "Materials — AYVANA Supplier" };
 
 const STATUS_CLASSES: Record<string, string> = {
   DRAFT: "bg-sand text-mist",
@@ -767,7 +767,7 @@ export default async function MaterialsPage({ searchParams }: Props) {
 import { Metadata } from "next";
 import { MaterialForm } from "../../components/MaterialForm";
 
-export const metadata: Metadata = { title: "New material — Luna Supplier" };
+export const metadata: Metadata = { title: "New material — AYVANA Supplier" };
 
 export default function NewMaterialPage() {
   return (
@@ -784,7 +784,7 @@ export default function NewMaterialPage() {
 ```tsx
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getSupplierByUserId } from "../../../lib/supplier";
 import { MaterialForm, type MaterialFormInitial } from "../../components/MaterialForm";
@@ -796,7 +796,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const material = await prisma.material
     .findUnique({ where: { id }, select: { name: true } })
     .catch(() => null);
-  return { title: material ? `${material.name} — Luna Supplier` : "Edit material — Luna Supplier" };
+  return { title: material ? `${material.name} — AYVANA Supplier` : "Edit material — AYVANA Supplier" };
 }
 
 export default async function EditMaterialPage({ params }: Props) {
@@ -844,7 +844,7 @@ Draft/Active); saving re-publishes or re-drafts it, which is the intended "un-ar
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: no type errors; lint clean. (`material.unit` is the `MaterialUnit` enum type, assignable to
 `MaterialFormInitial.unit` which is `MaterialUnitValue` — the enum's string-literal values match.)
@@ -911,7 +911,7 @@ After the existing `const supplier = await getSupplierByUserId(user.id);` guard 
 And add the import at the top (alongside the existing imports):
 ```tsx
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 ```
 
 Then replace the first card (the "Materials catalog" COMING SOON `div`) with:
@@ -935,7 +935,7 @@ Leave the second card ("Incoming orders" COMING SOON) unchanged.
 
 Run:
 ```bash
-pnpm --filter @e-luna/supplier exec tsc --noEmit && pnpm --filter @e-luna/supplier lint
+pnpm --filter @ayvana/supplier exec tsc --noEmit && pnpm --filter @ayvana/supplier lint
 ```
 Expected: no type errors; lint clean.
 
@@ -954,7 +954,7 @@ git commit -m "feat(supplier): promote Materials nav + make dashboard card live"
 
 Run:
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter "@e-luna/*" exec tsc --noEmit
+pnpm --filter @ayvana/db db:generate && pnpm --filter "@ayvana/*" exec tsc --noEmit
 ```
 Expected: no type errors across all packages/apps.
 

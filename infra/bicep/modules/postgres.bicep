@@ -49,9 +49,9 @@ resource pg 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-preview' = {
   }
 }
 
-resource lunaDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-06-01-preview' = {
+resource ayvanaDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-06-01-preview' = {
   parent: pg
-  name: 'luna'
+  name: 'ayvana'
   properties: { charset: 'UTF8', collation: 'en_US.utf8' }
 }
 

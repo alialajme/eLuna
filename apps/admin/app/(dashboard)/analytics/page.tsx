@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { PeriodToggle } from "../components/PeriodToggle";
 import { LineChart } from "../components/LineChart";
 import { BarChart } from "../components/BarChart";
 
-export const metadata: Metadata = { title: "Analytics — Luna Ops" };
+export const metadata: Metadata = { title: "Analytics — AYVANA Ops" };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

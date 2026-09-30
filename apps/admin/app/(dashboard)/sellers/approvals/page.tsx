@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { VendorActions } from "../../components/VendorActions";
 
-export const metadata: Metadata = { title: "Pending Approvals — Luna Ops" };
+export const metadata: Metadata = { title: "Pending Approvals — AYVANA Ops" };
 
 export default async function ApprovalsPage() {
   const user = await safeCurrentUser();

@@ -59,15 +59,15 @@ what `getAuthUser()` reads. Do this for **each** app's Clerk instance
 
 ## The end-to-end flow (production)
 
-1. Vendor signs up on `sell.luna.ae`, completes onboarding → DB: `User.role=VENDOR`,
+1. Vendor signs up on `sell.ayvana.ae`, completes onboarding → DB: `User.role=VENDOR`,
    `Vendor.status=PENDING`; Clerk: `publicMetadata.role=VENDOR`, `vendorId`. They
    land on `/pending`.
-2. Admin approves in `ops.luna.ae/sellers/approvals` → DB: `Vendor.status=ACTIVE`;
+2. Admin approves in `ops.ayvana.ae/sellers/approvals` → DB: `Vendor.status=ACTIVE`;
    Clerk re-synced. 
 3. Vendor's next request carries `role=VENDOR` + `vendorId` in the token → they
    reach the Vendor OS and can publish products.
 
-Suppliers follow the identical path on `supply.luna.ae` + `/suppliers/approvals`.
+Suppliers follow the identical path on `supply.ayvana.ae` + `/suppliers/approvals`.
 
 ## Admin-provisioned partners ("Add vendor / Add supplier")
 
@@ -96,10 +96,10 @@ real Clerk account to the record the admin pre-created.
 
 - **Route:** `POST /api/webhooks/clerk` in the **vendor**, **supplier**, and
   **customer** apps (each app's own Clerk instance points its webhook here).
-- **Verification:** `verifyClerkWebhook` (`@e-luna/auth`) — manual svix HMAC-SHA256
+- **Verification:** `verifyClerkWebhook` (`@ayvana/auth`) — manual svix HMAC-SHA256
   over `${svix-id}.${svix-timestamp}.${body}`, timing-safe, with a 5-minute replay
   window. No `svix` dependency.
-- **Reconciliation:** `reconcileClerkUser` (`@e-luna/db`):
+- **Reconciliation:** `reconcileClerkUser` (`@ayvana/db`):
   - If a `User` already exists for the event's email under a placeholder id
     (`inv_…`, from `createVendorAccount`/`createSupplierAccount`), it **rebinds** the
     Vendor/Supplier to the real Clerk id and drops the placeholder — so the

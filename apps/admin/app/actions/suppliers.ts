@@ -2,13 +2,13 @@
 
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
-import { prisma, type SupplierStatus } from "@e-luna/db";
-import { getAuthUser, syncClerkRole, invitePartner } from "@e-luna/auth";
+import { prisma, type SupplierStatus } from "@ayvana/db";
+import { getAuthUser, syncClerkRole, invitePartner } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 type CreateResult = { success: true; id: string; invited: boolean } | { error: string };
 
-const SUPPLIER_APP_URL = process.env.SUPPLIER_APP_URL ?? "https://supply.luna.ae";
+const SUPPLIER_APP_URL = process.env.SUPPLIER_APP_URL ?? "https://supply.ayvana.ae";
 
 // Mirrors the supplier onboarding allowlist (apps/supplier/app/lib/materials MATERIAL_TYPES).
 const MATERIAL_TYPE_VALUES = ["fabric", "trim", "lining", "thread", "hardware"];

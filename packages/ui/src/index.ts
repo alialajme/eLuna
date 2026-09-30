@@ -9,6 +9,6 @@ export type { FilterState } from "./components/FilterBar";
 export { ProductGallery } from "./components/ProductGallery";
 export { SizeSelector } from "./components/SizeSelector";
 export { ChatMessage } from "./components/ChatMessage";
-export { LunaChatWidget } from "./components/LunaChatWidget";
+export { AyvanaChatWidget } from "./components/AyvanaChatWidget";
 export { TaxInvoiceDocument } from "./components/TaxInvoiceDocument";
 export type { TaxInvoiceProps } from "./components/TaxInvoiceDocument";

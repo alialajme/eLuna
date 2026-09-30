@@ -2,10 +2,10 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
 export const metadata: Metadata = {
-  title: "Dashboard — Luna Supplier",
+  title: "Dashboard — AYVANA Supplier",
 };
 
 function getGreeting(): string {

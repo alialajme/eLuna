@@ -1,4 +1,4 @@
-# e-Luna — Threat Model
+# AYVANA — Threat Model
 
 Scope: the four Next.js apps, shared packages, PostgreSQL, and external integrations. Status reflects
 the hardening delivered in PRs #1–#4 (see `docs/PRODUCTION-HARDENING.md`). Legend: ✅ mitigated ·

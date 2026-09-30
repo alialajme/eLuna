@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { safeCurrentUser } from "../../../lib/auth";
 import { AddVendorForm } from "../../components/AddVendorForm";
 
-export const metadata: Metadata = { title: "Add Vendor — Luna Ops" };
+export const metadata: Metadata = { title: "Add Vendor — AYVANA Ops" };
 
 export default async function AddVendorPage() {
   const user = await safeCurrentUser();

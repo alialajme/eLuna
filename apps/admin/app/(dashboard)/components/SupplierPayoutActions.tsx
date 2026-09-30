@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { PayoutStatus } from "@e-luna/db";
+import type { PayoutStatus } from "@ayvana/db";
 import { markProcessing, markCompleted, markFailed } from "../../actions/supplier-payouts";
 
 type Props = { payoutId: string; status: PayoutStatus };

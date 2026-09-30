@@ -1,11 +1,11 @@
 import { safeCurrentUser as currentUser } from "../lib/auth";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { ChatInterface } from "./ChatInterface";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Luna AI Stylist",
-  description: "Chat with Luna, your personal AI abaya stylist",
+  title: "AYVANA AI Stylist",
+  description: "Chat with AYVANA, your personal AI abaya stylist",
 };
 
 export default async function ChatPage() {
@@ -18,7 +18,7 @@ export default async function ChatPage() {
       }).catch(() => null)
     : null;
 
-  const sessionId = user ? `luna-stylist-${user.id}` : `luna-stylist-guest-${Date.now()}`;
+  const sessionId = user ? `ayvana-stylist-${user.id}` : `ayvana-stylist-guest-${Date.now()}`;
   const userName = user?.firstName ?? null;
 
   return (
@@ -31,7 +31,7 @@ export default async function ChatPage() {
               ✦
             </div>
             <div>
-              <h1 className="font-display text-display-sm text-ink">Luna AI Stylist</h1>
+              <h1 className="font-display text-display-sm text-ink">AYVANA AI Stylist</h1>
               <p className="text-body-xs text-mist">
                 {sizeProfile?.usualSize
                   ? `Personalised for size ${sizeProfile.usualSize}`

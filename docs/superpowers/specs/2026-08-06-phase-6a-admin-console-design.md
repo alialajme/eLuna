@@ -23,7 +23,7 @@ Turn the bare admin app (`apps/admin`, currently a "coming soon" page) into a wo
 
 ## Architecture
 
-The admin app middleware already enforces the ADMIN role via `createLunaMiddleware("ADMIN")` (`apps/admin/middleware.ts`), so route-level protection is handled. We mirror the vendor app's proven `(dashboard)` structure.
+The admin app middleware already enforces the ADMIN role via `createAyvanaMiddleware("ADMIN")` (`apps/admin/middleware.ts`), so route-level protection is handled. We mirror the vendor app's proven `(dashboard)` structure.
 
 No new DB models or schema changes. All data reads from existing `Vendor`, `Order`, `OrderItem`.
 
@@ -87,7 +87,7 @@ Nav links: **Overview** (`/`), **Sellers** (`/sellers`), **Approvals** (`/seller
 
 ### `TopBar.tsx`
 
-Simple header with "Luna Ops" title and a Clerk `<UserButton />` (or user email). Mirrors vendor TopBar structure.
+Simple header with "AYVANA Ops" title and a Clerk `<UserButton />` (or user email). Mirrors vendor TopBar structure.
 
 ---
 

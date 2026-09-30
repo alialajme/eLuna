@@ -18,16 +18,16 @@ function getOrCreateSessionId(): string {
   }
 }
 
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in the app
-  title?: string; // header title; default "Luna Stylist"
+  title?: string; // header title; default "AYVANA Stylist"
   greeting?: string; // empty-state assistant greeting; default the customer copy
   hiddenPaths?: string[]; // exact-match pathnames where the widget renders nothing; default ["/chat"]
   hiddenPrefixes?: string[]; // hide when pathname starts with any prefix; default none
   agentType?: string; // if set, load persisted history from /api/ai-history on mount
 };
 
-export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPrefixes, agentType }: LunaChatWidgetProps) {
+export function AyvanaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPrefixes, agentType }: AyvanaChatWidgetProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -78,7 +78,7 @@ export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPr
           <div className="flex items-center justify-between bg-ink px-4 py-3">
             <div className="flex items-center gap-2">
               <span className="text-gold text-lg">◑</span>
-              <span className="font-sans text-body-md font-semibold text-ivory">{title ?? "Luna Stylist"}</span>
+              <span className="font-sans text-body-md font-semibold text-ivory">{title ?? "AYVANA Stylist"}</span>
             </div>
             <button
               onClick={() => setOpen(false)}
@@ -98,7 +98,7 @@ export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPr
                   <p>{greeting}</p>
                 ) : (
                   <>
-                    <p>مرحباً! I'm Luna.</p>
+                    <p>مرحباً! I'm AYVANA.</p>
                     <p className="mt-1">Tell me your occasion and I'll find your perfect abaya.</p>
                   </>
                 )}
@@ -110,7 +110,7 @@ export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPr
             {isLoading && (
               <div className="flex justify-start">
                 <div className="rounded-2xl rounded-bl-sm bg-sand px-4 py-3 text-body-sm text-mist">
-                  Luna is thinking…
+                  AYVANA is thinking…
                 </div>
               </div>
             )}
@@ -130,7 +130,7 @@ export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPr
               <input
                 value={input}
                 onChange={handleInputChange}
-                placeholder="Ask Luna anything…"
+                placeholder="Ask AYVANA anything…"
                 className="flex-1 rounded-full border border-sand bg-white px-4 py-2 text-body-md text-ink placeholder:text-mist focus:outline-none focus:ring-1 focus:ring-gold"
                 disabled={isLoading}
               />
@@ -151,10 +151,10 @@ export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPr
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="flex h-14 items-center gap-2 rounded-full bg-ink px-5 shadow-lg hover:bg-ink/90 transition-colors"
-        aria-label="Open Luna assistant"
+        aria-label="Open AYVANA assistant"
       >
         <span className="text-gold text-2xl">◑</span>
-        {!open && <span className="text-ivory text-body-sm font-medium">{title ?? "Ask Luna"}</span>}
+        {!open && <span className="text-ivory text-body-sm font-medium">{title ?? "Ask AYVANA"}</span>}
       </button>
     </div>
   );

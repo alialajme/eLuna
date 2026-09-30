@@ -1,5 +1,5 @@
 {
-  "extends": "@e-luna/config/tsconfig/base",
+  "extends": "@ayvana/config/tsconfig/base",
   "compilerOptions": {
     "paths": {},
     "module": "esnext"

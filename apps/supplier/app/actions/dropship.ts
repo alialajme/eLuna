@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, recomputeOrderStatus, applyShipmentStatus } from "@e-luna/db";
-import { getCourier } from "@e-luna/ui/couriers";
-import { getCourierGateway } from "@e-luna/courier";
+import { prisma, recomputeOrderStatus, applyShipmentStatus } from "@ayvana/db";
+import { getCourier } from "@ayvana/ui/couriers";
+import { getCourierGateway } from "@ayvana/courier";
 import { safeCurrentUser } from "../lib/auth";
 import { getSupplierByUserId } from "../lib/supplier";
 

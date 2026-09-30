@@ -13,7 +13,7 @@
 ## Tooling note (verification reality)
 
 `docker`, `az`, `bicep`, `helm`, `kubectl` are **not installed in this dev environment**. Therefore:
-- **Task 1 (app code)** is fully verified by the repo CI: `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit`.
+- **Task 1 (app code)** is fully verified by the repo CI: `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit`.
 - **IaC tasks (Docker/Bicep/Helm/workflow/runbook)** are verified by (a) authoring to the documented Azure/Helm/Bicep schemas, and (b) a lightweight syntax check with `node` for any JSON and, where a YAML parser is available, YAML. The real `docker build` / `helm lint` / `az bicep build` / live deploy are the operator's steps, documented in the runbook.
 
 Every task ends by committing. Commit from the repo root: `/Users/alialajme/Projects/Luna/e-luna`.
@@ -31,9 +31,9 @@ Every task ends by committing. Commit from the repo root: `/Users/alialajme/Proj
 | `infra/bicep/main.bicep` | Create | Subscription-scope orchestration |
 | `infra/bicep/modules/{network,acr,aks,postgres,keyvault}.bicep` | Create | Azure resources |
 | `infra/bicep/params/uae-north.bicepparam` | Create | Region + sizing params |
-| `infra/helm/luna/Chart.yaml` | Create | Helm chart metadata |
-| `infra/helm/luna/values.yaml` | Create | App list, images, hosts, resources |
-| `infra/helm/luna/templates/*.yaml` | Create | Deployment/Service/Ingress/HPA/PDB/SecretProviderClass |
+| `infra/helm/ayvana/Chart.yaml` | Create | Helm chart metadata |
+| `infra/helm/ayvana/values.yaml` | Create | App list, images, hosts, resources |
+| `infra/helm/ayvana/templates/*.yaml` | Create | Deployment/Service/Ingress/HPA/PDB/SecretProviderClass |
 | `infra/k8s/cert-manager/cluster-issuer.yaml` | Create | Let's Encrypt issuer |
 | `.github/workflows/azure-deploy.yml` | Create | Build+push+deploy pipeline |
 | `docs/deployment/azure-aks.md` | Create | Runbook |
@@ -54,7 +54,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  transpilePackages: ["@e-luna/ui", "@e-luna/auth", "@e-luna/db", "@e-luna/ai"],
+  transpilePackages: ["@ayvana/ui", "@ayvana/auth", "@ayvana/db", "@ayvana/ai"],
 };
 
 export default nextConfig;
@@ -77,7 +77,7 @@ export function GET() {
 
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna && pnpm lint 2>&1 | tail -4
-cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit; echo "EXIT: $?"
+cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit; echo "EXIT: $?"
 ```
 Expected: lint `Tasks: 3 successful, 3 total`; tsc `EXIT: 0`.
 
@@ -113,7 +113,7 @@ FROM base AS pruner
 ARG APP
 RUN pnpm add -g turbo@2
 COPY . .
-RUN turbo prune "@e-luna/${APP}" --docker
+RUN turbo prune "@ayvana/${APP}" --docker
 
 # ---- installer: install deps + build ----
 FROM base AS installer
@@ -122,8 +122,8 @@ COPY --from=pruner /app/out/json/ .
 RUN pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
 # Prisma client must be generated before the Next.js build (db package)
-RUN pnpm --filter "@e-luna/db" exec prisma generate
-RUN pnpm --filter "@e-luna/${APP}" build
+RUN pnpm --filter "@ayvana/db" exec prisma generate
+RUN pnpm --filter "@ayvana/${APP}" build
 
 # ---- runner: minimal runtime with standalone output ----
 FROM node:20-alpine AS runner
@@ -196,7 +196,7 @@ param location string = 'uaenorth'
 param prefix string = 'eluna'
 
 @description('PostgreSQL admin login')
-param pgAdminUser string = 'lunaadmin'
+param pgAdminUser string = 'ayvanaadmin'
 
 @description('PostgreSQL admin password')
 @secure()
@@ -465,7 +465,7 @@ using '../main.bicep'
 
 param location = 'uaenorth'
 param prefix = 'eluna'
-param pgAdminUser = 'lunaadmin'
+param pgAdminUser = 'ayvanaadmin'
 // Provide at deploy time: az deployment sub create ... --parameters pgAdminPassword=<secret>
 param pgAdminPassword = readEnvironmentVariable('PG_ADMIN_PASSWORD', '')
 ```
@@ -489,36 +489,36 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add infra/bicep && git commit -m
 ## Task 4: Helm chart
 
 **Files:**
-- Create: `infra/helm/luna/Chart.yaml`
-- Create: `infra/helm/luna/values.yaml`
-- Create: `infra/helm/luna/templates/_helpers.tpl`
-- Create: `infra/helm/luna/templates/app.yaml`
-- Create: `infra/helm/luna/templates/secretproviderclass.yaml`
+- Create: `infra/helm/ayvana/Chart.yaml`
+- Create: `infra/helm/ayvana/values.yaml`
+- Create: `infra/helm/ayvana/templates/_helpers.tpl`
+- Create: `infra/helm/ayvana/templates/app.yaml`
+- Create: `infra/helm/ayvana/templates/secretproviderclass.yaml`
 
-- [ ] **Step 1: Create `infra/helm/luna/Chart.yaml`**
+- [ ] **Step 1: Create `infra/helm/ayvana/Chart.yaml`**
 
 ```yaml
 apiVersion: v2
 name: luna
-description: e-Luna platform — customer, vendor, admin apps on AKS
+description: AYVANA platform — customer, vendor, admin apps on AKS
 type: application
 version: 0.1.0
 appVersion: "1.0.0"
 ```
 
-- [ ] **Step 2: Create `infra/helm/luna/values.yaml`**
+- [ ] **Step 2: Create `infra/helm/ayvana/values.yaml`**
 
 ```yaml
 # Global image settings
 image:
-  registry: elunaacr.azurecr.io
+  registry: ayvanaacr.azurecr.io
   repository: e-luna
   tag: latest          # overridden by CI with the git SHA
   pullPolicy: IfNotPresent
 
 # Key Vault (Secrets Store CSI) settings
 keyVault:
-  name: eluna-kv
+  name: ayvana-kv
   tenantId: "00000000-0000-0000-0000-000000000000"   # set per tenant
   userAssignedIdentityClientId: ""                     # workload identity client id
 
@@ -537,13 +537,13 @@ ingress:
 # Per-app configuration
 apps:
   - name: customer
-    host: luna.ae
+    host: ayvana.ae
     replicas: 2
   - name: vendor
-    host: sell.luna.ae
+    host: sell.ayvana.ae
     replicas: 2
   - name: admin
-    host: ops.luna.ae
+    host: ops.ayvana.ae
     replicas: 2
 
 resources:
@@ -560,7 +560,7 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 ```
 
-- [ ] **Step 3: Create `infra/helm/luna/templates/_helpers.tpl`**
+- [ ] **Step 3: Create `infra/helm/ayvana/templates/_helpers.tpl`**
 
 ```yaml
 {{- define "luna.image" -}}
@@ -568,7 +568,7 @@ autoscaling:
 {{- end -}}
 ```
 
-- [ ] **Step 4: Create `infra/helm/luna/templates/app.yaml`**
+- [ ] **Step 4: Create `infra/helm/ayvana/templates/app.yaml`**
 
 Renders Deployment + Service + Ingress + HPA + PDB for each app in `.Values.apps`.
 ```yaml
@@ -684,7 +684,7 @@ spec:
 {{- end }}
 ```
 
-- [ ] **Step 5: Create `infra/helm/luna/templates/secretproviderclass.yaml`**
+- [ ] **Step 5: Create `infra/helm/ayvana/templates/secretproviderclass.yaml`**
 
 ```yaml
 apiVersion: secrets-store.csi.x-k8s.io/v1
@@ -721,8 +721,8 @@ spec:
 - [ ] **Step 6: Verify — files present + helm lint (best-effort)**
 
 ```bash
-command -v helm >/dev/null 2>&1 && echo "helm present — run: helm lint infra/helm/luna && helm template infra/helm/luna" || echo "helm NOT installed here — helm lint/template is an operator step"
-ls /Users/alialajme/Projects/Luna/e-luna/infra/helm/luna/Chart.yaml /Users/alialajme/Projects/Luna/e-luna/infra/helm/luna/values.yaml /Users/alialajme/Projects/Luna/e-luna/infra/helm/luna/templates/*.tpl /Users/alialajme/Projects/Luna/e-luna/infra/helm/luna/templates/*.yaml
+command -v helm >/dev/null 2>&1 && echo "helm present — run: helm lint infra/helm/ayvana && helm template infra/helm/ayvana" || echo "helm NOT installed here — helm lint/template is an operator step"
+ls /Users/alialajme/Projects/Luna/e-luna/infra/helm/ayvana/Chart.yaml /Users/alialajme/Projects/Luna/e-luna/infra/helm/ayvana/values.yaml /Users/alialajme/Projects/Luna/e-luna/infra/helm/ayvana/templates/*.tpl /Users/alialajme/Projects/Luna/e-luna/infra/helm/ayvana/templates/*.yaml
 ```
 Expected: Chart.yaml, values.yaml, `_helpers.tpl`, `app.yaml`, `secretproviderclass.yaml` all listed.
 
@@ -749,7 +749,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: ops@luna.ae
+    email: ops@ayvana.ae
     privateKeySecretRef:
       name: letsencrypt-prod-account-key
     solvers:
@@ -764,7 +764,7 @@ metadata:
 spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: ops@luna.ae
+    email: ops@ayvana.ae
     privateKeySecretRef:
       name: letsencrypt-staging-account-key
     solvers:
@@ -810,10 +810,10 @@ permissions:
   contents: read
 
 env:
-  ACR_NAME: elunaacr
-  AKS_NAME: eluna-aks
-  RESOURCE_GROUP: eluna-rg
-  IMAGE_REPO: e-luna
+  ACR_NAME: ayvanaacr
+  AKS_NAME: ayvana-aks
+  RESOURCE_GROUP: ayvana-rg
+  IMAGE_REPO: ayvana
 
 jobs:
   build-and-deploy:
@@ -847,7 +847,7 @@ jobs:
 
       - name: Helm deploy
         run: |
-          helm upgrade --install luna infra/helm/luna \
+          helm upgrade --install luna infra/helm/ayvana \
             --namespace luna --create-namespace \
             --set image.tag=${{ steps.tag.outputs.value }} \
             --wait --timeout 10m
@@ -877,14 +877,14 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add .github/workflows/azure-depl
 - [ ] **Step 1: Create `docs/deployment/azure-aks.md`**
 
 ````markdown
-# Deploying e-Luna to Azure AKS (UAE North)
+# Deploying AYVANA to Azure AKS (UAE North)
 
 This runbook takes the repo's infra-as-code and stands the platform up on Azure. Vercel remains the default target; this is the Azure path.
 
 ## Prerequisites
 - Azure subscription with Contributor + User Access Administrator on the target subscription
 - `az` CLI (with the `bicep` extension), `kubectl`, `helm` v3 installed locally
-- A registered DNS zone for `luna.ae` (and subdomains `sell.` / `ops.`)
+- A registered DNS zone for `ayvana.ae` (and subdomains `sell.` / `ops.`)
 
 ## 1. Provision infrastructure (one-time)
 ```bash
@@ -899,7 +899,7 @@ Capture the outputs: `acrLoginServer`, `aksName`, `keyVaultName`, `postgresFqdn`
 
 ## 2. Cluster add-ons (one-time)
 ```bash
-az aks get-credentials -g eluna-rg -n eluna-aks
+az aks get-credentials -g ayvana-rg -n ayvana-aks
 # ingress-nginx
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace
@@ -911,19 +911,19 @@ kubectl apply -f infra/k8s/cert-manager/cluster-issuer.yaml
 
 ## 3. Populate secrets (Key Vault)
 ```bash
-KV=eluna-kv
-az keyvault secret set --vault-name $KV --name DATABASE_URL --value "postgresql://lunaadmin:${PG_ADMIN_PASSWORD}@<postgresFqdn>:5432/luna?sslmode=require"
+KV=ayvana-kv
+az keyvault secret set --vault-name $KV --name DATABASE_URL --value "postgresql://ayvanaadmin:${PG_ADMIN_PASSWORD}@<postgresFqdn>:5432/ayvana?sslmode=require"
 az keyvault secret set --vault-name $KV --name ANTHROPIC_API_KEY --value "<key>"
 az keyvault secret set --vault-name $KV --name NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY --value "<key>"
 az keyvault secret set --vault-name $KV --name CLERK_SECRET_KEY --value "<key>"
 az keyvault secret set --vault-name $KV --name CLOUDINARY_URL --value "<url>"
 ```
-Create a workload identity + federated credential for the app service account and grant it `Key Vault Secrets User` on the vault; put its client id into `infra/helm/luna/values.yaml` (`keyVault.userAssignedIdentityClientId`) and set `keyVault.tenantId`.
+Create a workload identity + federated credential for the app service account and grant it `Key Vault Secrets User` on the vault; put its client id into `infra/helm/ayvana/values.yaml` (`keyVault.userAssignedIdentityClientId`) and set `keyVault.tenantId`.
 
 ## 4. Database schema
 ```bash
-DATABASE_URL="postgresql://lunaadmin:${PG_ADMIN_PASSWORD}@<postgresFqdn>:5432/luna?sslmode=require" \
-  pnpm --filter "@e-luna/db" exec prisma migrate deploy
+DATABASE_URL="postgresql://ayvanaadmin:${PG_ADMIN_PASSWORD}@<postgresFqdn>:5432/ayvana?sslmode=require" \
+  pnpm --filter "@ayvana/db" exec prisma migrate deploy
 ```
 
 ## 5. Configure GitHub → Azure (OIDC)
@@ -933,18 +933,18 @@ Create an app registration with a federated credential for this repo, grant it A
 Trigger the **Azure Deploy** GitHub Action (`workflow_dispatch`), or locally:
 ```bash
 for app in customer vendor admin; do
-  az acr build --registry elunaacr --image e-luna/$app:manual --build-arg APP=$app --file docker/Dockerfile .
+  az acr build --registry ayvanaacr --image e-luna/$app:manual --build-arg APP=$app --file docker/Dockerfile .
 done
-helm upgrade --install luna infra/helm/luna -n luna --create-namespace --set image.tag=manual --wait
+helm upgrade --install luna infra/helm/ayvana -n luna --create-namespace --set image.tag=manual --wait
 ```
 
 ## 7. DNS + verify 24/7
-- Point `luna.ae`, `sell.luna.ae`, `ops.luna.ae` A-records at the ingress-nginx public IP (`kubectl get svc -n ingress-nginx`).
+- Point `ayvana.ae`, `sell.ayvana.ae`, `ops.ayvana.ae` A-records at the ingress-nginx public IP (`kubectl get svc -n ingress-nginx`).
 - Smoke test:
 ```bash
-curl -sf https://luna.ae/api/health      # {"status":"ok"}
-curl -sf https://sell.luna.ae/api/health
-curl -sf https://ops.luna.ae/api/health
+curl -sf https://ayvana.ae/api/health      # {"status":"ok"}
+curl -sf https://sell.ayvana.ae/api/health
+curl -sf https://ops.ayvana.ae/api/health
 kubectl get pods -n luna                  # ≥2 Ready per app across zones
 ```
 
@@ -952,7 +952,7 @@ kubectl get pods -n luna                  # ≥2 Ready per app across zones
 ```bash
 helm rollback luna            # previous release
 # or pin a known-good SHA:
-helm upgrade luna infra/helm/luna -n luna --set image.tag=<good-sha>
+helm upgrade luna infra/helm/ayvana -n luna --set image.tag=<good-sha>
 ```
 
 ## 24/7 resilience recap
@@ -985,7 +985,7 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add docs/deployment/azure-aks.md
 
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna && pnpm lint 2>&1 | tail -4
-cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit; echo "EXIT: $?"
+cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit; echo "EXIT: $?"
 ```
 Expected: lint `3 successful, 3 total`; tsc `EXIT: 0`.
 
@@ -995,7 +995,7 @@ Expected: lint `3 successful, 3 total`; tsc `EXIT: 0`.
 cd /Users/alialajme/Projects/Luna/e-luna && ls \
   docker/Dockerfile docker/.dockerignore \
   infra/bicep/main.bicep infra/bicep/modules/aks.bicep infra/bicep/modules/postgres.bicep \
-  infra/helm/luna/Chart.yaml infra/helm/luna/templates/app.yaml \
+  infra/helm/ayvana/Chart.yaml infra/helm/ayvana/templates/app.yaml \
   infra/k8s/cert-manager/cluster-issuer.yaml \
   .github/workflows/azure-deploy.yml docs/deployment/azure-aks.md \
   apps/customer/app/api/health/route.ts

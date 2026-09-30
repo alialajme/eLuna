@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 import { SupplierActions } from "../../components/SupplierActions";
 
-export const metadata: Metadata = { title: "Supplier Approvals — Luna Ops" };
+export const metadata: Metadata = { title: "Supplier Approvals — AYVANA Ops" };
 
 const LICENSE_BADGE: Record<string, { className: string; label: string }> = {
   VERIFIED: { className: "bg-sage/20 text-sage", label: "Licence verified" },
@@ -41,7 +41,7 @@ export default async function SupplierApprovalsPage() {
               <div className="mb-3 flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-body-md font-medium text-ink">{s.companyName}</p>
-                  <p className="text-body-xs text-mist">supply.luna.ae/{s.companySlug}</p>
+                  <p className="text-body-xs text-mist">supply.ayvana.ae/{s.companySlug}</p>
                   {s.materialTypes.length > 0 && (
                     <p className="text-body-xs text-mist mt-1 capitalize">
                       Supplies: {s.materialTypes.join(", ")}

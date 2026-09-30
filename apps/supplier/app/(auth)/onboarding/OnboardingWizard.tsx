@@ -73,7 +73,7 @@ export function OnboardingWizard({ userEmail }: Props) {
         <div className="space-y-6">
           <div>
             <h1 className="font-display text-display-md text-ink">Tell us about your business</h1>
-            <p className="text-body-md text-mist mt-1">Vendors will source materials from you on Luna.</p>
+            <p className="text-body-md text-mist mt-1">Vendors will source materials from you on AYVANA.</p>
           </div>
           <div className="space-y-4">
             <div>
@@ -92,7 +92,7 @@ export function OnboardingWizard({ userEmail }: Props) {
               <label htmlFor="company-slug" className="text-label text-mist block mb-2">SUPPLIER URL</label>
               <div className="flex items-center rounded-xl border border-sand overflow-hidden">
                 <span className="px-3 py-3 text-body-sm text-mist bg-sand/50 border-r border-sand">
-                  supply.luna.ae/
+                  supply.ayvana.ae/
                 </span>
                 <input
                   id="company-slug"
@@ -151,7 +151,7 @@ export function OnboardingWizard({ userEmail }: Props) {
           <div>
             <h1 className="font-display text-display-md text-ink">Secure your account</h1>
             <p className="text-body-md text-mist mt-1">
-              Luna requires two-factor authentication for all suppliers to protect your business.
+              AYVANA requires two-factor authentication for all suppliers to protect your business.
             </p>
           </div>
           <div className="rounded-2xl border border-sand bg-sand/30 p-5 space-y-3">

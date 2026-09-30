@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { checkDatabase } from "@e-luna/db";
+import { checkDatabase } from "@ayvana/db";
 
 export const dynamic = "force-dynamic";
 

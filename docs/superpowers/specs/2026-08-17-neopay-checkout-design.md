@@ -7,7 +7,7 @@ scaffold in the customer checkout picker, safely.
 
 ## Goal
 
-Let a customer select **NeoPay** at checkout. NeoPay is already a config-gated gateway in `@e-luna/payments`
+Let a customer select **NeoPay** at checkout. NeoPay is already a config-gated gateway in `@ayvana/payments`
 (`getGateway("NEOPAY")` → `NeopayGateway` when `hasNeopay()`, else `SimulatedGateway`). The only work is to
 surface it in the UI and route it through the existing synchronous `placeOrder` path — **without allowing a
 fake capture in production** when NeoPay is unconfigured (the `SimulatedGateway` fallback returns `captured`).
@@ -21,7 +21,7 @@ is hidden **and** rejected server-side (no order, no fake capture); with real ke
 ## Confirmed Decisions
 
 - **Single availability helper** — `neopayAvailable()` = `hasNeopay() || process.env.NODE_ENV !== "production"`,
-  exported from `@e-luna/payments`, used by BOTH the checkout page (to show/hide) and `placeOrder` (to guard).
+  exported from `@ayvana/payments`, used by BOTH the checkout page (to show/hide) and `placeOrder` (to guard).
   One source of truth so UI and server can't drift.
 - **Route through the existing synchronous `placeOrder` path** (like Tabby/Tamara/Wallet). No new redirect flow.
 - **Server-side guard is authoritative** — `placeOrder` rejects `NEOPAY` when `!neopayAvailable()`, never
@@ -47,14 +47,14 @@ production**. `neopayAvailable()` prevents this:
 | Prod, no keys | false | hidden | **rejected** (`{ success:false, error }`) — no order, no fake capture |
 | Prod, with keys | true | shown | `NeopayGateway` → currently `failed` "not configured" until the operator implements it |
 
-## Part A — Availability helper (`@e-luna/payments`)
+## Part A — Availability helper (`@ayvana/payments`)
 
 Add to `packages/payments/src/config.ts`:
 ```ts
 export const neopayAvailable = () => hasNeopay() || process.env.NODE_ENV !== "production";
 ```
 Ensure it is re-exported from the package barrel (`packages/payments/src/index.ts` — `config.ts` is exported
-there already; confirm `neopayAvailable` is reachable as `import { neopayAvailable } from "@e-luna/payments"`).
+there already; confirm `neopayAvailable` is reachable as `import { neopayAvailable } from "@ayvana/payments"`).
 
 ## Part B — Checkout page + `CheckoutForm` (`apps/customer`)
 
@@ -65,7 +65,7 @@ there already; confirm `neopayAvailable` is reachable as `import { neopayAvailab
   - The `PAYMENT_METHODS` list gains a NeoPay entry
     `{ value: "NEOPAY", label: "NeoPay", icon: "🇦🇪", desc: "UAE bank cards & wallets" }`, included **only when
     `neopayEnabled`** (filter the rendered list, or build the array conditionally). Placement: after
-    Tamara / before Luna Wallet.
+    Tamara / before AYVANA Wallet.
   - The submit handler's non-CARD branch already calls `placeOrder`; widen its `paymentMethod` cast union to
     include `"NEOPAY"` so NeoPay is passed through unchanged (NeoPay is synchronous here — no CARD/Stripe path).
 
@@ -106,7 +106,7 @@ existing synchronous-method path.
 ## Testing
 
 No automated suite — types + lint + manual:
-1. `pnpm --filter "@e-luna/*" exec tsc --noEmit` — clean.
+1. `pnpm --filter "@ayvana/*" exec tsc --noEmit` — clean.
 2. `pnpm lint` — clean.
 3. gitleaks — clean.
 4. Manual (dev, no keys): NeoPay appears in the picker; placing an order with NeoPay succeeds (Simulated

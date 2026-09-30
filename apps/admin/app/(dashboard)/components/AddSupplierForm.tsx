@@ -65,7 +65,7 @@ export function AddSupplierForm() {
       <div className="space-y-1">
         <label htmlFor="companySlug" className="text-body-xs text-mist">Supplier URL</label>
         <div className="flex items-center gap-2">
-          <span className="text-body-sm text-mist">supply.luna.ae/</span>
+          <span className="text-body-sm text-mist">supply.ayvana.ae/</span>
           <input id="companySlug" value={companySlug} maxLength={40}
             onChange={(e) => { setSlugEdited(true); setCompanySlug(slugify(e.target.value)); }}
             placeholder="silk-route-fabrics" className={input} />

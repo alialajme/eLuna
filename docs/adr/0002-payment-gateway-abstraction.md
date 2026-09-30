@@ -4,7 +4,7 @@
 
 ## Context
 The platform supports several payment methods (card via Stripe, BNPL Tabby/Tamara, Tap/Noqodi/NeoPay,
-Luna Wallet, COD). Not all have live credentials in every environment. A mock/Simulated gateway is
+AYVANA Wallet, COD). Not all have live credentials in every environment. A mock/Simulated gateway is
 useful for local/dev but must **never** be able to confirm/capture real money in production.
 
 ## Decision

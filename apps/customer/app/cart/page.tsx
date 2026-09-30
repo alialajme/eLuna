@@ -1,10 +1,10 @@
 import { Metadata } from "next";
-import { prisma, getSetting } from "@e-luna/db";
+import { prisma, getSetting } from "@ayvana/db";
 import { getCart } from "../actions/cart";
 import { CartReview } from "./CartReview";
 
 export const metadata: Metadata = {
-  title: "Your Bag — Luna",
+  title: "Your Bag — AYVANA",
 };
 
 export default async function CartPage() {

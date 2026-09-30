@@ -11,7 +11,7 @@ Wire the Logistics agent as an advisory, read-only **customer delivery assistant
 **In scope:**
 - Rewrite `packages/ai/src/agents/logistics.ts` with `buildLogisticsTools(customerId)` (3 read-only tools) + `runLogisticsAgent(messages, { customerId })`.
 - A customer route `/api/delivery-help`.
-- A `hiddenPrefixes` prop on `LunaChatWidget`; mount a "Delivery Help" widget on the orders pages; hide the global Shopping widget there.
+- A `hiddenPrefixes` prop on `AyvanaChatWidget`; mount a "Delivery Help" widget on the orders pages; hide the global Shopping widget there.
 
 **Out of scope (later / not this phase):**
 - Any mutation by the agent (creating shipments, marking delivered, requesting/approving returns — those stay in the 7a/7b deterministic actions; the agent points to the "Request return" button).
@@ -24,24 +24,24 @@ Wire the Logistics agent as an advisory, read-only **customer delivery assistant
 
 ## Architecture
 
-The agent is **advisory/read-only**, customer-scoped, in a new customer route (`/api/delivery-help`), surfaced via the reused `LunaChatWidget` (Vercel AI SDK `useChat` → `toDataStreamResponse()`), identical to the 8a Seller and 8b Payment wirings.
+The agent is **advisory/read-only**, customer-scoped, in a new customer route (`/api/delivery-help`), surfaced via the reused `AyvanaChatWidget` (Vercel AI SDK `useChat` → `toDataStreamResponse()`), identical to the 8a Seller and 8b Payment wirings.
 
 **Security:** the agent is bound to the authenticated customer. `customerId` (= `CustomerProfile.id`) is resolved server-side (`safeCurrentUser()` → `prisma.customerProfile.findUnique({ where:{ userId } })`), captured in the `buildLogisticsTools(customerId)` closure, and **never** an LLM parameter. Order-based tools filter by `{ id: orderId, customerId }` (ownership check). **No tool mutates data.**
 
-**Registry independence:** to avoid an `@e-luna/ai → @e-luna/ui` dependency, tools return the courier name + tracking number (not a constructed deep-link); the live tracking link already lives on the order page (7a).
+**Registry independence:** to avoid an `@ayvana/ai → @ayvana/ui` dependency, tools return the courier name + tracking number (not a constructed deep-link); the live tracking link already lives on the order page (7a).
 
 ### Files
 ```
 packages/ai/src/agents/logistics.ts             — REWRITE: buildLogisticsTools(customerId) + runLogisticsAgent(messages, { customerId })
 packages/ai/src/index.ts                          — MODIFY: export runLogisticsAgent + buildLogisticsTools (drop logisticsTools)
-packages/ui/src/components/LunaChatWidget.tsx     — MODIFY: add optional hiddenPrefixes prop
+packages/ui/src/components/AyvanaChatWidget.tsx     — MODIFY: add optional hiddenPrefixes prop
 apps/customer/app/layout.tsx                       — MODIFY: Shopping widget hiddenPrefixes={["/orders"]}
 apps/customer/app/api/delivery-help/route.ts       — CREATE: POST → auth → customer profile → runLogisticsAgent → stream
 apps/customer/app/orders/layout.tsx                — CREATE: mount the Delivery widget across /orders*
 ```
-No schema changes. `packages/ai` depends on `@e-luna/db`; the customer app already depends on `@e-luna/ai`, `@e-luna/ui`, and `ai`.
+No schema changes. `packages/ai` depends on `@ayvana/db`; the customer app already depends on `@ayvana/ai`, `@ayvana/ui`, and `ai`.
 
-**Verified facts:** `Order { id, customerId (= CustomerProfile.id), status, createdAt, updatedAt, items OrderItem[], shipments Shipment[] }`; `Shipment { courier, trackingNumber?, status, estimatedDelivery?, deliveredAt? }`; `OrderItem { fulfillmentStatus, shipmentId?, shipment Shipment?, returns Return[], variant→product.title }`; `Return { status }`; `ReturnStatus` includes `REJECTED`. Shopping widget at `apps/customer/app/layout.tsx:55` is `<LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />`; the widget's hide rule (line 54) is `if ((hiddenPaths ?? ["/chat"]).includes(pathname)) return null;`. There is no `apps/customer/app/orders/layout.tsx` today.
+**Verified facts:** `Order { id, customerId (= CustomerProfile.id), status, createdAt, updatedAt, items OrderItem[], shipments Shipment[] }`; `Shipment { courier, trackingNumber?, status, estimatedDelivery?, deliveredAt? }`; `OrderItem { fulfillmentStatus, shipmentId?, shipment Shipment?, returns Return[], variant→product.title }`; `Return { status }`; `ReturnStatus` includes `REJECTED`. Shopping widget at `apps/customer/app/layout.tsx:55` is `<AyvanaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />`; the widget's hide rule (line 54) is `if ((hiddenPaths ?? ["/chat"]).includes(pathname)) return null;`. There is no `apps/customer/app/orders/layout.tsx` today.
 
 ---
 
@@ -53,7 +53,7 @@ Mirrors the 8a/8b factory shape.
 ```
 ${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Delivery Agent — a READ-ONLY delivery & returns helper for a Luna customer.
+You are the Delivery Agent — a READ-ONLY delivery & returns helper for a AYVANA customer.
 Use your tools to answer where an order is, when it should arrive, and whether an item can be returned.
 You do NOT ship, move, cancel, or return anything — never claim you have. To return an item, tell the
 customer to use the "Request return" button on the order page (delivered items only, within 14 days).
@@ -193,8 +193,8 @@ export async function runLogisticsAgent(
 Mirrors `/api/payment-help` (8b).
 ```ts
 import { safeCurrentUser as currentUser } from "../../lib/auth";
-import { prisma } from "@e-luna/db";
-import { runLogisticsAgent } from "@e-luna/ai";
+import { prisma } from "@ayvana/db";
+import { runLogisticsAgent } from "@ayvana/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -231,11 +231,11 @@ export async function POST(req: Request) {
 
 ---
 
-## Shared Widget — `LunaChatWidget` (add `hiddenPrefixes`)
+## Shared Widget — `AyvanaChatWidget` (add `hiddenPrefixes`)
 
 Add an optional prop; backward-compatible.
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string;
   title?: string;
   greeting?: string;
@@ -254,18 +254,18 @@ if ((hiddenPrefixes ?? []).some((p) => pathname.startsWith(p))) return null;
 
 **Root layout** (`apps/customer/app/layout.tsx:55`) — hide Shopping across all `/orders*`:
 ```tsx
-<LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} hiddenPrefixes={["/orders"]} />
+<AyvanaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} hiddenPrefixes={["/orders"]} />
 ```
 
 **Orders layout** (`apps/customer/app/orders/layout.tsx`, new) — mount the Delivery widget once for the list + detail pages:
 ```tsx
-import { LunaChatWidget } from "@e-luna/ui";
+import { AyvanaChatWidget } from "@ayvana/ui";
 
 export default function OrdersLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      <LunaChatWidget
+      <AyvanaChatWidget
         apiPath="/api/delivery-help"
         title="Delivery Help"
         greeting="Ask me where your order is, delivery timing, or how to return an item."
@@ -296,7 +296,7 @@ cd packages/ui && npx tsc --noEmit 2>&1                                     # cl
 cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"    # clean
 cd apps/customer && npx next lint 2>&1 | tail -3                            # no new errors
 ```
-Final task runs repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit`. Live agent chat needs a running app + `ANTHROPIC_API_KEY` (manual smoke: open `/orders/[id]` → "where's my order?" / "can I return the abaya?").
+Final task runs repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit`. Live agent chat needs a running app + `ANTHROPIC_API_KEY` (manual smoke: open `/orders/[id]` → "where's my order?" / "can I return the abaya?").
 
 ---
 

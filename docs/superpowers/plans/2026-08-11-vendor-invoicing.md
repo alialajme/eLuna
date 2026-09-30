@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** A vendor issues a UAE tax-compliant invoice (inclusive 5% VAT) for their items in a customer `Order`; the customer views/downloads it. Reuses a shared `@e-luna/einvoice` gateway (extracted from the supplier app) and a shared `TaxInvoiceDocument` UI component.
+**Goal:** A vendor issues a UAE tax-compliant invoice (inclusive 5% VAT) for their items in a customer `Order`; the customer views/downloads it. Reuses a shared `@ayvana/einvoice` gateway (extracted from the supplier app) and a shared `TaxInvoiceDocument` UI component.
 
-**Architecture:** Extract the e-invoice gateway to `@e-luna/einvoice` (generalized `seller`/`buyer`) and repoint the supplier. Add a shared printable `TaxInvoiceDocument` to `@e-luna/ui`. New `OrderInvoice` model (`@@unique([orderId, vendorId])`) + `Vendor.trn`. Vendor-app actions/pages to issue; customer-app pages to view.
+**Architecture:** Extract the e-invoice gateway to `@ayvana/einvoice` (generalized `seller`/`buyer`) and repoint the supplier. Add a shared printable `TaxInvoiceDocument` to `@ayvana/ui`. New `OrderInvoice` model (`@@unique([orderId, vendorId])`) + `Vendor.trn`. Vendor-app actions/pages to issue; customer-app pages to view.
 
 **Tech Stack:** Turborepo + pnpm@9, Next.js 15, Prisma + PostgreSQL (`prisma db push`, NO migration files), Clerk, Tailwind. Spec: `docs/superpowers/specs/2026-08-11-vendor-invoicing-design.md`.
 
@@ -14,23 +14,23 @@
 - **No automated test suite** — each task's "test" = `db:generate` (when schema changed) + `tsc --noEmit` + `next lint` on touched packages/apps.
 - Prisma: `db push`, NO migrations. Local Postgres localhost:5432/eluna, role `postgres`/`password`.
 - Actions return `{ success, error? }` (create also `id`); scope ids server-resolved (never client params); DB reads `.catch(() => fallback)`. Money `Decimal` ↔ `Number(...)`; **inclusive VAT:** `net = round(gross/1.05,2)`, `vat = round(gross-net,2)`, `total = gross`.
-- Workspace packages export raw TS (like `@e-luna/db`); apps list them in `dependencies` + `transpilePackages`.
+- Workspace packages export raw TS (like `@ayvana/db`); apps list them in `dependencies` + `transpilePackages`.
 
 ---
 
-### Task 1: Extract `@e-luna/einvoice` package + repoint supplier
+### Task 1: Extract `@ayvana/einvoice` package + repoint supplier
 
 **Files:** Create `packages/einvoice/{package.json,tsconfig.json,src/{gateway,simulated,fta,config,factory,index}.ts}`; modify `apps/supplier/app/actions/invoice.ts`, `apps/supplier/package.json`, `apps/supplier/next.config.ts`; delete `apps/supplier/app/lib/einvoice/`.
 
 - [ ] **Step 1: `packages/einvoice/package.json`**
 ```json
 {
-  "name": "@e-luna/einvoice",
+  "name": "@ayvana/einvoice",
   "version": "0.0.1",
   "private": true,
   "exports": { ".": "./src/index.ts" },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "typescript": "^5.4.0"
   }
 }
@@ -39,7 +39,7 @@
 - [ ] **Step 2: `packages/einvoice/tsconfig.json`**
 ```json
 {
-  "extends": "@e-luna/config/tsconfig/base",
+  "extends": "@ayvana/config/tsconfig/base",
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }
@@ -137,7 +137,7 @@ git rm -r apps/supplier/app/lib/einvoice
 ```
 In `apps/supplier/app/actions/invoice.ts`, change the import:
 ```ts
-import { getEInvoiceGateway } from "@e-luna/einvoice";
+import { getEInvoiceGateway } from "@ayvana/einvoice";
 ```
 (was `from "../lib/einvoice/factory"`). Then change the `.issue({...})` call so it matches the generalized
 params — `supplier`→`seller`, `vendor`→`buyer`, and map the lines to the generic shape. Replace:
@@ -163,28 +163,28 @@ with:
 
 - [ ] **Step 10: Supplier deps**
 
-In `apps/supplier/package.json` `dependencies`, add after `"@e-luna/ai"`:
+In `apps/supplier/package.json` `dependencies`, add after `"@ayvana/ai"`:
 ```json
-    "@e-luna/einvoice": "workspace:*",
+    "@ayvana/einvoice": "workspace:*",
 ```
-In `apps/supplier/next.config.ts` `transpilePackages`, add `"@e-luna/einvoice"`.
+In `apps/supplier/next.config.ts` `transpilePackages`, add `"@ayvana/einvoice"`.
 
 - [ ] **Step 11: Install + verify**
 ```bash
 pnpm install
-pnpm exec tsc --noEmit -p packages/einvoice/tsconfig.json && pnpm --filter @e-luna/supplier exec tsc --noEmit
+pnpm exec tsc --noEmit -p packages/einvoice/tsconfig.json && pnpm --filter @ayvana/supplier exec tsc --noEmit
 ```
 Expected: both clean (the supplier still compiles against the extracted package).
 
 - [ ] **Step 12: Commit**
 ```bash
 git add packages/einvoice apps/supplier/app/actions/invoice.ts apps/supplier/package.json apps/supplier/next.config.ts pnpm-lock.yaml
-git commit -m "refactor(einvoice): extract shared @e-luna/einvoice gateway + repoint supplier"
+git commit -m "refactor(einvoice): extract shared @ayvana/einvoice gateway + repoint supplier"
 ```
 
 ---
 
-### Task 2: Shared `TaxInvoiceDocument` (`@e-luna/ui`)
+### Task 2: Shared `TaxInvoiceDocument` (`@ayvana/ui`)
 
 **Files:** Create `packages/ui/src/components/TaxInvoiceDocument.tsx`; modify `packages/ui/src/index.ts` (export).
 
@@ -216,7 +216,7 @@ export function TaxInvoiceDocument(props: TaxInvoiceProps) {
           <p className="text-body-sm text-mist">{invoiceNumber}</p>
         </div>
         <div className="text-right text-body-sm">
-          <p className="font-display text-display-sm text-gold">✦ Luna</p>
+          <p className="font-display text-display-sm text-gold">✦ AYVANA</p>
           <p className="text-mist">{issuedAt}</p>
         </div>
       </div>
@@ -278,7 +278,7 @@ export type { TaxInvoiceProps } from "./components/TaxInvoiceDocument";
 ```bash
 pnpm exec tsc --noEmit -p packages/ui/tsconfig.json
 ```
-Expected: no errors. (If `@e-luna/ui` has no tsconfig path, verify via `pnpm --filter @e-luna/ui exec tsc --noEmit`.)
+Expected: no errors. (If `@ayvana/ui` has no tsconfig path, verify via `pnpm --filter @ayvana/ui exec tsc --noEmit`.)
 
 - [ ] **Step 4: Commit**
 ```bash
@@ -336,7 +336,7 @@ In `model Vendor` add (alongside its relations, e.g. after `payouts Payout[]`):
 
 - [ ] **Step 4: Generate + push**
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:generate && pnpm --filter @ayvana/db db:push
 ```
 Expected: "Your database is now in sync with your Prisma schema."
 
@@ -357,8 +357,8 @@ git commit -m "feat(db): add Vendor.trn + OrderInvoice (per vendor per order)"
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
-import { getEInvoiceGateway } from "@e-luna/einvoice";
+import { prisma } from "@ayvana/db";
+import { getEInvoiceGateway } from "@ayvana/einvoice";
 import { safeCurrentUser } from "../lib/auth";
 
 type ActiveVendor = { id: string; storeName: string; storeSlug: string; trn: string | null };
@@ -492,12 +492,12 @@ export async function issueOrderInvoice(
 
 - [ ] **Step 2: Type-check**
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit
+pnpm --filter @ayvana/vendor exec tsc --noEmit
 ```
-Expected: no errors. (Needs `@e-luna/einvoice` in the vendor app deps — added in the next task's dep step, so if this errors on the import, run Task 5 Step 0 first. To be safe, add the dep now: see note.)
+Expected: no errors. (Needs `@ayvana/einvoice` in the vendor app deps — added in the next task's dep step, so if this errors on the import, run Task 5 Step 0 first. To be safe, add the dep now: see note.)
 
-**Note:** add `"@e-luna/einvoice": "workspace:*"` to `apps/vendor/package.json` dependencies and
-`"@e-luna/einvoice"` to `apps/vendor/next.config.ts` `transpilePackages`, then `pnpm install`, before this
+**Note:** add `"@ayvana/einvoice": "workspace:*"` to `apps/vendor/package.json` dependencies and
+`"@ayvana/einvoice"` to `apps/vendor/next.config.ts` `transpilePackages`, then `pnpm install`, before this
 type-check.
 
 - [ ] **Step 3: Commit**
@@ -555,11 +555,11 @@ export function IssueInvoiceButton({ orderId, hasTrn }: { orderId: string; hasTr
 ```tsx
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 
-export const metadata: Metadata = { title: "Invoices — Luna Vendor" };
+export const metadata: Metadata = { title: "Invoices — AYVANA Vendor" };
 
 export default async function InvoicesPage() {
   const user = await safeCurrentUser();
@@ -608,12 +608,12 @@ export default async function InvoicesPage() {
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
-import { TaxInvoiceDocument } from "@e-luna/ui";
+import { prisma } from "@ayvana/db";
+import { TaxInvoiceDocument } from "@ayvana/ui";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 
-export const metadata: Metadata = { title: "Tax Invoice — Luna Vendor" };
+export const metadata: Metadata = { title: "Tax Invoice — AYVANA Vendor" };
 
 type Props = { params: Promise<{ id: string }> };
 type Line = { description: string; quantity: number; unitPrice: number; lineTotal: number };
@@ -649,7 +649,7 @@ export default async function VendorInvoicePage({ params }: Props) {
 
 - [ ] **Step 4: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit && pnpm --filter @e-luna/vendor lint
+pnpm --filter @ayvana/vendor exec tsc --noEmit && pnpm --filter @ayvana/vendor lint
 ```
 Expected: clean.
 
@@ -708,7 +708,7 @@ export function TrnForm({ initialTrn }: { initialTrn: string | null }) {
 - [ ] **Step 2: Settings page — add the Tax section.** In `apps/vendor/app/(dashboard)/settings/page.tsx`,
 add the import + a section. Add near the other imports:
 ```tsx
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { TrnForm } from "./components/TrnForm";
 ```
 After the `getVendorByUserId` guard (before the `return`), add:
@@ -762,7 +762,7 @@ the `Payouts` entry:
 
 - [ ] **Step 5: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/vendor exec tsc --noEmit && pnpm --filter @e-luna/vendor lint
+pnpm --filter @ayvana/vendor exec tsc --noEmit && pnpm --filter @ayvana/vendor lint
 ```
 Expected: clean.
 
@@ -809,11 +809,11 @@ And render a section (near the order items / summary):
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
-import { TaxInvoiceDocument } from "@e-luna/ui";
+import { prisma } from "@ayvana/db";
+import { TaxInvoiceDocument } from "@ayvana/ui";
 import { safeCurrentUser } from "../../../../lib/auth";
 
-export const metadata: Metadata = { title: "Tax Invoice — Luna" };
+export const metadata: Metadata = { title: "Tax Invoice — AYVANA" };
 
 type Props = { params: Promise<{ id: string; invoiceId: string }> };
 type Line = { description: string; quantity: number; unitPrice: number; lineTotal: number };
@@ -855,7 +855,7 @@ export default async function CustomerInvoicePage({ params }: Props) {
 
 - [ ] **Step 3: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit && pnpm --filter @e-luna/customer lint
+pnpm --filter @ayvana/customer exec tsc --noEmit && pnpm --filter @ayvana/customer lint
 ```
 Expected: clean.
 
@@ -871,9 +871,9 @@ git commit -m "feat(customer): download per-vendor tax invoices from the order"
 
 - [ ] **Step 1: Regenerate + full type-check**
 ```bash
-pnpm --filter @e-luna/db db:generate && pnpm --filter "@e-luna/*" exec tsc --noEmit
+pnpm --filter @ayvana/db db:generate && pnpm --filter "@ayvana/*" exec tsc --noEmit
 ```
-Expected: no type errors across all packages/apps (incl. `@e-luna/einvoice`, the repointed supplier).
+Expected: no type errors across all packages/apps (incl. `@ayvana/einvoice`, the repointed supplier).
 
 - [ ] **Step 2: Full lint**
 ```bash
@@ -891,8 +891,8 @@ git add -A && git commit -m "chore: sync generated artifacts for vendor invoicin
 ## Self-Review
 
 **Spec coverage:**
-- Extract `@e-luna/einvoice` (generalized seller/buyer) + repoint supplier + delete supplier lib → Task 1. ✅
-- Shared `TaxInvoiceDocument` in `@e-luna/ui` → Task 2. ✅
+- Extract `@ayvana/einvoice` (generalized seller/buyer) + repoint supplier + delete supplier lib → Task 1. ✅
+- Shared `TaxInvoiceDocument` in `@ayvana/ui` → Task 2. ✅
 - `Vendor.trn` + `OrderInvoice` (`@@unique([orderId, vendorId])`) + back-relations → Task 3. ✅
 - `setVendorTrn` (15-digit) + `issueOrderInvoice` (vendor-scoped; owner-has-items + order-state + TRN +
   one-per-(order,vendor); **inclusive VAT** `net=gross/1.05`; sequential numbering; P2002 retry distinguishing

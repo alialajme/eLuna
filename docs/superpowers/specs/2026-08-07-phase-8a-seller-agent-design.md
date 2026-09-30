@@ -8,7 +8,7 @@ Wire the **Seller Agent** end-to-end: turn its stub tools into real, vendor-scop
 
 ## Scope
 
-**In scope:** real implementations for the Seller agent's tools (`flag_low_stock`, `suggest_price`, `forecast_demand`, plus an honest `studio_link` deep-link); a vendor chat API route; two optional (backward-compatible) props on the shared `LunaChatWidget`; mounting the widget in the vendor dashboard layout.
+**In scope:** real implementations for the Seller agent's tools (`flag_low_stock`, `suggest_price`, `forecast_demand`, plus an honest `studio_link` deep-link); a vendor chat API route; two optional (backward-compatible) props on the shared `AyvanaChatWidget`; mounting the widget in the vendor dashboard layout.
 
 **Out of scope:** `AISession` message/context persistence (deferred); the other agents (Payment/Logistics/POS) and inter-agent handoff/orchestration; real Studio pipeline triggering from chat (needs image upload — the tool only deep-links); schema changes; Arabic-specific tuning beyond the existing "respond in the user's language" system context.
 
@@ -16,7 +16,7 @@ Wire the **Seller Agent** end-to-end: turn its stub tools into real, vendor-scop
 
 ## Architecture
 
-The Seller agent runs server-side in a new vendor route (`/api/assistant`) and streams back through the existing `LunaChatWidget` via the Vercel AI SDK `useChat` → `toDataStreamResponse()` pattern (identical to the customer Shopping agent at `/api/chat`). Its tools query live data with Prisma (`packages/ai` already depends on `@e-luna/db`).
+The Seller agent runs server-side in a new vendor route (`/api/assistant`) and streams back through the existing `AyvanaChatWidget` via the Vercel AI SDK `useChat` → `toDataStreamResponse()` pattern (identical to the customer Shopping agent at `/api/chat`). Its tools query live data with Prisma (`packages/ai` already depends on `@ayvana/db`).
 
 **Security — vendor scoping:** the agent is bound to the **authenticated vendor**. `vendorId` is resolved server-side (`safeCurrentUser()` → `getVendorByUserId()`) and passed into a tool factory; it is **never** a tool parameter the LLM can set. Tools that accept a `productId` verify the product belongs to that vendor before returning anything, so a vendor cannot probe another vendor's data via a crafted prompt.
 
@@ -25,11 +25,11 @@ The Seller agent runs server-side in a new vendor route (`/api/assistant`) and s
 ```
 packages/ai/src/agents/seller.ts                  — REWRITE: buildSellerTools(vendorId) + runSellerAgent(messages, { vendorId })
 apps/vendor/app/api/assistant/route.ts            — CREATE: POST → auth → runSellerAgent → stream
-packages/ui/src/components/LunaChatWidget.tsx     — MODIFY: add optional title + greeting props (backward-compatible)
-apps/vendor/app/(dashboard)/layout.tsx            — MODIFY: mount <LunaChatWidget apiPath="/api/assistant" title greeting />
+packages/ui/src/components/AyvanaChatWidget.tsx     — MODIFY: add optional title + greeting props (backward-compatible)
+apps/vendor/app/(dashboard)/layout.tsx            — MODIFY: mount <AyvanaChatWidget apiPath="/api/assistant" title greeting />
 ```
 
-No schema changes. `packages/ui` already depends on `ai` (`useChat`); `packages/ai` already depends on `@e-luna/db`.
+No schema changes. `packages/ui` already depends on `ai` (`useChat`); `packages/ai` already depends on `@ayvana/db`.
 
 ---
 
@@ -41,7 +41,7 @@ Mirrors the Shopping agent's shape: a tool factory closing over context + a `run
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 ```
 
@@ -49,7 +49,7 @@ import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 ```
 ${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Seller Agent for a Luna vendor. Help them manage and grow their boutique.
+You are the Seller Agent for a AYVANA vendor. Help them manage and grow their boutique.
 Use your tools to ground every answer in the vendor's real data — never invent numbers.
 Be concise and data-driven; vendors are busy. When you recommend a Studio campaign,
 use the studio_link tool to point them to the right place.
@@ -125,7 +125,7 @@ Returns an object of four tools, all `.catch()`-guarded, Decimals `Number()`-con
 
 4. **`studio_link`** — params `{ productId: z.string().optional() }`. Honest deep-link, no pipeline:
    ```ts
-   return { url: "/studio/new", message: "Upload 3 photos of the product to generate a full marketing campaign in Luna Studio." };
+   return { url: "/studio/new", message: "Upload 3 photos of the product to generate a full marketing campaign in AYVANA Studio." };
    ```
 
 ### `runSellerAgent`
@@ -154,7 +154,7 @@ Mirrors the customer `/api/chat` handler.
 ```ts
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
-import { runSellerAgent } from "@e-luna/ai";
+import { runSellerAgent } from "@ayvana/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -175,21 +175,21 @@ export async function POST(req: Request) {
   }
 }
 ```
-Requires the vendor app to have `@e-luna/ai` as a dependency (it was added in Phase 5 — confirm; if missing, add `"@e-luna/ai": "workspace:*"` and `pnpm install`).
+Requires the vendor app to have `@ayvana/ai` as a dependency (it was added in Phase 5 — confirm; if missing, add `"@ayvana/ai": "workspace:*"` and `pnpm install`).
 
 ---
 
-## Shared Widget — `packages/ui/src/components/LunaChatWidget.tsx`
+## Shared Widget — `packages/ui/src/components/AyvanaChatWidget.tsx`
 
 Add two optional props, backward-compatible (customer usage unchanged):
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string;
-  title?: string;     // header title; default "Luna"
+  title?: string;     // header title; default "AYVANA"
   greeting?: string;  // first assistant bubble when the thread is empty; default the current customer greeting
 };
 ```
-- The header text uses `title ?? "Luna"`.
+- The header text uses `title ?? "AYVANA"`.
 - The empty-state (no messages yet) renders `greeting` as an assistant bubble (using the existing `ChatMessage` with `role="assistant"`), defaulting to the current customer greeting string already in the component.
 - Everything else unchanged. The `[PRODUCT:slug]` embed logic stays and is simply inert for Seller responses.
 
@@ -199,9 +199,9 @@ type LunaChatWidgetProps = {
 
 Add the widget inside the dashboard shell (client component as a child of the RSC layout is fine), after `<main>`:
 ```tsx
-import { LunaChatWidget } from "@e-luna/ui";
+import { AyvanaChatWidget } from "@ayvana/ui";
 // ...
-<LunaChatWidget
+<AyvanaChatWidget
   apiPath="/api/assistant"
   title="Seller Assistant"
   greeting="Hi! I can check your stock, suggest pricing, and forecast demand. What would you like to look at?"
@@ -228,10 +228,10 @@ cd apps/vendor && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"     # exp
 cd packages/ai && npx tsc --noEmit 2>&1                                     # expect clean (only pre-existing, if any)
 cd apps/vendor && npx next lint 2>&1 | tail -3                              # expect no errors
 ```
-Final task runs the repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit` to keep all 3 CI steps green. Live agent behavior (actually chatting) needs a running app + `ANTHROPIC_API_KEY` — a manual smoke check, documented but not automated.
+Final task runs the repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit` to keep all 3 CI steps green. Live agent behavior (actually chatting) needs a running app + `ANTHROPIC_API_KEY` — a manual smoke check, documented but not automated.
 
 ---
 
 ## Design Tokens / UX
 
-Reuses the existing `LunaChatWidget` styling (Warm Oud: `bg-ink` header, `bg-ivory` panel, `border-sand`). Only the title/greeting copy differs for the vendor. No new visual design.
+Reuses the existing `AyvanaChatWidget` styling (Warm Oud: `bg-ink` header, `bg-ivory` panel, `border-sand`). Only the title/greeting copy differs for the vendor. No new visual design.

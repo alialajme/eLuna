@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 import { deleteAddress, setDefaultAddress } from "../actions/address";
 import { AccountNav } from "../components/AccountNav";
 
 export const metadata: Metadata = {
-  title: "My Profile — Luna",
+  title: "My Profile — AYVANA",
 };
 
 export default async function ProfilePage() {
@@ -72,11 +72,11 @@ export default async function ProfilePage() {
           <p className="text-body-md text-mist">
             Usual size:{" "}
             <span className="text-ink font-medium">{profile.sizeProfile.usualSize}</span>{" "}
-            · Luna uses this to personalise recommendations
+            · AYVANA uses this to personalise recommendations
           </p>
         ) : (
           <p className="text-body-md text-mist">
-            Add your measurements so Luna can recommend the perfect fit.
+            Add your measurements so AYVANA can recommend the perfect fit.
           </p>
         )}
       </section>
@@ -154,14 +154,14 @@ export default async function ProfilePage() {
         <div className="flex items-center justify-between border-t border-sand pt-4">
           <div>
             <p className="text-body-md font-medium text-ink">Two-factor authentication (MFA)</p>
-            <p className="text-body-sm text-mist">Required on all Luna accounts</p>
+            <p className="text-body-sm text-mist">Required on all AYVANA accounts</p>
           </div>
           <span className={`rounded-full px-3 py-1 text-body-sm font-medium ${mfaEnabled ? "bg-sage/20 text-sage" : "bg-coral/10 text-coral"}`}>
             {mfaEnabled ? "Enabled" : "Off"}
           </span>
         </div>
         <p className="text-body-xs text-mist">
-          Password &amp; MFA are managed by Luna&apos;s secure sign-in (Clerk) — in production you manage these from your account menu.
+          Password &amp; MFA are managed by AYVANA&apos;s secure sign-in (Clerk) — in production you manage these from your account menu.
         </p>
       </section>
 

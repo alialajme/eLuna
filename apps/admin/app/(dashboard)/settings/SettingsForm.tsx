@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { SettingKey } from "@e-luna/db";
+import type { SettingKey } from "@ayvana/db";
 import { updateSetting } from "../../actions/settings";
 
 type Field = { key: string; label: string; type: "number" | "boolean" | "string" };

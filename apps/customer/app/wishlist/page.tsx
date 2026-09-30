@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
-import { ProductCard } from "@e-luna/ui";
+import { ProductCard } from "@ayvana/ui";
 import { toggleWishlist } from "../actions/wishlist";
 import { AccountNav } from "../components/AccountNav";
 
 export const metadata: Metadata = {
-  title: "Wishlist — Luna",
+  title: "Wishlist — AYVANA",
 };
 
 export default async function WishlistPage() {

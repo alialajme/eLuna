@@ -163,12 +163,12 @@ const order = await prisma.order.findUnique({
 if (!order) redirect("/orders");
 ```
 
-`generateMetadata`: title `Order #${id.slice(-8).toUpperCase()} — Luna Ops`.
+`generateMetadata`: title `Order #${id.slice(-8).toUpperCase()} — AYVANA Ops`.
 
 **Layout (two-column):**
 
 **Left — items + per-vendor breakdown:**
-- Header: `#${id.slice(-8).toUpperCase()}`, status badge, placed date, payment method (label map: CARD→"Card", LUNA_WALLET→"Luna Wallet", TABBY→"Tabby", TAMARA→"Tamara", CASH_ON_DELIVERY→"Cash on Delivery").
+- Header: `#${id.slice(-8).toUpperCase()}`, status badge, placed date, payment method (label map: CARD→"Card", LUNA_WALLET→"AYVANA Wallet", TABBY→"Tabby", TAMARA→"Tamara", CASH_ON_DELIVERY→"Cash on Delivery").
 - Items table: product title (`item.variant.product.title`), vendor (`item.variant.product.vendor.storeName`), size/color (`item.variant.size` / `item.variant.color`), qty, unit price, line total (`Number(item.unitPrice) * item.quantity`).
 - Per-vendor breakdown: group items by `item.variant.product.vendor.storeName`, show each vendor's subtotal.
 
@@ -226,8 +226,8 @@ Mirrors the hardened `sellers.ts` pattern exactly (defense-in-depth ADMIN check)
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma, type ProductStatus } from "@e-luna/db";
-import { getAuthUser } from "@e-luna/auth";
+import { prisma, type ProductStatus } from "@ayvana/db";
+import { getAuthUser } from "@ayvana/auth";
 
 type ActionResult = { success: true } | { error: string };
 
@@ -254,7 +254,7 @@ export async function reinstateProduct(id: string): Promise<ActionResult> {
 }
 ```
 
-`setProductStatus` is non-exported (required by `"use server"`). If `type ProductStatus` from `@e-luna/db` errors, use `import type { ProductStatus } from "@prisma/client"`.
+`setProductStatus` is non-exported (required by `"use server"`). If `type ProductStatus` from `@ayvana/db` errors, use `import type { ProductStatus } from "@prisma/client"`.
 
 ---
 

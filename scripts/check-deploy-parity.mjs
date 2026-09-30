@@ -4,7 +4,7 @@
  *
  * Fails CI if any `apps/<app>` is missing from the places it must be deployed:
  *   1. the ACR build loop in .github/workflows/azure-deploy.yml
- *   2. the Helm `apps:` list in infra/helm/luna/values.yaml
+ *   2. the Helm `apps:` list in infra/helm/ayvana/values.yaml
  *   3. its own liveness + readiness health routes
  *
  * This makes "someone added a 5th app and forgot to deploy it" a build failure
@@ -26,7 +26,7 @@ const deployYml = readFileSync(join(root, ".github/workflows/azure-deploy.yml"),
 const loopMatch = deployYml.match(/for app in ([^;]+);/);
 const deployApps = loopMatch ? loopMatch[1].trim().split(/\s+/) : [];
 
-const valuesYml = readFileSync(join(root, "infra/helm/luna/values.yaml"), "utf8");
+const valuesYml = readFileSync(join(root, "infra/helm/ayvana/values.yaml"), "utf8");
 const helmApps = [...valuesYml.matchAll(/^\s*-\s*name:\s*(\S+)/gm)].map((m) => m[1]);
 
 for (const app of apps) {
@@ -34,7 +34,7 @@ for (const app of apps) {
     errors.push(`apps/${app} is missing from the ACR build loop in azure-deploy.yml`);
   }
   if (!helmApps.includes(app)) {
-    errors.push(`apps/${app} is missing from the apps: list in infra/helm/luna/values.yaml`);
+    errors.push(`apps/${app} is missing from the apps: list in infra/helm/ayvana/values.yaml`);
   }
   for (const probe of ["live", "ready"]) {
     if (!existsSync(join(root, "apps", app, "app/api/health", probe, "route.ts"))) {

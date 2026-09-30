@@ -6,7 +6,7 @@
 
 **Architecture:** Two RSC pages overwrite existing stubs. Analytics fetches current and previous period `OrderItem` data in the RSC, computes KPIs and top products in memory, and renders a small `PeriodToggle` client component for the 7d/30d/90d switch. Payouts fetches DELIVERED `OrderItem` rows + all `Payout` rows, computes the earnings waterfall (gross → fee → net → paid → available), and renders everything server-side.
 
-**Tech Stack:** Next.js 15 App Router (RSC + "use client"), Prisma (`@e-luna/db`), Clerk via `safeCurrentUser()`, Tailwind CSS (Warm Oud tokens).
+**Tech Stack:** Next.js 15 App Router (RSC + "use client"), Prisma (`@ayvana/db`), Clerk via `safeCurrentUser()`, Tailwind CSS (Warm Oud tokens).
 
 ---
 
@@ -27,7 +27,7 @@
 **Imports used across tasks:**
 - Auth: `import { safeCurrentUser } from "../../lib/auth"` (relative from `(dashboard)/analytics/` or `(dashboard)/payouts/`)
 - Vendor: `import { getVendorByUserId } from "../../lib/vendor"`
-- DB: `import { prisma } from "@e-luna/db"`
+- DB: `import { prisma } from "@ayvana/db"`
 - Next: `import { redirect } from "next/navigation"`, `import { Metadata } from "next"`
 
 **`VendorWithStatus` type** (from `app/lib/vendor.ts`) does NOT include `commissionRate`. The payouts page fetches it separately.
@@ -116,12 +116,12 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/(dashboard)
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { PeriodToggle } from "./components/PeriodToggle";
 
-export const metadata: Metadata = { title: "Analytics — Luna Vendor" };
+export const metadata: Metadata = { title: "Analytics — AYVANA Vendor" };
 
 function pctChange(curr: number, prev: number): number | null {
   if (prev === 0) return null;
@@ -316,11 +316,11 @@ cd /Users/alialajme/Projects/Luna/e-luna && git add "apps/vendor/app/(dashboard)
 ```tsx
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 
-export const metadata: Metadata = { title: "Payouts — Luna Vendor" };
+export const metadata: Metadata = { title: "Payouts — AYVANA Vendor" };
 
 function maskIban(iban: string): string {
   return iban.slice(0, 4) + "···" + iban.slice(-4);
@@ -435,7 +435,7 @@ export default async function PayoutsPage() {
         </p>
         {payouts.length === 0 ? (
           <p className="text-body-sm text-mist">
-            No payouts yet. Luna Operations processes payouts bi-monthly.
+            No payouts yet. AYVANA Operations processes payouts bi-monthly.
           </p>
         ) : (
           <table className="w-full">
@@ -490,7 +490,7 @@ export default async function PayoutsPage() {
           </table>
         )}
         <p className="mt-4 text-body-xs text-mist">
-          Payouts are processed by Luna Operations. Contact support if a payout
+          Payouts are processed by AYVANA Operations. Contact support if a payout
           is overdue.
         </p>
       </div>

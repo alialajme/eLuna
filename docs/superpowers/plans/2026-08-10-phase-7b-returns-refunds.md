@@ -4,9 +4,9 @@
 
 **Goal:** A vendor-driven returns lifecycle on the existing `Return` model — customer requests a return on a delivered item; vendor approves/rejects, marks received, and issues a refund (real gateway) with optional restock and payout reversal.
 
-**Architecture:** Extract the payment gateway to a shared `@e-luna/payments` package (so the vendor can run refunds); a shared `RETURNED`-aware `recomputeOrderStatus`; customer `requestReturn` + vendor `approve/reject/markReceived/refundReturn` server actions; customer order-page controls + vendor `/returns` queue.
+**Architecture:** Extract the payment gateway to a shared `@ayvana/payments` package (so the vendor can run refunds); a shared `RETURNED`-aware `recomputeOrderStatus`; customer `requestReturn` + vendor `approve/reject/markReceived/refundReturn` server actions; customer order-page controls + vendor `/returns` queue.
 
-**Tech Stack:** Next.js 15 (App Router), Prisma + PostgreSQL (no migration files — `db push`), Stripe (via `@e-luna/payments`), TypeScript (`noUncheckedIndexedAccess` on), Clerk.
+**Tech Stack:** Next.js 15 (App Router), Prisma + PostgreSQL (no migration files — `db push`), Stripe (via `@ayvana/payments`), TypeScript (`noUncheckedIndexedAccess` on), Clerk.
 
 ---
 
@@ -18,12 +18,12 @@
 - **Verified current state:**
   - `Return { id, orderItemId, variantId, status ReturnStatus @default(REQUESTED), reason, approvalNotes String?, refundAmount Decimal, isRestocked Boolean @default(false) }`; `ReturnStatus = REQUESTED|APPROVED|REJECTED|RECEIVED|REFUNDED`.
   - `ProductVariant.stock Int`. `OrderItem { quantity, unitPrice Decimal, vendorId, variantId, fulfillmentStatus (has RETURNED), shipmentId, order, variant, returns Return[], shipment Shipment? }`. `PaymentStatus` includes `REFUNDED`, `PARTIALLY_REFUNDED`.
-  - Payment gateway lib: `apps/customer/app/lib/payment/` — 11 files: `gateway, config, reconcile, stripe, tap, noqodi, neopay, simulated, tabby, tamara, factory`. Their imports of each other are **relative**; `reconcile.ts` imports `@e-luna/db`. `stripe`/`config` are the only files importing the `stripe` npm pkg.
+  - Payment gateway lib: `apps/customer/app/lib/payment/` — 11 files: `gateway, config, reconcile, stripe, tap, noqodi, neopay, simulated, tabby, tamara, factory`. Their imports of each other are **relative**; `reconcile.ts` imports `@ayvana/db`. `stripe`/`config` are the only files importing the `stripe` npm pkg.
   - Importers: `apps/customer/app/actions/checkout.ts` lines 7/9/10/11 (`../lib/payment/factory` getGateway; `../lib/payment/config` hasStripe; `../lib/payment/stripe` StripeGateway; `../lib/payment/reconcile` applyPaymentResult) and `apps/customer/app/api/webhooks/stripe/route.ts` lines 1/2/3 (`../../../lib/payment/stripe`, `.../reconcile`, `.../config`). `StripePaymentForm.tsx` does NOT import the lib.
   - 7a's `recomputeOrderStatus` is a private helper in `apps/vendor/app/actions/shipment.ts` (with a `const FULFILLMENT_RANGE = [...]`). Vendor actions auth via `safeCurrentUser` (`../lib/auth`) + `getVendorByUserId` (`../lib/vendor`).
   - Customer `orders/[id]/page.tsx`: order query includes `items { variant { product } }`, `shipments { orderBy createdAt asc }` (all), `paymentTransactions take:1`; ownership-checked; has an `ItemRow` helper at file end and renders items grouped by shipment (`shipmentItems.map(... <ItemRow item={item} />)`) + an unshipped group. `order.updatedAt` and each shipment's `deliveredAt` are available.
   - Vendor nav: `apps/vendor/app/(dashboard)/components/Sidebar.tsx` `NAV_ITEMS` array (Dashboard, Products, Orders, Inventory, Analytics, Payouts, Settings).
-  - Reference package shape (`packages/ai`): `tsconfig.json` extends `@e-luna/config/tsconfig/base`; `package.json` has `dependencies` (incl. `@e-luna/db: workspace:*`) + `devDependencies` (`@e-luna/config`, `typescript`).
+  - Reference package shape (`packages/ai`): `tsconfig.json` extends `@ayvana/config/tsconfig/base`; `package.json` has `dependencies` (incl. `@ayvana/db: workspace:*`) + `devDependencies` (`@ayvana/config`, `typescript`).
 
 ---
 
@@ -33,8 +33,8 @@
 packages/payments/package.json, tsconfig.json, src/index.ts           — CREATE
 packages/payments/src/{11 gateway files}                              — MOVED from apps/customer/app/lib/payment
 apps/customer/app/lib/payment/                                         — DELETED
-apps/customer/app/actions/checkout.ts, api/webhooks/stripe/route.ts    — MODIFY imports → @e-luna/payments
-apps/customer/package.json, apps/vendor/package.json                   — MODIFY add @e-luna/payments
+apps/customer/app/actions/checkout.ts, api/webhooks/stripe/route.ts    — MODIFY imports → @ayvana/payments
+apps/customer/package.json, apps/vendor/package.json                   — MODIFY add @ayvana/payments
 apps/vendor/app/lib/order-status.ts                                   — CREATE shared recomputeOrderStatus
 apps/vendor/app/actions/shipment.ts                                  — MODIFY use shared helper
 apps/customer/app/actions/returns.ts                                 — CREATE requestReturn
@@ -48,7 +48,7 @@ apps/vendor/app/(dashboard)/components/Sidebar.tsx                  — MODIFY n
 
 ---
 
-## Task 1: Extract payment gateway → `@e-luna/payments`
+## Task 1: Extract payment gateway → `@ayvana/payments`
 
 **Files:** Create `packages/payments/{package.json,tsconfig.json,src/index.ts}`; move 11 files; modify 2 customer importers + 2 app `package.json`; delete old dir.
 
@@ -56,18 +56,18 @@ apps/vendor/app/(dashboard)/components/Sidebar.tsx                  — MODIFY n
 
 ```json
 {
-  "name": "@e-luna/payments",
+  "name": "@ayvana/payments",
   "version": "0.0.1",
   "private": true,
   "exports": {
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@e-luna/db": "workspace:*",
+    "@ayvana/db": "workspace:*",
     "stripe": "^22.4.0"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "typescript": "^5.4.0"
   }
 }
@@ -77,7 +77,7 @@ apps/vendor/app/(dashboard)/components/Sidebar.tsx                  — MODIFY n
 
 ```json
 {
-  "extends": "@e-luna/config/tsconfig/base",
+  "extends": "@ayvana/config/tsconfig/base",
   "compilerOptions": {
     "paths": {}
   },
@@ -111,24 +111,24 @@ export { hasStripe, hasTap, hasNoqodi, hasNeopay, stripeConfig } from "./config"
 
 - [ ] **Step 5: Repoint the customer imports**
 
-In `apps/customer/app/actions/checkout.ts`, change the module path on all four payment imports to `@e-luna/payments` (leave the imported names as-is):
-- line 7 `from "../lib/payment/factory";` → `from "@e-luna/payments";`
-- line 9 `from "../lib/payment/config";` → `from "@e-luna/payments";`
-- line 10 `from "../lib/payment/stripe";` → `from "@e-luna/payments";`
-- line 11 `from "../lib/payment/reconcile";` → `from "@e-luna/payments";`
+In `apps/customer/app/actions/checkout.ts`, change the module path on all four payment imports to `@ayvana/payments` (leave the imported names as-is):
+- line 7 `from "../lib/payment/factory";` → `from "@ayvana/payments";`
+- line 9 `from "../lib/payment/config";` → `from "@ayvana/payments";`
+- line 10 `from "../lib/payment/stripe";` → `from "@ayvana/payments";`
+- line 11 `from "../lib/payment/reconcile";` → `from "@ayvana/payments";`
 
 In `apps/customer/app/api/webhooks/stripe/route.ts`, lines 1-3:
-- `from "../../../lib/payment/stripe";` → `from "@e-luna/payments";`
-- `from "../../../lib/payment/reconcile";` → `from "@e-luna/payments";`
-- `from "../../../lib/payment/config";` → `from "@e-luna/payments";`
+- `from "../../../lib/payment/stripe";` → `from "@ayvana/payments";`
+- `from "../../../lib/payment/reconcile";` → `from "@ayvana/payments";`
+- `from "../../../lib/payment/config";` → `from "@ayvana/payments";`
 
-(Multiple `import { ... } from "@e-luna/payments"` lines are valid TS — no need to consolidate.)
+(Multiple `import { ... } from "@ayvana/payments"` lines are valid TS — no need to consolidate.)
 
 - [ ] **Step 6: Add the dependency to both apps**
 
 In `apps/customer/package.json` and `apps/vendor/package.json`, add to `"dependencies"`:
 ```json
-    "@e-luna/payments": "workspace:*",
+    "@ayvana/payments": "workspace:*",
 ```
 
 - [ ] **Step 7: Install (updates the lockfile)**
@@ -144,14 +144,14 @@ cd /Users/alialajme/Projects/Luna/e-luna
 grep -rn "lib/payment" apps/customer || echo "NO stale lib/payment refs (good)"
 cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts" | tail -8
 ```
-Expected: no stale refs; tsc clean. (`@e-luna/payments` resolves; `getGateway`/`StripeGateway`/`applyPaymentResult`/`hasStripe` all come from the barrel.)
+Expected: no stale refs; tsc clean. (`@ayvana/payments` resolves; `getGateway`/`StripeGateway`/`applyPaymentResult`/`hasStripe` all come from the barrel.)
 
 - [ ] **Step 9: Commit**
 
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna
 git add -A
-git commit -m "refactor(payments): extract gateway to @e-luna/payments package
+git commit -m "refactor(payments): extract gateway to @ayvana/payments package
 
 Move apps/customer/app/lib/payment/* into packages/payments so both apps can
 use the gateway (vendor refunds in 7b). Customer imports repointed; checkout
@@ -169,7 +169,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 1: Create `apps/vendor/app/lib/order-status.ts`**
 
 ```ts
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 
 const AGGREGATE_RANGE = ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"];
 
@@ -236,7 +236,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../lib/auth";
 
 const RETURN_WINDOW_MS = 14 * 86_400_000;
@@ -501,8 +501,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@e-luna/db";
-import { getGateway } from "@e-luna/payments";
+import { prisma } from "@ayvana/db";
+import { getGateway } from "@ayvana/payments";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 import { recomputeOrderStatus } from "../lib/order-status";
@@ -658,7 +658,7 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
 - [ ] **Step 2: Type-check the vendor app**
 
 Run: `cd /Users/alialajme/Projects/Luna/e-luna/apps/vendor && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts" | tail -6`
-Expected: clean. (`getGateway` from `@e-luna/payments`; `order.paymentMethod` is a `PaymentMethod` enum, assignable to `getGateway`'s `string` param.)
+Expected: clean. (`getGateway` from `@ayvana/payments`; `order.paymentMethod` is a `PaymentMethod` enum, assignable to `getGateway`'s `string` param.)
 
 - [ ] **Step 3: Commit**
 
@@ -774,12 +774,12 @@ export function ReturnActions({ returnId, status }: { returnId: string; status: 
 ```tsx
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 import { ReturnActions } from "./components/ReturnActions";
 
-export const metadata: Metadata = { title: "Returns — Luna Vendor" };
+export const metadata: Metadata = { title: "Returns — AYVANA Vendor" };
 
 const STATUS_STYLES: Record<string, string> = {
   REQUESTED: "bg-gold/20 text-gold",
@@ -896,11 +896,11 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 1: Frozen install (mirror CI)**
 
 Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm install --frozen-lockfile 2>&1 | tail -3`
-Expected: no lockfile change (the `@e-luna/payments` dep + lockfile were committed in Task 1).
+Expected: no lockfile change (the `@ayvana/payments` dep + lockfile were committed in Task 1).
 
 - [ ] **Step 2: Regenerate the Prisma client**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @e-luna/db db:generate 2>&1 | tail -2`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter @ayvana/db db:generate 2>&1 | tail -2`
 Expected: success.
 
 - [ ] **Step 3: Repo-wide lint**
@@ -910,8 +910,8 @@ Expected: all apps pass (pre-existing `<img>` warnings acceptable; no new errors
 
 - [ ] **Step 4: Repo-wide type check**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit 2>&1 | tail -15`
-Expected: clean (includes the new `@e-luna/payments` package).
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit 2>&1 | tail -15`
+Expected: clean (includes the new `@ayvana/payments` package).
 
 - [ ] **Step 5: Verify the extraction + refund wiring (inspection)**
 
@@ -943,7 +943,7 @@ Needs a running app + DB. Flow: deliver an order (7a) → customer order page �
 ## Self-Review (completed)
 
 **Spec coverage:**
-- Extract gateway → `@e-luna/payments`; repoint customer imports; delete old dir → Task 1 ✓
+- Extract gateway → `@ayvana/payments`; repoint customer imports; delete old dir → Task 1 ✓
 - Shared `RETURNED`-aware `recomputeOrderStatus` → Task 2 ✓
 - Customer `requestReturn` + eligibility (DELIVERED, 14-day, no active return, non-empty reason) → Task 3 ✓
 - Customer UI return control + status → Task 3 ✓
@@ -953,4 +953,4 @@ Needs a running app + DB. Flow: deliver an order (7a) → customer order page �
 
 **Placeholder scan:** none — every code step is complete.
 
-**Type consistency:** `requestReturn(orderItemId, reason)`, `approveReturn/rejectReturn(returnId, notes?)`, `markReturnReceived(returnId)`, `refundReturn(returnId, restock)` signatures match between actions (Tasks 3/4) and their UI callers (Tasks 3/5). `recomputeOrderStatus(orderId)` is defined once (Task 2) and consumed by `shipment.ts` (Task 2) and `returns.ts` (Task 4). `ReturnButton({orderItemId})` and `ReturnActions({returnId,status})` props match usage. `@e-luna/payments` barrel exports (`getGateway`, `StripeGateway`, `applyPaymentResult`, `hasStripe`) cover all consumer imports (Tasks 1/4). `getGateway(...).refund({externalRef, amount})` matches the `RefundParams` type from the gateway.
+**Type consistency:** `requestReturn(orderItemId, reason)`, `approveReturn/rejectReturn(returnId, notes?)`, `markReturnReceived(returnId)`, `refundReturn(returnId, restock)` signatures match between actions (Tasks 3/4) and their UI callers (Tasks 3/5). `recomputeOrderStatus(orderId)` is defined once (Task 2) and consumed by `shipment.ts` (Task 2) and `returns.ts` (Task 4). `ReturnButton({orderItemId})` and `ReturnActions({returnId,status})` props match usage. `@ayvana/payments` barrel exports (`getGateway`, `StripeGateway`, `applyPaymentResult`, `hasStripe`) cover all consumer imports (Tasks 1/4). `getGateway(...).refund({externalRef, amount})` matches the `RefundParams` type from the gateway.

@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma, type PayoutStatus, computeVendorBalance } from "@e-luna/db";
+import { prisma, type PayoutStatus, computeVendorBalance } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { StatusFilter } from "../components/StatusFilter";
 import { PayoutActions } from "../components/PayoutActions";
 import { CreatePayoutButton } from "../components/CreatePayoutButton";
 
-export const metadata: Metadata = { title: "Payouts — Luna Ops" };
+export const metadata: Metadata = { title: "Payouts — AYVANA Ops" };
 
 const PAYOUT_STATUS_BADGE: Record<string, string> = {
   COMPLETED: "bg-sage/20 text-sage",

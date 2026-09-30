@@ -1,5 +1,5 @@
-import { verifyClerkWebhook } from "@e-luna/auth";
-import { reconcileClerkUser, type ClerkWebhookEvent } from "@e-luna/db";
+import { verifyClerkWebhook } from "@ayvana/auth";
+import { reconcileClerkUser, type ClerkWebhookEvent } from "@ayvana/db";
 
 // Clerk user.created / user.updated → DB User. Reconciles admin-provisioned
 // placeholder accounts (inv_…) to the real Clerk id by email, and creates rows

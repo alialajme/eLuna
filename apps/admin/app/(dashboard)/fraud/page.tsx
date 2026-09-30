@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 
-export const metadata: Metadata = { title: "Fraud — Luna Ops" };
+export const metadata: Metadata = { title: "Fraud — AYVANA Ops" };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

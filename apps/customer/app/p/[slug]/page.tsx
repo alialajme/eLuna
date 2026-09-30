@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
-import { ProductCard } from "@e-luna/ui";
+import { prisma } from "@ayvana/db";
+import { ProductCard } from "@ayvana/ui";
 import { safeCurrentUser as currentUser } from "../../lib/auth";
 import { ProductDetail } from "./ProductDetail";
 import type { Metadata } from "next";
@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }).catch(() => null);
   if (!product) return { title: "Not Found" };
   return {
-    title: `${product.title} — ${product.vendor.storeName} on Luna`,
+    title: `${product.title} — ${product.vendor.storeName} on AYVANA`,
     description: product.description ?? undefined,
   };
 }

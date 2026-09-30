@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { getVendorByUserId } from "../../lib/vendor";
 
-export const metadata: Metadata = { title: "Payouts — Luna Vendor" };
+export const metadata: Metadata = { title: "Payouts — AYVANA Vendor" };
 
 function maskIban(iban: string): string {
   return iban.slice(0, 4) + "···" + iban.slice(-4);
@@ -119,7 +119,7 @@ export default async function PayoutsPage() {
         </p>
         {payouts.length === 0 ? (
           <p className="text-body-sm text-mist">
-            No payouts yet. Luna Operations processes payouts bi-monthly.
+            No payouts yet. AYVANA Operations processes payouts bi-monthly.
           </p>
         ) : (
           <table className="w-full">
@@ -174,7 +174,7 @@ export default async function PayoutsPage() {
           </table>
         )}
         <p className="mt-4 text-body-xs text-mist">
-          Payouts are processed by Luna Operations. Contact support if a payout
+          Payouts are processed by AYVANA Operations. Contact support if a payout
           is overdue.
         </p>
       </div>

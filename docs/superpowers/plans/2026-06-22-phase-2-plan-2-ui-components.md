@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build all new shared UI components needed by Phase 2 pages: FilterBar, FilterDrawer, ProductGallery, SizeSelector, ChatMessage, and LunaChatWidget.
+**Goal:** Build all new shared UI components needed by Phase 2 pages: FilterBar, FilterDrawer, ProductGallery, SizeSelector, ChatMessage, and AyvanaChatWidget.
 
-**Architecture:** All components live in `packages/ui/src/components/` and are exported from `packages/ui/src/index.ts`. They are pure React components — no direct DB or AI calls. The LunaChatWidget accepts a `serverAction` prop so the customer app can inject the real chat action (wired in Plan 4).
+**Architecture:** All components live in `packages/ui/src/components/` and are exported from `packages/ui/src/index.ts`. They are pure React components — no direct DB or AI calls. The AyvanaChatWidget accepts a `serverAction` prop so the customer app can inject the real chat action (wired in Plan 4).
 
 **Tech Stack:** React 19 · TypeScript · Tailwind CSS (Warm Oud tokens) · Vercel AI SDK `useChat`
 
@@ -21,7 +21,7 @@
 | `packages/ui/src/components/ProductGallery.tsx` | Create |
 | `packages/ui/src/components/SizeSelector.tsx` | Create |
 | `packages/ui/src/components/ChatMessage.tsx` | Create |
-| `packages/ui/src/components/LunaChatWidget.tsx` | Create |
+| `packages/ui/src/components/AyvanaChatWidget.tsx` | Create |
 | `packages/ui/src/index.ts` | Modify — add 6 new exports |
 | `packages/ui/package.json` | Modify — add `ai` dep for useChat |
 
@@ -358,7 +358,7 @@ export function FilterDrawer({
 - [ ] **Step 3: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/ui exec tsc --noEmit
+pnpm --filter @ayvana/ui exec tsc --noEmit
 ```
 
 Expected: no errors.
@@ -438,7 +438,7 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
 - [ ] **Step 2: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/ui exec tsc --noEmit
+pnpm --filter @ayvana/ui exec tsc --noEmit
 ```
 
 ---
@@ -531,7 +531,7 @@ export function SizeSelector({
 - [ ] **Step 2: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/ui exec tsc --noEmit
+pnpm --filter @ayvana/ui exec tsc --noEmit
 ```
 
 ---
@@ -633,18 +633,18 @@ export function ChatMessage({ role, content, products = [] }: ChatMessageProps) 
 - [ ] **Step 2: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/ui exec tsc --noEmit
+pnpm --filter @ayvana/ui exec tsc --noEmit
 ```
 
 ---
 
-## Task 5: LunaChatWidget
+## Task 5: AyvanaChatWidget
 
 The widget is a floating bubble that expands to a chat panel. It accepts a `serverAction` prop — the actual streaming chat function is injected from the customer app (Plan 4). This keeps `packages/ui` free of app-specific Server Actions.
 
 **Files:**
 - Modify: `packages/ui/package.json` — add `ai` dep
-- Create: `packages/ui/src/components/LunaChatWidget.tsx`
+- Create: `packages/ui/src/components/AyvanaChatWidget.tsx`
 
 - [ ] **Step 1: Add ai to packages/ui package.json**
 
@@ -652,7 +652,7 @@ Update `packages/ui/package.json` to add the `ai` dependency:
 
 ```json
 {
-  "name": "@e-luna/ui",
+  "name": "@ayvana/ui",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -662,7 +662,7 @@ Update `packages/ui/package.json` to add the `ai` dependency:
     "ai": "^4.3.19"
   },
   "devDependencies": {
-    "@e-luna/config": "workspace:*",
+    "@ayvana/config": "workspace:*",
     "typescript": "^5.4.0"
   },
   "peerDependencies": {
@@ -678,7 +678,7 @@ Then run:
 pnpm install
 ```
 
-- [ ] **Step 2: Create LunaChatWidget.tsx**
+- [ ] **Step 2: Create AyvanaChatWidget.tsx**
 
 ```tsx
 "use client";
@@ -689,11 +689,11 @@ import { useState, useRef, useEffect } from "react";
 import type { Message } from "ai";
 import { ChatMessage } from "./ChatMessage";
 
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in customer app
 };
 
-export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
+export function AyvanaChatWidget({ apiPath }: AyvanaChatWidgetProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -719,7 +719,7 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
           <div className="flex items-center justify-between bg-ink px-4 py-3">
             <div className="flex items-center gap-2">
               <span className="text-gold text-lg">◑</span>
-              <span className="font-sans text-body-md font-semibold text-ivory">Luna Stylist</span>
+              <span className="font-sans text-body-md font-semibold text-ivory">AYVANA Stylist</span>
             </div>
             <button
               onClick={() => setOpen(false)}
@@ -735,7 +735,7 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
             {messages.length === 0 && (
               <div className="text-center text-body-sm text-mist pt-8">
                 <p className="text-gold text-2xl mb-2">◑</p>
-                <p>مرحباً! I'm Luna.</p>
+                <p>مرحباً! I'm AYVANA.</p>
                 <p className="mt-1">Tell me your occasion and I'll find your perfect abaya.</p>
               </div>
             )}
@@ -745,7 +745,7 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
             {isLoading && (
               <div className="flex justify-start">
                 <div className="rounded-2xl rounded-bl-sm bg-sand px-4 py-3 text-body-sm text-mist">
-                  Luna is thinking…
+                  AYVANA is thinking…
                 </div>
               </div>
             )}
@@ -758,7 +758,7 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
               <input
                 value={input}
                 onChange={handleInputChange}
-                placeholder="Ask Luna anything…"
+                placeholder="Ask AYVANA anything…"
                 className="flex-1 rounded-full border border-sand bg-white px-4 py-2 text-body-md text-ink placeholder:text-mist focus:outline-none focus:ring-1 focus:ring-gold"
                 disabled={isLoading}
               />
@@ -779,7 +779,7 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="flex h-14 w-14 items-center justify-center rounded-full bg-ink shadow-lg hover:bg-ink/90 transition-colors"
-        aria-label="Open Luna Stylist"
+        aria-label="Open AYVANA Stylist"
       >
         <span className="text-gold text-2xl">◑</span>
       </button>
@@ -791,7 +791,7 @@ export function LunaChatWidget({ apiPath }: LunaChatWidgetProps) {
 - [ ] **Step 3: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/ui exec tsc --noEmit
+pnpm --filter @ayvana/ui exec tsc --noEmit
 ```
 
 ---
@@ -815,13 +815,13 @@ export type { FilterState } from "./components/FilterBar";
 export { ProductGallery } from "./components/ProductGallery";
 export { SizeSelector } from "./components/SizeSelector";
 export { ChatMessage } from "./components/ChatMessage";
-export { LunaChatWidget } from "./components/LunaChatWidget";
+export { AyvanaChatWidget } from "./components/AyvanaChatWidget";
 ```
 
 - [ ] **Step 2: Final TypeScript check**
 
 ```bash
-pnpm --filter @e-luna/ui exec tsc --noEmit
+pnpm --filter @ayvana/ui exec tsc --noEmit
 ```
 
 Expected: no errors.
@@ -830,13 +830,13 @@ Expected: no errors.
 
 ```bash
 git add packages/ui/
-git commit -m "feat: add Phase 2 UI components (FilterBar, Gallery, SizeSelector, ChatMessage, LunaChatWidget)"
+git commit -m "feat: add Phase 2 UI components (FilterBar, Gallery, SizeSelector, ChatMessage, AyvanaChatWidget)"
 ```
 
 ---
 
 ## Self-Check Before Handing Off to Plan 3
 
-- [ ] `pnpm --filter @e-luna/ui exec tsc --noEmit` passes
+- [ ] `pnpm --filter @ayvana/ui exec tsc --noEmit` passes
 - [ ] `pnpm lint` passes
 - [ ] All 6 new components are exported from `packages/ui/src/index.ts`

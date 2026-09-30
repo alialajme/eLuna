@@ -5,7 +5,7 @@ import { getVendorByUserId } from "../lib/vendor";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { OnboardingBanner } from "./components/OnboardingBanner";
-import { LunaChatWidget } from "@e-luna/ui";
+import { AyvanaChatWidget } from "@ayvana/ui";
 
 export default async function DashboardLayout({
   children,
@@ -52,7 +52,7 @@ export default async function DashboardLayout({
           {children}
         </main>
       </div>
-      <LunaChatWidget
+      <AyvanaChatWidget
         apiPath="/api/assistant"
         title="Seller Assistant"
         greeting="Hi! I can check your stock, suggest pricing, and forecast demand. What would you like to look at?"

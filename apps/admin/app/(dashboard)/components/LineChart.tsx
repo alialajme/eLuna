@@ -20,7 +20,7 @@ export function LineChart({ values, height = 120 }: Props) {
           y1={height - 1}
           x2={WIDTH}
           y2={height - 1}
-          stroke="#f0e8d8"
+          stroke="#e6e2dd"
           strokeWidth="2"
         />
       </svg>
@@ -42,8 +42,8 @@ export function LineChart({ values, height = 120 }: Props) {
       viewBox={`0 0 ${WIDTH} ${height}`}
       preserveAspectRatio="none"
     >
-      <polygon points={area} fill="#d4a855" opacity="0.08" />
-      <polyline points={line} fill="none" stroke="#d4a855" strokeWidth="2.5" />
+      <polygon points={area} fill="#b3967d" opacity="0.08" />
+      <polyline points={line} fill="none" stroke="#b3967d" strokeWidth="2.5" />
     </svg>
   );
 }

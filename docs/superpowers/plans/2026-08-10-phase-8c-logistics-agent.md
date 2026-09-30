@@ -4,7 +4,7 @@
 
 **Goal:** Wire an advisory, read-only customer delivery assistant — the Logistics agent answers "where's my order?", delivery timing, and return eligibility over the real 7a/7b data, surfaced as a "Delivery Help" widget on the orders pages.
 
-**Architecture:** Rewrite the logistics agent to `buildLogisticsTools(customerId)` + `runLogisticsAgent(messages, { customerId })` (customerId session-resolved, closure-scoped, never an LLM param), 3 read-only ownership-checked tools. A new `/api/delivery-help` route streams it through the reused `LunaChatWidget`, which gains a `hiddenPrefixes` prop so the global Shopping widget hides on `/orders*` while the Delivery widget (mounted via a new orders layout) shows there.
+**Architecture:** Rewrite the logistics agent to `buildLogisticsTools(customerId)` + `runLogisticsAgent(messages, { customerId })` (customerId session-resolved, closure-scoped, never an LLM param), 3 read-only ownership-checked tools. A new `/api/delivery-help` route streams it through the reused `AyvanaChatWidget`, which gains a `hiddenPrefixes` prop so the global Shopping widget hides on `/orders*` while the Delivery widget (mounted via a new orders layout) shows there.
 
 **Tech Stack:** Vercel AI SDK (`streamText`, `tool`, `CoreMessage`, `toDataStreamResponse`), Anthropic `claude-sonnet-4-6`, Prisma + PostgreSQL, Zod, Next.js 15, TypeScript (`noUncheckedIndexedAccess` on).
 
@@ -15,12 +15,12 @@
 - **No automated test suite.** "Tests" = `npx tsc --noEmit` and `npx next lint`. Do NOT add a test runner.
 - **`noUncheckedIndexedAccess` is ON** (`arr[0]?.x`, `?? fallback`). **Prisma `Decimal`** → `Number(...)` (none written here). No schema change.
 - **Agent security rule:** the scoping id (`customerId` = `CustomerProfile.id`) is captured in the tool-factory closure — NEVER a Zod/LLM parameter. Order tools filter `{ id: orderId, customerId }`.
-- **Reference patterns:** `packages/ai/src/agents/payment.ts` (8b: `buildPaymentTools(customerId)` + `runPaymentAgent(messages, { customerId })`, config import `import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";`, `import { streamText, tool } from "ai"; import type { CoreMessage } from "ai"; import { z } from "zod"; import { prisma } from "@e-luna/db";`). Route pattern: `apps/customer/app/api/payment-help/route.ts` (imports `safeCurrentUser as currentUser` from `../../lib/auth`).
+- **Reference patterns:** `packages/ai/src/agents/payment.ts` (8b: `buildPaymentTools(customerId)` + `runPaymentAgent(messages, { customerId })`, config import `import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";`, `import { streamText, tool } from "ai"; import type { CoreMessage } from "ai"; import { z } from "zod"; import { prisma } from "@ayvana/db";`). Route pattern: `apps/customer/app/api/payment-help/route.ts` (imports `safeCurrentUser as currentUser` from `../../lib/auth`).
 - **Verified state:**
   - `packages/ai/src/agents/logistics.ts` currently: stub `logisticsTools` (empty tools) + `runLogisticsAgent(messages: {role,content}[])`.
   - `packages/ai/src/index.ts` line 5: `export { runLogisticsAgent, logisticsTools } from "./agents/logistics";`. No app imports `logisticsTools`.
-  - `LunaChatWidget` props: `{ apiPath, title?, greeting?, hiddenPaths? }`; hide rule (line 54): `if ((hiddenPaths ?? ["/chat"]).includes(pathname)) return null;`.
-  - `apps/customer/app/layout.tsx:55`: `<LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />`. `LunaChatWidget` is imported there.
+  - `AyvanaChatWidget` props: `{ apiPath, title?, greeting?, hiddenPaths? }`; hide rule (line 54): `if ((hiddenPaths ?? ["/chat"]).includes(pathname)) return null;`.
+  - `apps/customer/app/layout.tsx:55`: `<AyvanaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />`. `AyvanaChatWidget` is imported there.
   - No `apps/customer/app/orders/layout.tsx` exists.
   - Schema: `Order { id, customerId, status, createdAt, updatedAt, items, shipments }`; `Shipment { courier, trackingNumber?, status, estimatedDelivery?, deliveredAt? }`; `OrderItem { fulfillmentStatus, shipmentId?, shipment?, returns Return[], variant→product.title }`; `Return { status }`.
 
@@ -31,7 +31,7 @@
 ```
 packages/ai/src/agents/logistics.ts             — REWRITE: buildLogisticsTools(customerId) + runLogisticsAgent(messages, { customerId })
 packages/ai/src/index.ts                          — MODIFY line 5 export
-packages/ui/src/components/LunaChatWidget.tsx     — MODIFY: add hiddenPrefixes prop
+packages/ui/src/components/AyvanaChatWidget.tsx     — MODIFY: add hiddenPrefixes prop
 apps/customer/app/layout.tsx                       — MODIFY line 55: Shopping widget hiddenPrefixes={["/orders"]}
 apps/customer/app/api/delivery-help/route.ts       — CREATE
 apps/customer/app/orders/layout.tsx                — CREATE: mount Delivery widget
@@ -49,12 +49,12 @@ apps/customer/app/orders/layout.tsx                — CREATE: mount Delivery wi
 import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const LOGISTICS_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
-You are the Delivery Agent — a READ-ONLY delivery & returns helper for a Luna customer.
+You are the Delivery Agent — a READ-ONLY delivery & returns helper for a AYVANA customer.
 Use your tools to answer where an order is, when it should arrive, and whether an item can be returned.
 You do NOT ship, move, cancel, or return anything — never claim you have. To return an item, tell the
 customer to use the "Request return" button on the order page (delivered items only, within 14 days).
@@ -254,26 +254,26 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ---
 
-## Task 2: Add `hiddenPrefixes` to `LunaChatWidget`
+## Task 2: Add `hiddenPrefixes` to `AyvanaChatWidget`
 
-**Files:** Modify `packages/ui/src/components/LunaChatWidget.tsx`.
+**Files:** Modify `packages/ui/src/components/AyvanaChatWidget.tsx`.
 
 - [ ] **Step 1: Extend the props type**
 
 Replace:
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in the app
-  title?: string; // header title; default "Luna Stylist"
+  title?: string; // header title; default "AYVANA Stylist"
   greeting?: string; // empty-state assistant greeting; default the customer copy
   hiddenPaths?: string[]; // pathnames where the widget renders nothing; default ["/chat"]
 };
 ```
 with:
 ```ts
-type LunaChatWidgetProps = {
+type AyvanaChatWidgetProps = {
   apiPath: string; // e.g. "/api/chat" — route handler in the app
-  title?: string; // header title; default "Luna Stylist"
+  title?: string; // header title; default "AYVANA Stylist"
   greeting?: string; // empty-state assistant greeting; default the customer copy
   hiddenPaths?: string[]; // exact-match pathnames where the widget renders nothing; default ["/chat"]
   hiddenPrefixes?: string[]; // hide when pathname starts with any prefix; default none
@@ -284,11 +284,11 @@ type LunaChatWidgetProps = {
 
 Replace:
 ```ts
-export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths }: LunaChatWidgetProps) {
+export function AyvanaChatWidget({ apiPath, title, greeting, hiddenPaths }: AyvanaChatWidgetProps) {
 ```
 with:
 ```ts
-export function LunaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPrefixes }: LunaChatWidgetProps) {
+export function AyvanaChatWidget({ apiPath, title, greeting, hiddenPaths, hiddenPrefixes }: AyvanaChatWidgetProps) {
 ```
 
 - [ ] **Step 3: Add the prefix hide rule right after the exact-match rule (line 54)**
@@ -314,8 +314,8 @@ Expected: clean. (Default `hiddenPrefixes` = none preserves current behavior for
 
 ```bash
 cd /Users/alialajme/Projects/Luna/e-luna
-git add packages/ui/src/components/LunaChatWidget.tsx
-git commit -m "feat(ui): add hiddenPrefixes prop to LunaChatWidget (8c)
+git add packages/ui/src/components/AyvanaChatWidget.tsx
+git commit -m "feat(ui): add hiddenPrefixes prop to AyvanaChatWidget (8c)
 
 Optional string[] of pathname prefixes where the widget renders null; defaults
 to none so existing callers are unchanged.
@@ -333,8 +333,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ```ts
 import { safeCurrentUser as currentUser } from "../../lib/auth";
-import { prisma } from "@e-luna/db";
-import { runLogisticsAgent } from "@e-luna/ai";
+import { prisma } from "@ayvana/db";
+import { runLogisticsAgent } from "@ayvana/ai";
 import type { CoreMessage } from "ai";
 
 export async function POST(req: Request) {
@@ -374,7 +374,7 @@ export async function POST(req: Request) {
 - [ ] **Step 2: Type-check the customer app**
 
 Run: `cd /Users/alialajme/Projects/Luna/e-luna/apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"`
-Expected: clean. (`runLogisticsAgent` and `CoreMessage` resolve from `@e-luna/ai` / `ai`.)
+Expected: clean. (`runLogisticsAgent` and `CoreMessage` resolve from `@ayvana/ai` / `ai`.)
 
 - [ ] **Step 3: Commit**
 
@@ -399,23 +399,23 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 Replace:
 ```tsx
-            <LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />
+            <AyvanaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} />
 ```
 with:
 ```tsx
-            <LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} hiddenPrefixes={["/orders"]} />
+            <AyvanaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} hiddenPrefixes={["/orders"]} />
 ```
 
 - [ ] **Step 2: Create `apps/customer/app/orders/layout.tsx`**
 
 ```tsx
-import { LunaChatWidget } from "@e-luna/ui";
+import { AyvanaChatWidget } from "@ayvana/ui";
 
 export default function OrdersLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      <LunaChatWidget
+      <AyvanaChatWidget
         apiPath="/api/delivery-help"
         title="Delivery Help"
         greeting="Ask me where your order is, delivery timing, or how to return an item."
@@ -433,7 +433,7 @@ cd /Users/alialajme/Projects/Luna/e-luna/apps/customer
 npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts" | tail -6
 npx next lint 2>&1 | tail -5
 ```
-Expected: tsc clean; no new lint errors. (`LunaChatWidget` resolves from `@e-luna/ui`; a client component as a child of a server-component layout is fine.)
+Expected: tsc clean; no new lint errors. (`AyvanaChatWidget` resolves from `@ayvana/ui`; a client component as a child of a server-component layout is fine.)
 
 - [ ] **Step 4: Commit**
 
@@ -466,7 +466,7 @@ Expected: all apps pass (pre-existing `<img>` warnings acceptable; no new errors
 
 - [ ] **Step 3: Repo-wide type check**
 
-Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@e-luna/*" exec tsc --noEmit 2>&1 | tail -12`
+Run: `cd /Users/alialajme/Projects/Luna/e-luna && pnpm --filter "@ayvana/*" exec tsc --noEmit 2>&1 | tail -12`
 Expected: clean.
 
 - [ ] **Step 4: Confirm the advisory guarantee (no mutation in the agent)**

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCategories } from "@e-luna/db";
+import { getCategories } from "@ayvana/db";
 import BrowsePage from "../page";
 
 type Props = {
@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: Props) {
   const { category } = await params;
   const label = category.charAt(0).toUpperCase() + category.slice(1);
   return {
-    title: `${label} Abayas — Luna`,
+    title: `${label} Abayas — AYVANA`,
     description: `Browse ${label.toLowerCase()} abayas from Gulf boutiques`,
   };
 }

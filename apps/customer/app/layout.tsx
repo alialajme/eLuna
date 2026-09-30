@@ -1,26 +1,17 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, Hanken_Grotesk, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Jost, Inter, IBM_Plex_Sans_Arabic, Reem_Kufi } from "next/font/google";
 import dynamic from "next/dynamic";
-import { RTLProvider, LunaChatWidget } from "@e-luna/ui";
-import { getSetting } from "@e-luna/db";
+import { RTLProvider, AyvanaChatWidget } from "@ayvana/ui";
+import { getSetting } from "@ayvana/db";
 import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
 import "./globals.css";
 
 const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-const bodoni = Bodoni_Moda({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-bodoni",
-  display: "swap",
-});
+const jost = Jost({ subsets: ["latin"], weight: ["300","400","500","700"], variable: "--font-jost", display: "swap" });
 
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-hanken",
-  display: "swap",
-});
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 const ibmArabic = IBM_Plex_Sans_Arabic({
   subsets: ["arabic"],
@@ -29,8 +20,10 @@ const ibmArabic = IBM_Plex_Sans_Arabic({
   display: "swap",
 });
 
+const reemKufi = Reem_Kufi({ subsets: ["arabic"], weight: ["400","500","700"], variable: "--font-reem-kufi", display: "swap" });
+
 export const metadata: Metadata = {
-  title: "Luna — The Gulf's AI-powered abaya marketplace",
+  title: "AYVANA — The Gulf's AI-powered abaya marketplace",
   description: "Discover abayas styled for you by AI",
 };
 
@@ -48,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const maintenanceBanner = await getSetting("maintenance_banner");
   return (
     <MaybeClerkProvider>
-      <html lang="en" dir="ltr" className={`${bodoni.variable} ${hanken.variable} ${ibmArabic.variable}`}>
+      <html lang="en" dir="ltr" className={`${jost.variable} ${inter.variable} ${ibmArabic.variable} ${reemKufi.variable}`}>
         <body className="bg-ivory font-sans text-ink antialiased">
           <RTLProvider>
             {maintenanceBanner && (
@@ -59,7 +52,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Nav />
             <main>{children}</main>
             <Footer />
-            <LunaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} hiddenPrefixes={["/orders"]} agentType="SHOPPING" />
+            <AyvanaChatWidget apiPath="/api/chat" hiddenPaths={["/chat", "/checkout"]} hiddenPrefixes={["/orders"]} agentType="SHOPPING" />
           </RTLProvider>
         </body>
       </html>

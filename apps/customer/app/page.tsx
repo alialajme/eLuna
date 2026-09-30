@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { prisma, getCategories } from "@e-luna/db";
-import { ProductCard } from "@e-luna/ui";
+import { prisma, getCategories } from "@ayvana/db";
+import { ProductCard } from "@ayvana/ui";
 import { safeCurrentUser as currentUser } from "./lib/auth";
 
 const HERO_CAMPAIGN = {
@@ -131,12 +131,12 @@ export default async function HomePage() {
         <section className="bg-ink mx-4 my-8 rounded-2xl px-8 py-10 md:mx-6">
           <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-label uppercase tracking-widest text-gold mb-2">Luna AI Stylist</p>
+              <p className="text-label uppercase tracking-widest text-gold mb-2">AYVANA AI Stylist</p>
               {hasSizeProfile ? (
                 <h2 className="font-display text-display-md text-ivory">Your style, saved.</h2>
               ) : (
                 <h2 className="font-display text-display-md text-ivory">
-                  Luna knows your size.
+                  AYVANA knows your size.
                   <br />
                   Ask her anything.
                 </h2>
@@ -146,7 +146,7 @@ export default async function HomePage() {
               href="/chat"
               className="shrink-0 flex items-center gap-2 rounded-full border border-gold px-6 py-3 text-body-md font-medium text-gold hover:bg-gold hover:text-ink transition-colors"
             >
-              <span>◑</span> Chat with Luna →
+              <span>◑</span> Chat with AYVANA →
             </Link>
           </div>
         </section>

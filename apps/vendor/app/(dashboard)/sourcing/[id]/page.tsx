@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { PlaceOrderForm } from "../../components/PlaceOrderForm";
 
 type Props = { params: Promise<{ id: string }> };
@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const material = await prisma.material
     .findUnique({ where: { id }, select: { name: true } })
     .catch(() => null);
-  return { title: material ? `${material.name} — Sourcing` : "Sourcing — Luna Vendor" };
+  return { title: material ? `${material.name} — Sourcing` : "Sourcing — AYVANA Vendor" };
 }
 
 export default async function SourcingMaterialPage({ params }: Props) {

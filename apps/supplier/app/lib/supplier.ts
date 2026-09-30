@@ -1,5 +1,5 @@
-import { prisma } from "@e-luna/db";
-import type { SupplierStatus } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
+import type { SupplierStatus } from "@ayvana/db";
 
 export type SupplierWithStatus = {
   id: string;

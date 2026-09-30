@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma, type OrderStatus } from "@e-luna/db";
+import { prisma, type OrderStatus } from "@ayvana/db";
 import { safeCurrentUser } from "../../lib/auth";
 import { StatusFilter } from "../components/StatusFilter";
 
-export const metadata: Metadata = { title: "Orders — Luna Ops" };
+export const metadata: Metadata = { title: "Orders — AYVANA Ops" };
 
 const ORDER_STATUS_BADGE: Record<string, string> = {
   DELIVERED: "bg-sage/20 text-sage",

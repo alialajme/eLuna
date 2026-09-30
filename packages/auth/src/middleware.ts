@@ -2,16 +2,16 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { UserRole } from "./roles";
 
-type LunaClaims = { metadata?: { role?: UserRole; mfaEnabled?: boolean } };
+type AyvanaClaims = { metadata?: { role?: UserRole; mfaEnabled?: boolean } };
 
-function parseClaims(sessionClaims: unknown): LunaClaims {
+function parseClaims(sessionClaims: unknown): AyvanaClaims {
   if (
     sessionClaims &&
     typeof sessionClaims === "object" &&
     "metadata" in sessionClaims &&
     (sessionClaims.metadata === null || typeof sessionClaims.metadata === "object")
   ) {
-    return sessionClaims as LunaClaims;
+    return sessionClaims as AyvanaClaims;
   }
   return {};
 }
@@ -29,7 +29,7 @@ const CUSTOMER_PUBLIC_ROUTES = [
   "/api/health",
 ];
 
-export function createLunaMiddleware(appRole: UserRole) {
+export function createAyvanaMiddleware(appRole: UserRole) {
   const isPublicRoute =
     appRole === "CUSTOMER"
       ? createRouteMatcher(CUSTOMER_PUBLIC_ROUTES)

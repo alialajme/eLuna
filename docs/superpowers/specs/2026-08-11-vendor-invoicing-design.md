@@ -22,7 +22,7 @@ Simulated issuer.
 
 - **VAT = inclusive (retail):** the vendor's `gross = Σ(unitPrice × quantity)` for their items is
   VAT-inclusive; `net = round(gross / 1.05, 2)`, `vatAmount = round(gross − net, 2)`, `total = gross`.
-- **Extract a shared `@e-luna/einvoice` package** (the gateway currently in `apps/supplier`), reused by
+- **Extract a shared `@ayvana/einvoice` package** (the gateway currently in `apps/supplier`), reused by
   supplier + vendor; repoint the supplier to it.
 - **Vendor-issued MVP + customer-view.** Auto-issue-on-payment is deferred.
 
@@ -33,10 +33,10 @@ Simulated issuer.
 - Credit notes, multi-currency, non-5% rates.
 - Real FTA/Peppol transmission (the `FtaEInvoice` scaffold is credential-gated, unchanged).
 
-## Part A — Extract the shared `@e-luna/einvoice` package
+## Part A — Extract the shared `@ayvana/einvoice` package
 
 Move `apps/supplier/app/lib/einvoice/{gateway,simulated,fta,config,factory}.ts` into a new workspace
-package **`packages/einvoice`** (`@e-luna/einvoice`), and **generalize** the gateway types so both a
+package **`packages/einvoice`** (`@ayvana/einvoice`), and **generalize** the gateway types so both a
 supplier→vendor and a vendor→customer invoice fit:
 
 ```ts
@@ -57,17 +57,17 @@ export interface EInvoiceGateway { issue(params: IssueParams): Promise<IssueResu
   (`getEInvoiceGateway`) move unchanged (config reads the same `FTA_ACCESS_POINT_URL`/`FTA_API_KEY`).
 - `index.ts` barrel re-exports all of the above.
 - **Repoint the supplier:** `apps/supplier/app/actions/invoice.ts` imports `getEInvoiceGateway` from
-  `@e-luna/einvoice`; delete `apps/supplier/app/lib/einvoice/`. The supplier's `issue(...)` call maps
+  `@ayvana/einvoice`; delete `apps/supplier/app/lib/einvoice/`. The supplier's `issue(...)` call maps
   `supplier`→`seller`, `vendor`→`buyer`, and its lines to `{ description: materialName, quantity,
   unitPrice, lineTotal }` (the richer material `unit` stays only in the supplier's `MaterialInvoice.lines`
-  JSON, not the gateway params). Add `@e-luna/einvoice` to the supplier app's deps + `transpilePackages`.
+  JSON, not the gateway params). Add `@ayvana/einvoice` to the supplier app's deps + `transpilePackages`.
 
-`packages/einvoice/package.json` = `@e-luna/einvoice`, exports `./src/index.ts` (raw TS, like `@e-luna/db`);
-tsconfig extends `@e-luna/config/tsconfig/base`.
+`packages/einvoice/package.json` = `@ayvana/einvoice`, exports `./src/index.ts` (raw TS, like `@ayvana/db`);
+tsconfig extends `@ayvana/config/tsconfig/base`.
 
-## Part B — Shared printable invoice component (`@e-luna/ui`)
+## Part B — Shared printable invoice component (`@ayvana/ui`)
 
-Add **`TaxInvoiceDocument`** to `@e-luna/ui` — a pure render component (props only, no server deps) used by
+Add **`TaxInvoiceDocument`** to `@ayvana/ui` — a pure render component (props only, no server deps) used by
 both the vendor and customer printable invoice pages:
 
 ```ts
@@ -169,8 +169,8 @@ may adopt this later — out of scope now.)
 ## Testing
 
 No automated suite — types + lint + manual:
-1. `pnpm install` (new `@e-luna/einvoice` package + vendor/supplier deps) + `db:generate` + `db:push`.
-2. `pnpm --filter "@e-luna/*" exec tsc --noEmit` — clean (incl. the repointed supplier).
+1. `pnpm install` (new `@ayvana/einvoice` package + vendor/supplier deps) + `db:generate` + `db:push`.
+2. `pnpm --filter "@ayvana/*" exec tsc --noEmit` — clean (incl. the repointed supplier).
 3. `pnpm lint` — clean.
 4. gitleaks — clean.
 5. Manual: set a vendor TRN; on a DELIVERED multi-vendor order, each vendor issues one invoice; inclusive
@@ -181,8 +181,8 @@ No automated suite — types + lint + manual:
 ## File Summary
 
 - Create: `packages/einvoice/` (`package.json`, `tsconfig.json`, `src/{gateway,simulated,fta,config,factory,index}.ts`).
-- Modify: `apps/supplier/app/actions/invoice.ts` (import from `@e-luna/einvoice`, map seller/buyer); delete
-  `apps/supplier/app/lib/einvoice/`; `apps/supplier/package.json` + `next.config.ts` (add `@e-luna/einvoice`).
+- Modify: `apps/supplier/app/actions/invoice.ts` (import from `@ayvana/einvoice`, map seller/buyer); delete
+  `apps/supplier/app/lib/einvoice/`; `apps/supplier/package.json` + `next.config.ts` (add `@ayvana/einvoice`).
 - Create: `packages/ui/src/components/TaxInvoiceDocument.tsx` (+ export).
 - Modify: `packages/db/prisma/schema.prisma` (`Vendor.trn`, `OrderInvoice` + back-relations).
 - Vendor: create `actions/invoice.ts`, `(dashboard)/invoices/{page,[id]}.tsx`, an `IssueInvoiceButton`

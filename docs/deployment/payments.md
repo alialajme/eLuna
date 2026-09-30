@@ -29,7 +29,7 @@ Apple Pay / Google Pay are recorded as `CARD` with `walletType` in
 ## 2. Apply the schema change
 Run against the live database:
 ```
-pnpm --filter @e-luna/db db:push
+pnpm --filter @ayvana/db db:push
 ```
 This adds the `TAP`, `NOQODI`, `NEOPAY` `PaymentMethod` values (the repo uses `db push`,
 not migration files).
@@ -53,7 +53,7 @@ a "not configured" failure until implemented. To activate one:
 
 ## NeoPay in checkout
 
-NeoPay is surfaced in the customer checkout picker, gated by `neopayAvailable()` (`@e-luna/payments`) =
+NeoPay is surfaced in the customer checkout picker, gated by `neopayAvailable()` (`@ayvana/payments`) =
 `hasNeopay() || NODE_ENV !== "production"`:
 
 - **Dev, no keys:** NeoPay is shown and completes via the Simulated gateway (`captured`), like Tabby/Tamara/Wallet.

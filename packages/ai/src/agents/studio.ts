@@ -59,7 +59,7 @@ export async function writeCopy(garment: {
 }> {
   const { text } = await generateText({
     model: anthropic(LUNA_MODEL),
-    prompt: `You are a luxury Gulf fashion copywriter for e-Luna, the Gulf's premier abaya marketplace.
+    prompt: `You are a luxury Gulf fashion copywriter for AYVANA, the Gulf's premier abaya marketplace.
 Write product copy for this garment:
 ${JSON.stringify(garment, null, 2)}
 

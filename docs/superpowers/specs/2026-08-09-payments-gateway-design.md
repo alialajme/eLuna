@@ -274,11 +274,11 @@ export async function POST(req: Request) {
 No automated suite (consistent with the repo). Per task:
 ```bash
 # regenerate the Prisma client with the new enum values (offline; no DB needed)
-pnpm --filter @e-luna/db db:generate
+pnpm --filter @ayvana/db db:generate
 cd apps/customer && npx tsc --noEmit 2>&1 | grep -v "tailwind.config.ts"   # clean
 cd apps/customer && npx next lint 2>&1 | tail -3                            # no errors
 ```
-Final task runs repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --noEmit`.
+Final task runs repo-wide `pnpm lint` + `pnpm --filter "@ayvana/*" exec tsc --noEmit`.
 
 **Simulated-fallback proof (must hold):** with `STRIPE_SECRET_KEY` unset, `getGateway("CARD")` returns `SimulatedGateway`; `initiateCardPayment` returns `captured:true`; the confirm page shows a `CONFIRMED` order — the existing dev checkout is unbroken.
 
@@ -291,7 +291,7 @@ Final task runs repo-wide `pnpm lint` + `pnpm --filter "@e-luna/*" exec tsc --no
 1. Provision Stripe account; set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
 2. Register the webhook endpoint (`/api/webhooks/stripe`) in the Stripe dashboard (public URL).
 3. **Apple Pay domain verification** in the Stripe dashboard before the Apple Pay button renders in production.
-4. `pnpm --filter @e-luna/db db:push` against the live DB to apply the `TAP/NOQODI/NEOPAY` enum values.
+4. `pnpm --filter @ayvana/db db:push` against the live DB to apply the `TAP/NOQODI/NEOPAY` enum values.
 5. To activate a regional gateway, implement the documented TODO in its adapter and set its env vars (`TAP_*`, `NOQODI_*`, `NEOPAY_*`).
 
 All documented in `docs/deployment/payments.md`, mirroring the Azure infra's author-now / operator-activates model.

@@ -6,7 +6,7 @@
 
 **Architecture:** RSC pages with client islands. Nav is a server component reading the cart cookie. Home page fetches all data in parallel via `Promise.all`. Browse page reads URL params server-side for initial render; FilterBar (client) handles subsequent filter changes via `router.replace`. ProductGrid and LoadMoreButton live in `apps/customer/components/` since they're app-specific.
 
-**Tech Stack:** Next.js 15 App Router · React 19 · Tailwind CSS · Prisma · `@e-luna/db` · `@e-luna/ui`
+**Tech Stack:** Next.js 15 App Router · React 19 · Tailwind CSS · Prisma · `@ayvana/db` · `@ayvana/ui`
 
 **Dependency:** Run after Plan 1 (tokens) and Plan 2 (UI components).
 
@@ -47,7 +47,7 @@ type CartItem = { variantId: string; qty: number };
 function getCartCount(): number {
   try {
     const cookieStore = cookies();
-    const raw = cookieStore.get("luna_cart")?.value;
+    const raw = cookieStore.get("ayvana_cart")?.value;
     if (!raw) return 0;
     const items: CartItem[] = JSON.parse(raw);
     return items.reduce((sum, item) => sum + item.qty, 0);
@@ -151,7 +151,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-label uppercase text-gold mb-3">Luna</h3>
+            <h3 className="text-label uppercase text-gold mb-3">AYVANA</h3>
             <ul className="space-y-2 text-body-sm text-mist">
               <li><Link href="/chat" className="hover:text-ivory transition-colors">AI Stylist</Link></li>
               <li><Link href="/profile/size" className="hover:text-ivory transition-colors">Size Profile</Link></li>
@@ -162,12 +162,12 @@ export function Footer() {
             <ul className="space-y-2 text-body-sm text-mist">
               <li><span className="cursor-default">Shipping & Returns</span></li>
               <li><span className="cursor-default">Size Guide</span></li>
-              <li><Link href="https://sell.luna.ae" className="hover:text-ivory transition-colors">Sell on Luna</Link></li>
+              <li><Link href="https://sell.ayvana.ae" className="hover:text-ivory transition-colors">Sell on AYVANA</Link></li>
             </ul>
           </div>
         </div>
         <div className="mt-10 border-t border-sand/30 pt-6 text-center text-body-sm text-mist">
-          © 2026 Luna. All rights reserved.
+          © 2026 AYVANA. All rights reserved.
         </div>
       </div>
     </footer>
@@ -181,7 +181,7 @@ export function Footer() {
 import type { Metadata } from "next";
 import { Bodoni_Moda, Hanken_Grotesk, IBM_Plex_Sans_Arabic } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { RTLProvider } from "@e-luna/ui";
+import { RTLProvider } from "@ayvana/ui";
 import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
 import "./globals.css";
@@ -207,7 +207,7 @@ const ibmArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "Luna — The Gulf's AI-powered abaya marketplace",
+  title: "AYVANA — The Gulf's AI-powered abaya marketplace",
   description: "Discover abayas styled for you by AI",
 };
 
@@ -231,7 +231,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - [ ] **Step 4: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
 ```
 
 Expected: no errors.
@@ -250,9 +250,9 @@ These are app-specific RSC/client components used by both Browse and Vendor Bout
 - [ ] **Step 1: Create ProductGrid.tsx**
 
 ```tsx
-import { prisma } from "@e-luna/db";
+import { prisma } from "@ayvana/db";
 import { Decimal } from "@prisma/client/runtime/library";
-import { ProductCard } from "@e-luna/ui";
+import { ProductCard } from "@ayvana/ui";
 import Link from "next/link";
 
 export type ProductGridFilters = {
@@ -324,12 +324,12 @@ export async function ProductGrid({ filters, customerSizeProfileUsualSize }: Pro
     return (
       <div className="py-24 text-center">
         <p className="text-body-lg text-ink mb-2">No abayas found</p>
-        <p className="text-body-md text-mist mb-6">Luna hasn't found a match — try asking her</p>
+        <p className="text-body-md text-mist mb-6">AYVANA hasn't found a match — try asking her</p>
         <Link
           href="/chat"
           className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
         >
-          <span className="text-gold">◑</span> Chat with Luna
+          <span className="text-gold">◑</span> Chat with AYVANA
         </Link>
       </div>
     );
@@ -450,7 +450,7 @@ export function LoadMoreButton({ currentPage, totalCount, loadedCount }: LoadMor
 - [ ] **Step 4: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
 ```
 
 ---
@@ -465,8 +465,8 @@ pnpm --filter @e-luna/customer exec tsc --noEmit
 ```tsx
 import Link from "next/link";
 import Image from "next/image";
-import { prisma } from "@e-luna/db";
-import { ProductCard } from "@e-luna/ui";
+import { prisma } from "@ayvana/db";
+import { ProductCard } from "@ayvana/ui";
 import { currentUser } from "@clerk/nextjs/server";
 
 const CATEGORIES = [
@@ -620,12 +620,12 @@ export default async function HomePage() {
         <section className="bg-ink mx-4 my-8 rounded-2xl px-8 py-10 md:mx-6">
           <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-label uppercase tracking-widest text-gold mb-2">Luna AI Stylist</p>
+              <p className="text-label uppercase tracking-widest text-gold mb-2">AYVANA AI Stylist</p>
               {hasSizeProfile ? (
                 <h2 className="font-display text-display-md text-ivory">Your style, saved.</h2>
               ) : (
                 <h2 className="font-display text-display-md text-ivory">
-                  Luna knows your size.
+                  AYVANA knows your size.
                   <br />
                   Ask her anything.
                 </h2>
@@ -635,7 +635,7 @@ export default async function HomePage() {
               href="/chat"
               className="shrink-0 flex items-center gap-2 rounded-full border border-gold px-6 py-3 text-body-md font-medium text-gold hover:bg-gold hover:text-ink transition-colors"
             >
-              <span>◑</span> Chat with Luna →
+              <span>◑</span> Chat with AYVANA →
             </Link>
           </div>
         </section>
@@ -648,7 +648,7 @@ export default async function HomePage() {
 - [ ] **Step 2: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
 ```
 
 ---
@@ -663,8 +663,8 @@ pnpm --filter @e-luna/customer exec tsc --noEmit
 
 ```tsx
 import { Suspense } from "react";
-import { prisma } from "@e-luna/db";
-import { FilterBar } from "@e-luna/ui";
+import { prisma } from "@ayvana/db";
+import { FilterBar } from "@ayvana/ui";
 import { currentUser } from "@clerk/nextjs/server";
 import { ProductGrid } from "../components/ProductGrid";
 import { ProductGridSkeleton } from "../components/ProductGridSkeleton";
@@ -680,7 +680,7 @@ function getString(val: string | string[] | undefined): string | undefined {
 }
 
 export const metadata = {
-  title: "Browse Abayas — Luna",
+  title: "Browse Abayas — AYVANA",
   description: "Discover hundreds of abayas from Gulf boutiques",
 };
 
@@ -779,7 +779,7 @@ type Props = {
 export async function generateMetadata({ params }: Props) {
   const label = params.category.charAt(0).toUpperCase() + params.category.slice(1);
   return {
-    title: `${label} Abayas — Luna`,
+    title: `${label} Abayas — AYVANA`,
     description: `Browse ${label.toLowerCase()} abayas from Gulf boutiques`,
   };
 }
@@ -802,7 +802,7 @@ export default function CategoryBrowsePage({ params, searchParams }: Props) {
 - [ ] **Step 3: Verify TypeScript**
 
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
 ```
 
 - [ ] **Step 4: Commit**
@@ -816,7 +816,7 @@ git commit -m "feat: add Nav, Footer, Home page, and Browse pages"
 
 ## Self-Check Before Handing Off to Plan 4
 
-- [ ] `pnpm --filter @e-luna/customer exec tsc --noEmit` passes
+- [ ] `pnpm --filter @ayvana/customer exec tsc --noEmit` passes
 - [ ] `pnpm lint` passes
 - [ ] Run `pnpm dev` and open `http://localhost:3000` — home page loads with category tiles and new arrivals (needs seed data from Plan 1)
 - [ ] Open `http://localhost:3000/browse` — filter bar shows, products load in 4-column grid

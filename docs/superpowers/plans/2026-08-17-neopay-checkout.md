@@ -4,7 +4,7 @@
 
 **Goal:** Show NeoPay in the customer checkout picker and route it through the existing synchronous `placeOrder` path, gated by a single `neopayAvailable()` helper so production can never fake-capture when NeoPay is unconfigured.
 
-**Architecture:** Export `neopayAvailable()` from `@e-luna/payments`; the checkout page passes `neopayEnabled` to `CheckoutForm` (conditional NeoPay entry); `placeOrder` widens its method union to include `NEOPAY` and rejects it server-side when `!neopayAvailable()`. No schema change (the `NEOPAY` enum value already exists).
+**Architecture:** Export `neopayAvailable()` from `@ayvana/payments`; the checkout page passes `neopayEnabled` to `CheckoutForm` (conditional NeoPay entry); `placeOrder` widens its method union to include `NEOPAY` and rejects it server-side when `!neopayAvailable()`. No schema change (the `NEOPAY` enum value already exists).
 
 **Tech Stack:** Turborepo + pnpm, Next.js 15 App Router, TypeScript. Verification = `tsc --noEmit` + `pnpm lint` + gitleaks (no test suite).
 
@@ -30,11 +30,11 @@ Change it to add `neopayAvailable`:
 export { hasStripe, hasTap, hasNoqodi, hasNeopay, neopayAvailable, stripeConfig } from "./config";
 ```
 
-- [ ] **Step 3: Type-check the customer app** (which consumes `@e-luna/payments`)
+- [ ] **Step 3: Type-check the customer app** (which consumes `@ayvana/payments`)
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
 ```
-Expected: exit 0 (no consumer yet — just confirms the export compiles). The `@e-luna/payments` package has no standalone tsc script; the workspace typecheck in Task 4 covers it.
+Expected: exit 0 (no consumer yet — just confirms the export compiles). The `@ayvana/payments` package has no standalone tsc script; the workspace typecheck in Task 4 covers it.
 
 - [ ] **Step 4: Commit**
 ```bash
@@ -48,9 +48,9 @@ git commit -m "feat(payments): neopayAvailable() (configured or non-prod)"
 
 **Files:** Modify `apps/customer/app/actions/checkout.ts`
 
-- [ ] **Step 1: Import the helper.** The file imports `import { getGateway } from "@e-luna/payments";`. Change it to:
+- [ ] **Step 1: Import the helper.** The file imports `import { getGateway } from "@ayvana/payments";`. Change it to:
 ```ts
-import { getGateway, neopayAvailable } from "@e-luna/payments";
+import { getGateway, neopayAvailable } from "@ayvana/payments";
 ```
 
 - [ ] **Step 2: Widen the input union.** The `PlaceOrderInput.paymentMethod` field is currently:
@@ -72,7 +72,7 @@ Change it to:
 
 - [ ] **Step 4: Type-check**
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit
+pnpm --filter @ayvana/customer exec tsc --noEmit
 ```
 Expected: exit 0.
 
@@ -89,9 +89,9 @@ git commit -m "feat(checkout): placeOrder accepts NEOPAY, guarded by neopayAvail
 **Files:** Modify `apps/customer/app/checkout/page.tsx`, `apps/customer/app/checkout/CheckoutForm.tsx`
 
 - [ ] **Step 1: Page passes `neopayEnabled`.** In `apps/customer/app/checkout/page.tsx`:
-  - Add to the imports (the page already imports from `@e-luna/db`, `@e-luna/ui`; add the payments import):
+  - Add to the imports (the page already imports from `@ayvana/db`, `@ayvana/ui`; add the payments import):
 ```ts
-import { neopayAvailable } from "@e-luna/payments";
+import { neopayAvailable } from "@ayvana/payments";
 ```
   - In the `<CheckoutForm … />` invocation, add the prop:
 ```tsx
@@ -114,11 +114,11 @@ import { neopayAvailable } from "@e-luna/payments";
 ```tsx
 export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, itemCount, neopayEnabled }: Props) {
 ```
-  - Add a NeoPay entry to `PAYMENT_METHODS` (after the Tamara line, before Luna Wallet):
+  - Add a NeoPay entry to `PAYMENT_METHODS` (after the Tamara line, before AYVANA Wallet):
 ```ts
   { value: "TAMARA", label: "Tamara", icon: "🟣", desc: "Split in 3 instalments" },
   { value: "NEOPAY", label: "NeoPay", icon: "🇦🇪", desc: "UAE bank cards & wallets" },
-  { value: "LUNA_WALLET", label: "Luna Wallet", icon: "🌙", desc: "Use your Luna balance" },
+  { value: "LUNA_WALLET", label: "AYVANA Wallet", icon: "🌙", desc: "Use your AYVANA balance" },
 ```
 
 - [ ] **Step 3: Filter NeoPay by availability in the render.** The picker renders `PAYMENT_METHODS.map((method) => ( … ))`. Change that `.map` to filter out NeoPay when disabled:
@@ -138,7 +138,7 @@ Change it to include NEOPAY:
 
 - [ ] **Step 5: Type-check + lint**
 ```bash
-pnpm --filter @e-luna/customer exec tsc --noEmit && pnpm --filter @e-luna/customer lint
+pnpm --filter @ayvana/customer exec tsc --noEmit && pnpm --filter @ayvana/customer lint
 ```
 Expected: clean (only the pre-existing `<img>` warnings in `cart/CartReview.tsx` + `checkout/confirm/page.tsx`).
 
@@ -159,7 +159,7 @@ git commit -m "feat(checkout): surface NeoPay in the payment picker (availabilit
 
 ## NeoPay in checkout
 
-NeoPay is surfaced in the customer checkout picker, gated by `neopayAvailable()` (`@e-luna/payments`) =
+NeoPay is surfaced in the customer checkout picker, gated by `neopayAvailable()` (`@ayvana/payments`) =
 `hasNeopay() || NODE_ENV !== "production"`:
 
 - **Dev, no keys:** NeoPay is shown and completes via the Simulated gateway (`captured`), like Tabby/Tamara/Wallet.
@@ -174,7 +174,7 @@ gateway is implemented, or customers selecting NeoPay will get a "not configured
 
 - [ ] **Step 2: Full typecheck**
 ```bash
-pnpm --filter "@e-luna/*" exec tsc --noEmit
+pnpm --filter "@ayvana/*" exec tsc --noEmit
 ```
 Expected: exit 0.
 
