@@ -13,7 +13,7 @@
     "@e-luna/ui": "workspace:*",
     "@e-luna/auth": "workspace:*",
     "@e-luna/db": "workspace:*",
-    "next": "15.0.0",
+    "next": "15.5.26",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

@@ -33,7 +33,9 @@ spec:
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false  # Next.js standalone writes to .next/cache & /tmp
+            # Immutable root FS (KSV-0014). Next.js standalone only needs to write
+            # to its build cache and /tmp — provided as writable emptyDir mounts below.
+            readOnlyRootFilesystem: true
             capabilities: { drop: ["ALL"] }
           ports:
             - containerPort: 3000
@@ -57,6 +59,11 @@ spec:
             - name: secrets-store
               mountPath: /mnt/secrets-store
               readOnly: true
+            # Writable paths a read-only-root Next.js standalone server still needs.
+            - name: next-cache
+              mountPath: /app/apps/{{ $app.name }}/.next/cache
+            - name: tmp
+              mountPath: /tmp
           envFrom:
             - secretRef: { name: {{ $app.name }}-secrets }
       volumes:
@@ -65,6 +72,10 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes: { secretProviderClass: luna-spc }
+        - name: next-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

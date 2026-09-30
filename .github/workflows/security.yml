@@ -29,44 +29,41 @@ jobs:
         with:
           category: "/language:javascript-typescript"
 
-  # Dependency + secret vulnerability scan of the repo/lockfile. Fails the build
-  # on fixable CRITICAL/HIGH; unfixable advisories are ignored so we don't block
-  # on things we can't remediate. Results also uploaded as SARIF.
+  # Dependency + secret vulnerability scan of the repo/lockfile. Enforcing: fails
+  # the build on fixable CRITICAL/HIGH. Unfixable advisories are skipped
+  # (ignore-unfixed); individually-triaged waivers live in .trivyignore.
   trivy-deps:
     name: Trivy (deps + secrets)
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write
     steps:
       - uses: actions/checkout@v4
-      - name: Trivy filesystem scan (report-only)
+      - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           scanners: vuln,secret
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          # Report-only: surface findings in the job log without blocking CI while
-          # the existing backlog is triaged. Flip exit-code back to "1" to enforce.
-          exit-code: "0"
+          trivyignores: .trivyignore
+          exit-code: "1"
           format: table
 
   # IaC / container misconfiguration scan (Dockerfile, Helm, Bicep, K8s).
+  # Enforcing: fails the build on CRITICAL/HIGH misconfigurations.
   trivy-config:
     name: Trivy (IaC misconfig)
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write
     steps:
       - uses: actions/checkout@v4
-      - name: Trivy config scan (report-only)
+      - name: Trivy config scan
         uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: config
           severity: CRITICAL,HIGH
-          # Report-only: surface findings in the job log without blocking CI while
-          # the existing backlog is triaged. Flip exit-code back to "1" to enforce.
-          exit-code: "0"
+          trivyignores: .trivyignore
+          exit-code: "1"
           format: table
