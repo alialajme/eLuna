@@ -84,3 +84,33 @@ jobs:
 
       - name: Run package unit tests (@e-luna/auth, @e-luna/observability)
         run: pnpm --filter @e-luna/auth --filter @e-luna/observability test
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    # Build-time env contract (see docs/deployment/azure-aks.md). Dummy,
+    # presence-only values so `next build` can prerender pages that evaluate the
+    # AI config (throws at import), Prisma, and the Clerk provider (statically
+    # prerendered pages require a publishable key "in production"). Real secrets
+    # are injected from Key Vault at deploy time, never here.
+    env:
+      ANTHROPIC_API_KEY: sk-ant-ci-build-placeholder
+      DATABASE_URL: postgresql://build:build@localhost:5432/build
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
+      CLERK_SECRET_KEY: sk_test_ZHVtbXlfc2VjcmV0X2tleV9mb3JfYnVpbGQ
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @e-luna/db db:generate
+
+      - name: Build all apps (production)
+        run: pnpm turbo build

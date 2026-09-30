@@ -9,3 +9,10 @@ paths = [
   '''\.env\.example$''',
   '''pnpm-lock\.yaml$''',
 ]
+# Non-secret, presence-only build placeholders used by the CI "Production build"
+# job (see .github/workflows/ci.yml). pk_test_Y2xlcmsuZXhhbXBsZS5jb20k is Clerk's
+# public clerk.example.com sample key; the sk_test_ value is a made-up dummy.
+regexes = [
+  '''pk_test_Y2xlcmsuZXhhbXBsZS5jb20k''',
+  '''sk_test_ZHVtbXlfc2VjcmV0X2tleV9mb3JfYnVpbGQ''',
+]

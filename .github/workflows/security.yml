@@ -29,11 +29,14 @@ jobs:
         with:
           category: "/language:javascript-typescript"
 
-  # Dependency + secret vulnerability scan of the repo/lockfile. Enforcing: fails
-  # the build on fixable CRITICAL/HIGH. Unfixable advisories are skipped
-  # (ignore-unfixed); individually-triaged waivers live in .trivyignore.
+  # Dependency vulnerability scan of the repo/lockfile. Enforcing: fails the build
+  # on fixable CRITICAL/HIGH. Unfixable advisories are skipped (ignore-unfixed);
+  # individually-triaged waivers live in .trivyignore.
+  # Secret scanning is handled by the dedicated gitleaks "Secret Scan" workflow
+  # (with .gitleaks.toml allowlisting), so it is intentionally NOT enabled here —
+  # a second secret scanner with its own allowlist only produces false positives.
   trivy-deps:
-    name: Trivy (deps + secrets)
+    name: Trivy (deps)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,7 +46,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
-          scanners: vuln,secret
+          scanners: vuln
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           trivyignores: .trivyignore
