@@ -8,7 +8,7 @@ This file is the living memory for the AYVANA project. Update it after every sig
 
 AYVANA is an AI-powered marketplace and commerce operating system for the abaya and modest fashion industry in the Gulf region (UAE, GCC). It connects customers, boutiques, designers, and manufacturers through a unified platform with AI agents at its core.
 
-**Tagline:** The Gulf's AI-powered abaya marketplace  
+**Tagline:** The Abaya Marketplace  
 **Target market:** UAE + GCC, Arabic-speaking modest fashion buyers and sellers  
 **Competitor reference:** ananline.ae — a single-brand abaya store (not a marketplace), built on Odoo, no AI features. AYVANA is architecturally different: multi-vendor OS vs single brand.
 

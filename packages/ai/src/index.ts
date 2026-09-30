@@ -1,4 +1,4 @@
-export { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "./config";
+export { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "./config";
 export { runShoppingAgent } from "./agents/shopping";
 export { runSellerAgent, buildSellerTools } from "./agents/seller";
 export { runSupplierAgent, buildSupplierTools } from "./agents/supplier";

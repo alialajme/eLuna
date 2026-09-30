@@ -1,6 +1,6 @@
 import { streamText, tool, generateText } from "ai";
 import { z } from "zod";
-import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
+import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 // ─── Standalone AI helpers (used by server actions) ──────────────────────────
 
@@ -12,7 +12,7 @@ export async function detectGarment(imageUrls: string[]): Promise<{
   details: string[];
 }> {
   const { text } = await generateText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     messages: [
       {
         role: "user",
@@ -58,7 +58,7 @@ export async function writeCopy(garment: {
   tags: string[];
 }> {
   const { text } = await generateText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     prompt: `You are a luxury Gulf fashion copywriter for AYVANA, the Gulf's premier abaya marketplace.
 Write product copy for this garment:
 ${JSON.stringify(garment, null, 2)}
@@ -149,7 +149,7 @@ export async function runStudioAgent(
   messages: { role: "user" | "assistant"; content: string }[],
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: STUDIO_SYSTEM,
     messages,
     tools: studioTools,

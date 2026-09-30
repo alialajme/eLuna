@@ -15,7 +15,7 @@
 - **No automated test suite.** "Tests" = `npx tsc --noEmit` and `npx next lint`. Do NOT add a test runner.
 - **`noUncheckedIndexedAccess` is ON** (`arr[0]?.x`, `?? fallback`). **Prisma `Decimal`** → `Number(...)` (none written here). No schema change.
 - **Agent security rule:** the scoping id (`customerId` = `CustomerProfile.id`) is captured in the tool-factory closure — NEVER a Zod/LLM parameter. Order tools filter `{ id: orderId, customerId }`.
-- **Reference patterns:** `packages/ai/src/agents/payment.ts` (8b: `buildPaymentTools(customerId)` + `runPaymentAgent(messages, { customerId })`, config import `import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";`, `import { streamText, tool } from "ai"; import type { CoreMessage } from "ai"; import { z } from "zod"; import { prisma } from "@ayvana/db";`). Route pattern: `apps/customer/app/api/payment-help/route.ts` (imports `safeCurrentUser as currentUser` from `../../lib/auth`).
+- **Reference patterns:** `packages/ai/src/agents/payment.ts` (8b: `buildPaymentTools(customerId)` + `runPaymentAgent(messages, { customerId })`, config import `import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";`, `import { streamText, tool } from "ai"; import type { CoreMessage } from "ai"; import { z } from "zod"; import { prisma } from "@ayvana/db";`). Route pattern: `apps/customer/app/api/payment-help/route.ts` (imports `safeCurrentUser as currentUser` from `../../lib/auth`).
 - **Verified state:**
   - `packages/ai/src/agents/logistics.ts` currently: stub `logisticsTools` (empty tools) + `runLogisticsAgent(messages: {role,content}[])`.
   - `packages/ai/src/index.ts` line 5: `export { runLogisticsAgent, logisticsTools } from "./agents/logistics";`. No app imports `logisticsTools`.
@@ -50,7 +50,7 @@ import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
 import { prisma } from "@ayvana/db";
-import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
+import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const LOGISTICS_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
@@ -207,7 +207,7 @@ export async function runLogisticsAgent(
   options: { customerId: string },
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: LOGISTICS_SYSTEM,
     messages,
     tools: buildLogisticsTools(options.customerId),

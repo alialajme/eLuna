@@ -60,7 +60,7 @@ import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
 import { prisma } from "@ayvana/db";
-import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
+import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const SELLER_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
@@ -212,7 +212,7 @@ export async function runSellerAgent(
   options: { vendorId: string }
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: SELLER_SYSTEM,
     messages,
     tools: buildSellerTools(options.vendorId),

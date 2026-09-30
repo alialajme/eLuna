@@ -133,7 +133,7 @@ export async function runSellerAgent(
   options: { vendorId: string; onFinish?: (event: { text: string }) => void | Promise<void> },
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: SELLER_SYSTEM,
     messages,
     tools: buildSellerTools(options.vendorId),

@@ -1,6 +1,6 @@
 import { streamText, tool } from "ai";
 import { z } from "zod";
-import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
+import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const POS_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
@@ -58,7 +58,7 @@ export async function runPOSAgent(
   messages: { role: "user" | "assistant"; content: string }[],
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: POS_SYSTEM,
     messages,
     tools: posTools,

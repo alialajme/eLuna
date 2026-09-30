@@ -6,7 +6,7 @@
 
 **Architecture:** A new `packages/ai/src/agents/supplier.ts` (`buildSupplierTools(supplierId)` + `runSupplierAgent`) exactly mirroring the Seller agent; `"SUPPLIER"` added to the `AGENT_TYPES` allowlist; the supplier app gains `@ayvana/ai` as a dependency, `/api/assistant` + `/api/ai-history` routes, and a `AyvanaChatWidget` mount. Read-only — the agent never mutates data.
 
-**Tech Stack:** Vercel AI SDK (`streamText`, `tool`, `CoreMessage`, `toDataStreamResponse`), Anthropic `claude-sonnet-4-6` (`LUNA_MODEL`), Zod, Prisma, Next.js 15, Clerk, Turborepo + pnpm@9.
+**Tech Stack:** Vercel AI SDK (`streamText`, `tool`, `CoreMessage`, `toDataStreamResponse`), Anthropic `claude-sonnet-4-6` (`AYVANA_MODEL`), Zod, Prisma, Next.js 15, Clerk, Turborepo + pnpm@9.
 
 **Spec:** `docs/superpowers/specs/2026-08-11-supplier-ai-agent-design.md`
 
@@ -56,7 +56,7 @@ import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
 import { prisma } from "@ayvana/db";
-import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
+import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const SUPPLIER_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
@@ -197,7 +197,7 @@ export async function runSupplierAgent(
   options: { supplierId: string; onFinish?: (event: { text: string }) => void | Promise<void> }
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: SUPPLIER_SYSTEM,
     messages,
     tools: buildSupplierTools(options.supplierId),
