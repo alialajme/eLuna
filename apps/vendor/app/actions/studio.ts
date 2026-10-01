@@ -99,7 +99,7 @@ export async function createGarmentAction(
 
 export type BeginShootActionResult =
   | { ok: true; sessionId: string }
-  | { ok: false; error: string };
+  | { ok: false; error: string; needsCredits?: boolean };
 
 /**
  * Begin an AI shoot for a garment: reserve nothing (credits are later), create
@@ -146,9 +146,14 @@ export async function beginShootAction(
     GARMENT_NOT_FOUND: "That garment could not be found.",
     NOT_OWNED: "That garment could not be found.",
     VENDOR_INACTIVE: "Your store is not active yet.",
+    INSUFFICIENT_CREDITS: "You have no AI Shoots left. Upgrade your plan or buy a shoot pack in Billing.",
     ERROR: res.message ?? "Could not start the shoot.",
   };
-  return { ok: false, error: messages[res.reason] ?? "Could not start the shoot." };
+  return {
+    ok: false,
+    error: messages[res.reason] ?? "Could not start the shoot.",
+    needsCredits: res.reason === "INSUFFICIENT_CREDITS",
+  };
 }
 
 export type ApproveShootActionResult =
