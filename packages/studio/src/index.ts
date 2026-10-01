@@ -6,5 +6,7 @@ export type { CreateGarmentInput, GarmentImageInput, CreateGarmentResult } from 
 export { runGenerationJob, FIDELITY_FLOOR } from "./pipeline";
 export type { RunJobResult } from "./pipeline";
 export { runWorkerOnce } from "./worker";
-export { getSessionForVendor, listSessionsForVendor } from "./queries";
+export { getSessionForVendor, listSessionsForVendor, listSessionsForProduct } from "./queries";
 export type { SessionView } from "./queries";
+export { approveSession, linkSessionToProduct } from "./approve";
+export type { ApproveSessionResult } from "./approve";

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import type { CategoryDTO } from "@ayvana/db";
 import { VariantMatrix, VariantRow } from "./VariantMatrix";
 import { createProduct, updateProduct, type SizeGuideEntry } from "../../../actions/product";
+import { linkShootToProductAction } from "../../../actions/studio";
+import { ProductStudioLauncher } from "./ProductStudioLauncher";
 
 type Status = "DRAFT" | "ACTIVE" | "ARCHIVED";
 
@@ -55,6 +57,11 @@ export function ProductForm({ productId, initialData, categories, suppliers }: P
   const [images, setImages] = useState<string[]>(
     initialData?.images?.length ? initialData.images : [""]
   );
+  // AI Studio shoot (the "no photos of my own" path). For a NEW product the shoot
+  // runs unlinked; we stash its sessionId and link it to the product once saved.
+  const [studioOpen, setStudioOpen] = useState(false);
+  const [pendingShootSessionId, setPendingShootSessionId] = useState<string | null>(null);
+  const [aiShootApplied, setAiShootApplied] = useState(false);
   const [price, setPrice] = useState(initialData?.price ?? 0);
   const [compareAt, setCompareAt] = useState<number | undefined>(
     initialData?.compareAt
@@ -94,6 +101,19 @@ export function ProductForm({ productId, initialData, categories, suppliers }: P
     setImages(images.map((img, i) => (i === index ? url : img)));
   };
 
+  // The shoot was approved: its four on-model views become this product's images.
+  // We merge them ahead of any existing non-blank manual URLs (keep up to 8).
+  const handleShootApproved = (shootImages: string[], sessionId: string) => {
+    setImages((prev) => {
+      const existing = prev.map((s) => s.trim()).filter(Boolean);
+      const merged = [...shootImages, ...existing.filter((u) => !shootImages.includes(u))];
+      return merged.slice(0, 8);
+    });
+    setPendingShootSessionId(sessionId);
+    setAiShootApplied(true);
+    setStudioOpen(false);
+  };
+
   const handleSubmit = () => {
     setError(null);
 
@@ -128,15 +148,28 @@ export function ProductForm({ productId, initialData, categories, suppliers }: P
     };
 
     startTransition(async () => {
-      const result = productId
-        ? await updateProduct(productId, data)
-        : await createProduct(data);
-
-      if (result.success) {
+      if (productId) {
+        const result = await updateProduct(productId, data);
+        if (!result.success) {
+          setError(result.error ?? "Something went wrong");
+          return;
+        }
         router.push("/products");
-      } else {
-        setError(result.error ?? "Something went wrong");
+        return;
       }
+
+      const result = await createProduct(data);
+      if (!result.success) {
+        setError(result.error ?? "Something went wrong");
+        return;
+      }
+      // New-product path: the shoot ran before the product existed. Now that it
+      // does, link the session/garment so /studio and the product cross-reference
+      // each other. Best-effort — the AI images are already saved either way.
+      if (result.productId && pendingShootSessionId) {
+        await linkShootToProductAction(pendingShootSessionId, result.productId).catch(() => undefined);
+      }
+      router.push("/products");
     });
   };
 
@@ -294,9 +327,37 @@ export function ProductForm({ productId, initialData, categories, suppliers }: P
 
         {/* Images */}
         <div>
-          <label className="block text-body-xs font-medium text-ink mb-2">
-            Images (URLs)
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <label className="block text-body-xs font-medium text-ink">
+              Images
+            </label>
+            {aiShootApplied && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-lilac/15 px-2 py-0.5 text-body-xs font-medium text-ink">
+                <span className="h-1.5 w-1.5 rounded-full bg-lilac" aria-hidden />
+                From AI Studio
+              </span>
+            )}
+          </div>
+
+          {/* No-studio path: generate the on-model views instead of uploading real
+              photos. Scoped to THIS product; the approved images land below. */}
+          <div className="mb-3 flex items-center justify-between gap-4 rounded-md border border-lilac/35 bg-lilac/5 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-body-sm font-medium text-ink">No photos to upload?</p>
+              <p className="text-body-xs text-mist">
+                Generate polished on-model views of this abaya with AI Studio.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStudioOpen(true)}
+              className="shrink-0 rounded-md bg-ink px-4 py-2 text-body-xs font-medium text-gold transition-colors hover:bg-ink/90"
+            >
+              {aiShootApplied ? "New AI shoot" : "Generate with AI Studio"}
+            </button>
+          </div>
+
+          <p className="mb-2 text-body-xs text-mist">Or paste image URLs</p>
           <div className="space-y-2">
             {images.map((url, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -407,11 +468,19 @@ export function ProductForm({ productId, initialData, categories, suppliers }: P
           type="button"
           onClick={handleSubmit}
           disabled={isPending}
-          className="w-full rounded-full bg-gold px-4 py-2.5 text-body-md font-medium text-ink hover:bg-gold/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full rounded-md bg-gold px-4 py-2.5 text-body-md font-medium text-ink hover:bg-gold/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isPending ? "Saving…" : "Save product"}
         </button>
       </div>
+
+      {studioOpen && (
+        <ProductStudioLauncher
+          productId={productId}
+          onApproved={handleShootApproved}
+          onClose={() => setStudioOpen(false)}
+        />
+      )}
     </div>
   );
 }

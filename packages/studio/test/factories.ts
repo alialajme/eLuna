@@ -13,6 +13,21 @@ export async function makeVendor(status: "ACTIVE" | "PENDING" | "SUSPENDED" = "A
   return { vendorId: vendor.id, userId };
 }
 
+/** Create a product for a vendor (used to test per-product shoot linking). */
+export async function makeProduct(vendorId: string) {
+  const product = await prisma.product.create({
+    data: {
+      vendorId,
+      title: "Test Abaya",
+      slug: uid("prod"),
+      price: 499,
+      category: "occasion",
+    },
+    select: { id: true },
+  });
+  return { productId: product.id };
+}
+
 /** Create a QC_PASSED garment with front + back images for a vendor. */
 export async function makeGarment(vendorId: string) {
   const garment = await prisma.garmentAsset.create({

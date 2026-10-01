@@ -9,6 +9,7 @@ type Session = {
   id: string;
   status: string;
   garmentId: string;
+  productId: string | null;
   createdAt: string;
   jobs: Job[];
   assets: Asset[];
@@ -36,7 +37,13 @@ const IMAGE_LABEL: Record<string, string> = {
   IMAGE_BACK: "Back",
 };
 
-export function ShootResults({ initial }: { initial: Session }) {
+export function ShootResults({
+  initial,
+  product,
+}: {
+  initial: Session;
+  product: { id: string; title: string } | null;
+}) {
   const [session, setSession] = useState<Session>(initial);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -88,6 +95,14 @@ export function ShootResults({ initial }: { initial: Session }) {
               year: "numeric",
             })}
           </p>
+          {product && (
+            <p className="mt-1 text-body-sm text-ink/80">
+              For{" "}
+              <Link href={`/products/${product.id}`} className="text-gold hover:underline">
+                {product.title}
+              </Link>
+            </p>
+          )}
         </div>
         <Link href="/studio" className="text-body-sm text-gold hover:underline">
           All shoots

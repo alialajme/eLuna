@@ -70,15 +70,17 @@ export default async function StudioPage() {
                   className="flex items-center gap-4 rounded-md border border-sand bg-white p-4 transition-colors hover:border-gold/60"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-body-sm font-medium text-ink">
-                      Shoot ·{" "}
+                    <p className="truncate text-body-sm font-medium text-ink">
+                      {s.product ? s.product.title : "Shoot"} ·{" "}
                       {new Date(s.createdAt).toLocaleDateString("en-AE", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
                       })}
                     </p>
-                    <p className="font-mono text-body-xs text-mist">{s.id.slice(0, 8)}</p>
+                    <p className="font-mono text-body-xs text-mist">
+                      {s.product ? "Product shoot" : s.id.slice(0, 8)}
+                    </p>
                   </div>
                   <span className={`shrink-0 rounded-md px-2 py-0.5 text-body-xs font-medium ${status.cls}`}>
                     {status.label}

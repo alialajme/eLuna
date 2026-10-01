@@ -1,10 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { prisma } from "@ayvana/db";
 import { newCorrelationId } from "@ayvana/observability";
 import {
   createGarment,
   startGeneration,
+  approveSession,
+  linkSessionToProduct,
   type GarmentImageInput,
 } from "@ayvana/studio";
 import { fashionAvailable } from "@ayvana/fashion";
@@ -28,6 +31,25 @@ async function resolveActiveVendor(): Promise<ResolvedVendor> {
   return { ok: true, vendor: { id: vendor.id } };
 }
 
+/**
+ * Validate that an optional productId belongs to THIS vendor before we link a
+ * shoot to it. A vendor may only scope a shoot to / attach assets to their own
+ * product. Returns the owned productId, null (no product — a new-product shoot),
+ * or an error for a product that isn't theirs (undisclosed as "not found").
+ */
+async function resolveOwnedProductId(
+  vendorId: string,
+  productId: string | null | undefined,
+): Promise<{ productId: string | null } | { error: string }> {
+  if (!productId) return { productId: null };
+  const product = await prisma.product
+    .findUnique({ where: { id: productId }, select: { id: true, vendorId: true } })
+    .catch(() => null);
+  // Non-owner (or missing) → undisclosed existence, same as a missing product.
+  if (!product || product.vendorId !== vendorId) return { error: "That product could not be found." };
+  return { productId: product.id };
+}
+
 export type StudioUploadImage = {
   role: string;
   storageKey: string;
@@ -47,13 +69,20 @@ export type CreateGarmentActionResult =
  */
 export async function createGarmentAction(
   images: StudioUploadImage[],
+  productId?: string | null,
 ): Promise<CreateGarmentActionResult> {
   const resolved = await resolveActiveVendor();
   if (!resolved.ok) return { ok: false, error: resolved.error };
 
+  // Ownership-check the optional product link (an existing-product shoot). A new
+  // product has no id yet — productId stays null and is linked after the save.
+  const owned = await resolveOwnedProductId(resolved.vendor.id, productId);
+  if ("error" in owned) return { ok: false, error: owned.error };
+
   const correlationId = newCorrelationId();
   const res = await createGarment({
     vendorId: resolved.vendor.id,
+    productId: owned.productId,
     images: images as GarmentImageInput[],
     correlationId,
   });
@@ -79,7 +108,7 @@ export type BeginShootActionResult =
  */
 export async function beginShootAction(
   garmentId: string,
-  options: { modelProfileId?: string | null; backgroundId?: string | null } = {},
+  options: { modelProfileId?: string | null; backgroundId?: string | null; productId?: string | null } = {},
 ): Promise<BeginShootActionResult> {
   const resolved = await resolveActiveVendor();
   if (!resolved.ok) return { ok: false, error: resolved.error };
@@ -90,6 +119,10 @@ export async function beginShootAction(
     return { ok: false, error: "AI shoots are not available yet. Please check back soon." };
   }
 
+  // Ownership-check the optional product link before scoping the session to it.
+  const owned = await resolveOwnedProductId(resolved.vendor.id, options.productId);
+  if ("error" in owned) return { ok: false, error: owned.error };
+
   const correlationId = newCorrelationId();
   // Idempotency: one in-flight shoot per (garment, model, background) tuple.
   const idempotencyKey = `shoot:${garmentId}:${options.modelProfileId ?? "_"}:${options.backgroundId ?? "_"}`;
@@ -98,6 +131,7 @@ export async function beginShootAction(
     vendorId: resolved.vendor.id,
     garmentId,
     modelProfileId: options.modelProfileId ?? null,
+    productId: owned.productId,
     backgroundId: options.backgroundId ?? null,
     idempotencyKey,
     correlationId,
@@ -115,4 +149,66 @@ export async function beginShootAction(
     ERROR: res.message ?? "Could not start the shoot.",
   };
   return { ok: false, error: messages[res.reason] ?? "Could not start the shoot." };
+}
+
+export type ApproveShootActionResult =
+  | { ok: true; images: string[]; productId: string | null }
+  | { ok: false; error: string };
+
+/**
+ * Approve a finished shoot — the four on-model views become the product's
+ * images. Returns the signed image URLs so the product form can carry them into
+ * its images state (new product, linked after save) or confirm they're attached
+ * (existing product). Vendor-scoped: a non-owner can neither approve a shoot nor
+ * read its assets.
+ */
+export async function approveShootAction(sessionId: string): Promise<ApproveShootActionResult> {
+  const resolved = await resolveActiveVendor();
+  if (!resolved.ok) return { ok: false, error: resolved.error };
+
+  const res = await approveSession(sessionId, resolved.vendor.id);
+  if (!res.ok) {
+    const messages: Record<string, string> = {
+      NOT_FOUND: "That shoot could not be found.",
+      NOT_OWNED: "That shoot could not be found.",
+      NOT_READY: "This shoot isn't ready to approve yet.",
+      ERROR: res.message ?? "Could not approve the shoot.",
+    };
+    return { ok: false, error: messages[res.reason] ?? "Could not approve the shoot." };
+  }
+
+  // An existing-product shoot already carries the images into the listing; a
+  // new-product shoot links after the product is saved (linkShootToProductAction).
+  if (res.productId) {
+    revalidatePath(`/products/${res.productId}`);
+  }
+  revalidatePath("/studio");
+  revalidatePath(`/studio/${sessionId}`);
+  return { ok: true, images: res.images, productId: res.productId };
+}
+
+/**
+ * Link an approved shoot to a product the vendor just created (the new-product
+ * path: the shoot ran with no productId; now the product exists). Ownership of
+ * both the shoot and the product is re-checked server-side. Best-effort — the
+ * product is already saved with its AI images; this only wires the cross-links.
+ */
+export async function linkShootToProductAction(
+  sessionId: string,
+  productId: string,
+): Promise<{ ok: boolean }> {
+  const resolved = await resolveActiveVendor();
+  if (!resolved.ok) return { ok: false };
+
+  // resolveOwnedProductId doubles as the product ownership check; linkSessionToProduct
+  // re-checks both sides too, so a crafted request can't attach a foreign shoot.
+  const owned = await resolveOwnedProductId(resolved.vendor.id, productId);
+  if ("error" in owned || !owned.productId) return { ok: false };
+
+  const res = await linkSessionToProduct(sessionId, owned.productId, resolved.vendor.id);
+  if (res.ok) {
+    revalidatePath("/studio");
+    revalidatePath(`/products/${owned.productId}`);
+  }
+  return res;
 }

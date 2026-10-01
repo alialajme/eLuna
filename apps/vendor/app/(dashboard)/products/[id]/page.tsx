@@ -1,10 +1,23 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma, getCategories } from "@ayvana/db";
+import { listSessionsForProduct } from "@ayvana/studio";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
 import { ProductForm } from "../components/ProductForm";
 import type { SizeGuideEntry } from "../../../actions/product";
+
+const SHOOT_STATUS_LABEL: Record<string, string> = {
+  DRAFT: "Draft",
+  RUNNING: "In progress",
+  PREVIEW: "Ready",
+  APPROVED: "Approved",
+  PUBLISHED: "Published",
+  REVIEW_REQUIRED: "In review",
+  FAILED: "Failed",
+  CANCELLED: "Cancelled",
+};
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -63,17 +76,45 @@ export default async function EditProductPage({ params }: Props) {
     dropshipSupplierId: product.dropshipSupplierId,
   };
 
-  const [categories, suppliers] = await Promise.all([
+  const [categories, suppliers, shoots] = await Promise.all([
     getCategories(),
     prisma.supplier
       .findMany({ where: { status: "ACTIVE" }, select: { id: true, companyName: true }, orderBy: { companyName: "asc" } })
       .catch(() => []),
+    listSessionsForProduct(product.id, vendor.id),
   ]);
 
   return (
     <div className="max-w-4xl">
       <h2 className="font-display text-display-md text-ink mb-6">Edit product</h2>
       <ProductForm productId={product.id} initialData={initialData} categories={categories} suppliers={suppliers} />
+
+      {shoots.length > 0 && (
+        <section className="mt-8 rounded-lg border border-sand bg-ivory p-5">
+          <h3 className="font-display text-display-sm text-ink">AI Studio shoots</h3>
+          <p className="mt-1 text-body-sm text-mist">Shoots generated for this product.</p>
+          <ul className="mt-4 flex flex-col gap-2">
+            {shoots.map((s) => (
+              <li key={s.id}>
+                <Link
+                  href={`/studio/${s.id}`}
+                  className="flex items-center gap-3 rounded-md border border-sand bg-white px-4 py-3 transition-colors hover:border-gold/60"
+                >
+                  <span className="flex-1 text-body-sm text-ink">
+                    {new Date(s.createdAt).toLocaleDateString("en-AE", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <span className="text-body-xs text-mist">{SHOOT_STATUS_LABEL[s.status] ?? s.status}</span>
+                  <span className="text-body-sm text-gold">View</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
