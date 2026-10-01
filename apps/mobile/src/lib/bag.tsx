@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from '@/lib/storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 const STORAGE_KEY = 'ayvana.bag.v1';
@@ -33,7 +33,7 @@ export function BagProvider({ children }: { children: ReactNode }) {
 
   // Load persisted bag on mount.
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    storage.getItem(STORAGE_KEY)
       .then((raw) => {
         if (raw) setLines(JSON.parse(raw) as BagLine[]);
       })
@@ -43,7 +43,7 @@ export function BagProvider({ children }: { children: ReactNode }) {
 
   // Persist after hydration so we never clobber storage with the initial [].
   useEffect(() => {
-    if (hydrated) AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(lines)).catch(() => {});
+    if (hydrated) storage.setItem(STORAGE_KEY, JSON.stringify(lines)).catch(() => {});
   }, [lines, hydrated]);
 
   const add: BagContext['add'] = useCallback((line) => {

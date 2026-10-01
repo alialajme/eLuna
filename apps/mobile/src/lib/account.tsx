@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import type { ShippingAddress } from '@/lib/api';
+import { storage } from '@/lib/storage';
 
 const STORAGE_KEY = 'ayvana.account.v1';
 
@@ -50,7 +50,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    storage.getItem(STORAGE_KEY)
       .then((raw) => {
         if (raw) setState({ ...DEFAULTS, ...(JSON.parse(raw) as AccountState) });
       })
@@ -59,7 +59,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (hydrated) AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
+    if (hydrated) storage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
   }, [state, hydrated]);
 
   const value = useMemo<AccountContext>(
