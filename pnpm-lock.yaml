@@ -26,9 +26,6 @@ importers:
 
   apps/admin:
     dependencies:
-      '@clerk/nextjs':
-        specifier: ^6.39.7
-        version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@ayvana/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -38,6 +35,9 @@ importers:
       '@ayvana/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@clerk/nextjs':
+        specifier: ^6.39.7
+        version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next:
         specifier: 15.5.26
         version: 15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -69,9 +69,6 @@ importers:
 
   apps/customer:
     dependencies:
-      '@clerk/nextjs':
-        specifier: ^6.39.7
-        version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@ayvana/ai':
         specifier: workspace:*
         version: link:../../packages/ai
@@ -90,6 +87,9 @@ importers:
       '@ayvana/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@clerk/nextjs':
+        specifier: ^6.39.7
+        version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@prisma/client':
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
@@ -142,9 +142,6 @@ importers:
 
   apps/supplier:
     dependencies:
-      '@clerk/nextjs':
-        specifier: ^6.39.7
-        version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@ayvana/ai':
         specifier: workspace:*
         version: link:../../packages/ai
@@ -163,6 +160,9 @@ importers:
       '@ayvana/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@clerk/nextjs':
+        specifier: ^6.39.7
+        version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       ai:
         specifier: ^4.3.19
         version: 4.3.19(react@19.2.7)(zod@3.25.76)
@@ -197,9 +197,6 @@ importers:
 
   apps/vendor:
     dependencies:
-      '@clerk/nextjs':
-        specifier: ^6.39.7
-        version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@ayvana/ai':
         specifier: workspace:*
         version: link:../../packages/ai
@@ -221,6 +218,9 @@ importers:
       '@ayvana/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@clerk/nextjs':
+        specifier: ^6.39.7
+        version: 6.39.7(next@15.5.26(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       ai:
         specifier: ^4.3.19
         version: 4.3.19(react@19.2.7)(zod@3.25.76)
@@ -376,6 +376,22 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
+  packages/fashion:
+    dependencies:
+      '@ayvana/storage':
+        specifier: workspace:*
+        version: link:../storage
+    devDependencies:
+      '@ayvana/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+
   packages/observability:
     devDependencies:
       '@ayvana/config':
@@ -403,6 +419,18 @@ importers:
       '@ayvana/config':
         specifier: workspace:*
         version: link:../config
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+
+  packages/storage:
+    devDependencies:
+      '@ayvana/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
