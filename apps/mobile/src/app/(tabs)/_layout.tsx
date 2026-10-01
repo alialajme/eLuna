@@ -6,6 +6,8 @@ export default function TabLayout() {
   const c = Colors.light;
   return (
     <NativeTabs
+      backgroundColor={c.surface}
+      labelVisibilityMode="labeled"
       tintColor={c.tint}
       iconColor={c.textSecondary}
       labelStyle={{
