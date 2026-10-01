@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -26,6 +26,17 @@ export default function SignInScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: c.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Stack.Screen
+        options={{
+          headerLeft: () => (
+            <Pressable hitSlop={10} onPress={() => router.back()}>
+              <Txt variant="bodyMedMd" color="tint">
+                Cancel
+              </Txt>
+            </Pressable>
+          ),
+        }}
+      />
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <View style={{ alignItems: 'center', marginBottom: Spacing.five }}>
           <Wordmark />
