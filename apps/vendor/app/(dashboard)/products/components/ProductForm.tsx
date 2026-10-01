@@ -407,7 +407,7 @@ export function ProductForm({ productId, initialData, categories, suppliers }: P
           type="button"
           onClick={handleSubmit}
           disabled={isPending}
-          className="w-full rounded-full bg-gold px-4 py-2.5 text-body-md font-medium text-ink hover:bg-gold/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full rounded-md bg-gold px-4 py-2.5 text-body-md font-medium text-ink hover:bg-gold/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isPending ? "Saving…" : "Save product"}
         </button>

@@ -20,7 +20,7 @@ export default async function OrderConfirmPage({ searchParams }: Props) {
     return (
       <div className="mx-auto max-w-lg px-4 py-24 text-center">
         <p className="font-display text-display-md text-ink mb-4">Sign in to view your order</p>
-        <Link href="/sign-in" className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory">
+        <Link href="/sign-in" className="inline-flex rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory">
           Sign in
         </Link>
       </div>
@@ -82,7 +82,7 @@ export default async function OrderConfirmPage({ searchParams }: Props) {
         </p>
         <Link
           href="/cart"
-          className="mt-6 inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
+          className="mt-6 inline-flex rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
         >
           Back to bag
         </Link>
@@ -177,13 +177,13 @@ export default async function OrderConfirmPage({ searchParams }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link
           href={`/orders/${order.id}`}
-          className="flex-1 flex items-center justify-center rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
+          className="flex-1 flex items-center justify-center rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
         >
           Track Order
         </Link>
         <Link
           href="/browse"
-          className="flex-1 flex items-center justify-center rounded-full border border-sand px-6 py-3 text-body-md font-medium text-ink hover:border-ink transition-colors"
+          className="flex-1 flex items-center justify-center rounded-md border border-sand px-6 py-3 text-body-md font-medium text-ink hover:border-ink transition-colors"
         >
           Continue Shopping
         </Link>

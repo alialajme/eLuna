@@ -17,7 +17,7 @@ export function OnboardingBanner() {
       </div>
       <Link
         href="/settings"
-        className="shrink-0 rounded-full bg-ink px-5 py-2.5 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors"
+        className="shrink-0 rounded-md bg-ink px-5 py-2.5 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors"
       >
         Add payout IBAN
       </Link>

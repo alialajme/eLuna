@@ -23,7 +23,7 @@ export default async function OrderDetailPage({ params }: Props) {
         <p className="font-display text-display-md text-ink mb-4">Sign in to view your order</p>
         <Link
           href="/sign-in"
-          className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory"
+          className="inline-flex rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory"
         >
           Sign in
         </Link>
@@ -105,7 +105,7 @@ export default async function OrderDetailPage({ params }: Props) {
           </p>
         </div>
         <span
-          className={`rounded-full px-4 py-2 text-label uppercase font-semibold ${
+          className={`rounded-md px-4 py-2 text-label uppercase font-semibold ${
             ["SHIPPED", "DELIVERED"].includes(order.status)
               ? "bg-sage/20 text-sage"
               : order.status === "CANCELLED"

@@ -19,7 +19,7 @@ export default async function OnboardingPage() {
           <p className="font-display text-display-md text-gold mb-4">AYVANA Supplier OS</p>
           <Link
             href="/sign-in"
-            className="inline-flex rounded-full bg-gold px-6 py-3 text-body-md font-medium text-ink"
+            className="inline-flex rounded-md bg-gold px-6 py-3 text-body-md font-medium text-ink"
           >
             Sign in to continue
           </Link>

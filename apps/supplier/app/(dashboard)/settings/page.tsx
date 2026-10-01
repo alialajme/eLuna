@@ -38,9 +38,9 @@ export default async function SettingsPage() {
         <div className="border-t border-sand pt-4">
           <p className="text-label text-mist mb-1">E-INVOICING STATUS</p>
           {ftaConfigured ? (
-            <span className="rounded-full bg-sage/20 px-3 py-1 text-body-sm font-medium text-sage">Connected (FTA)</span>
+            <span className="rounded-md bg-sage/20 px-3 py-1 text-body-sm font-medium text-sage">Connected (FTA)</span>
           ) : (
-            <span className="rounded-full bg-sand px-3 py-1 text-body-sm font-medium text-mist">Simulated (local)</span>
+            <span className="rounded-md bg-sand px-3 py-1 text-body-sm font-medium text-mist">Simulated (local)</span>
           )}
           <p className="text-body-xs text-mist mt-2">
             Invoices are issued locally. Connect a UAE FTA / Peppol Access Point to transmit them to the tax authority.
@@ -78,9 +78,9 @@ export default async function SettingsPage() {
         <div className="border-t border-sand pt-4">
           <p className="text-label text-mist mb-1">REGISTRY STATUS</p>
           {registryConnected ? (
-            <span className="rounded-full bg-sage/20 px-3 py-1 text-body-sm font-medium text-sage">Connected (registry)</span>
+            <span className="rounded-md bg-sage/20 px-3 py-1 text-body-sm font-medium text-sage">Connected (registry)</span>
           ) : (
-            <span className="rounded-full bg-sand px-3 py-1 text-body-sm font-medium text-mist">Simulated (local)</span>
+            <span className="rounded-md bg-sand px-3 py-1 text-body-sm font-medium text-mist">Simulated (local)</span>
           )}
           <p className="text-body-xs text-mist mt-2">
             Connect a UAE trade-licence registry (Basher / DED) to confirm licences against the

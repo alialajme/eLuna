@@ -181,7 +181,7 @@ export function MaterialForm({ initial }: Props) {
         <div className="flex gap-2">
           {(["DRAFT", "ACTIVE"] as const).map((s) => (
             <button key={s} type="button" onClick={() => setStatus(s)}
-              className={`rounded-full border px-4 py-2 text-body-sm transition-colors ${
+              className={`rounded-md border px-4 py-2 text-body-sm transition-colors ${
                 status === s ? "border-ink bg-ink text-ivory" : "border-sand text-mist hover:border-ink hover:text-ink"
               }`}>
               {s === "DRAFT" ? "Draft" : "Active"}
@@ -198,19 +198,19 @@ export function MaterialForm({ initial }: Props) {
 
       <div className="flex flex-wrap items-center gap-3 pt-2">
         <button type="button" onClick={handleSubmit} disabled={isPending || !name.trim()}
-          className="rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50">
+          className="rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50">
           {isPending ? "Saving…" : isEdit ? "Save changes" : "Create material"}
         </button>
         {isEdit && (
           <>
             {!initial!.archived && (
               <button type="button" onClick={handleArchive} disabled={isPending}
-                className="rounded-full border border-sand px-5 py-3 text-body-sm text-mist hover:border-ink hover:text-ink transition-colors disabled:opacity-50">
+                className="rounded-md border border-sand px-5 py-3 text-body-sm text-mist hover:border-ink hover:text-ink transition-colors disabled:opacity-50">
                 Archive
               </button>
             )}
             <button type="button" onClick={handleDelete} disabled={isPending}
-              className="rounded-full bg-coral/10 px-5 py-3 text-body-sm font-medium text-coral hover:bg-coral/20 transition-colors disabled:opacity-50">
+              className="rounded-md bg-coral/10 px-5 py-3 text-body-sm font-medium text-coral hover:bg-coral/20 transition-colors disabled:opacity-50">
               Delete
             </button>
           </>

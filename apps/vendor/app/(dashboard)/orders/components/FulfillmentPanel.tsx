@@ -114,7 +114,7 @@ export function FulfillmentPanel({ orderId, items, shipments }: Props) {
                 type="button"
                 onClick={() => deliver(s.id)}
                 disabled={isPending}
-                className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
+                className="rounded-md bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
               >
                 {isPending ? "Updating…" : "Mark Delivered"}
               </button>
@@ -163,7 +163,7 @@ export function FulfillmentPanel({ orderId, items, shipments }: Props) {
             type="button"
             onClick={submitShipment}
             disabled={isPending}
-            className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
+            className="rounded-md bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
           >
             {isPending ? "Creating…" : "Create Shipment"}
           </button>

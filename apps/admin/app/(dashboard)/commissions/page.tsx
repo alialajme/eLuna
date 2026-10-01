@@ -83,7 +83,7 @@ export default async function CommissionsPage() {
                 <p className="text-body-xs text-mist">@{v.storeSlug}</p>
               </div>
               <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-body-xs font-medium ${STATUS_BADGE[v.status] ?? "bg-sand text-mist"}`}
+                className={`shrink-0 rounded-md px-2 py-0.5 text-body-xs font-medium ${STATUS_BADGE[v.status] ?? "bg-sand text-mist"}`}
               >
                 {v.status.charAt(0) + v.status.slice(1).toLowerCase()}
               </span>

@@ -30,7 +30,7 @@ export function TopBar() {
   return (
     <header className="flex h-14 items-center justify-between border-b border-sand bg-ivory px-6">
       <h1 className="font-display text-display-sm text-ink">{title}</h1>
-      <span className="rounded-full bg-sage/20 px-3 py-1 text-body-sm text-sage">
+      <span className="rounded-md bg-sage/20 px-3 py-1 text-body-sm text-sage">
         Admin
       </span>
     </header>

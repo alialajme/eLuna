@@ -42,7 +42,7 @@ function PayInner({ orderId }: { orderId: string }) {
       <button
         type="submit"
         disabled={!stripe || submitting}
-        className="flex w-full items-center justify-center rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-60"
+        className="flex w-full items-center justify-center rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-60"
       >
         {submitting ? "Processing…" : "Pay now"}
       </button>

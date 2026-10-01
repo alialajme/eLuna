@@ -131,13 +131,13 @@ export function AyvanaChatWidget({ apiPath, title, greeting, hiddenPaths, hidden
                 value={input}
                 onChange={handleInputChange}
                 placeholder="Ask AYVANA anything…"
-                className="flex-1 rounded-full border border-sand bg-white px-4 py-2 text-body-md text-ink placeholder:text-mist focus:outline-none focus:ring-1 focus:ring-gold"
+                className="flex-1 rounded-md border border-sand bg-white px-4 py-2 text-body-md text-ink placeholder:text-mist focus:outline-none focus:ring-1 focus:ring-gold"
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-ivory disabled:opacity-40"
+                className="flex h-10 w-10 items-center justify-center rounded-md bg-ink text-ivory disabled:opacity-40"
                 aria-label="Send"
               >
                 ↑
@@ -150,7 +150,7 @@ export function AyvanaChatWidget({ apiPath, title, greeting, hiddenPaths, hidden
       {/* Bubble */}
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-14 items-center gap-2 rounded-full bg-ink px-5 shadow-lg hover:bg-ink/90 transition-colors"
+        className="flex h-14 items-center gap-2 rounded-md bg-ink px-5 shadow-lg hover:bg-ink/90 transition-colors"
         aria-label="Open AYVANA assistant"
       >
         <span className="text-gold text-2xl">◑</span>

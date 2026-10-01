@@ -89,7 +89,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                 </p>
 
                 <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-body-xs font-medium ${PRODUCT_STATUS_BADGE[product.status] ?? "bg-sand text-mist"}`}
+                  className={`shrink-0 rounded-md px-2 py-0.5 text-body-xs font-medium ${PRODUCT_STATUS_BADGE[product.status] ?? "bg-sand text-mist"}`}
                 >
                   {product.status.charAt(0) + product.status.slice(1).toLowerCase()}
                 </span>

@@ -128,7 +128,7 @@ export default async function CustomerDetailPage({ params }: Props) {
                   {fmtDate(o.createdAt)}
                 </p>
                 <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-body-xs font-medium ${ORDER_STATUS_BADGE[o.status] ?? "bg-sand text-mist"}`}
+                  className={`shrink-0 rounded-md px-2 py-0.5 text-body-xs font-medium ${ORDER_STATUS_BADGE[o.status] ?? "bg-sand text-mist"}`}
                 >
                   {o.status.charAt(0) + o.status.slice(1).toLowerCase()}
                 </span>

@@ -53,7 +53,7 @@ export function CartReview({ items: initialItems, freeShippingThreshold = 500, f
         <p className="text-body-md text-mist mb-6">Find something you love</p>
         <Link
           href="/browse"
-          className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
+          className="inline-flex items-center gap-2 rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
         >
           Browse abayas
         </Link>
@@ -91,7 +91,7 @@ export function CartReview({ items: initialItems, freeShippingThreshold = 500, f
                   AED {(item.unitPrice * item.qty).toLocaleString("en-AE", { minimumFractionDigits: 2 })}
                 </p>
                 <div className="mt-2 flex items-center gap-4">
-                  <div className="flex items-center rounded-full border border-sand">
+                  <div className="flex items-center rounded-md border border-sand">
                     <button
                       type="button"
                       onClick={() => handleQtyChange(item.variantId, item.qty - 1)}
@@ -154,7 +154,7 @@ export function CartReview({ items: initialItems, freeShippingThreshold = 500, f
 
           <Link
             href="/checkout"
-            className="mt-4 flex w-full items-center justify-center rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
+            className="mt-4 flex w-full items-center justify-center rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
           >
             Proceed to Checkout
           </Link>

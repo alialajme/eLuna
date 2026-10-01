@@ -26,7 +26,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col bg-ink min-h-screen">
+    <aside className="flex w-56 shrink-0 flex-col bg-ink-elevated min-h-screen">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-white/10">
         <AyvanaLogo tone="onDark" subtitle="Ops Console" />

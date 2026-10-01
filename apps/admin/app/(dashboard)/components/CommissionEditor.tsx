@@ -63,14 +63,14 @@ export function CommissionEditor({ vendorId, ratePercent }: Props) {
         <button
           onClick={handleSave}
           disabled={isLoading}
-          className="rounded-full bg-sage/20 px-3 py-1 text-body-xs font-medium text-sage hover:bg-sage/30 disabled:opacity-50"
+          className="rounded-md bg-sage/20 px-3 py-1 text-body-xs font-medium text-sage hover:bg-sage/30 disabled:opacity-50"
         >
           Save
         </button>
         <button
           onClick={handleCancel}
           disabled={isLoading}
-          className="rounded-full px-3 py-1 text-body-xs text-mist hover:text-ink disabled:opacity-50"
+          className="rounded-md px-3 py-1 text-body-xs text-mist hover:text-ink disabled:opacity-50"
         >
           Cancel
         </button>

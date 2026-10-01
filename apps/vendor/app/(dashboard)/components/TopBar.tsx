@@ -29,7 +29,7 @@ export function TopBar({ storeName }: Props) {
     <header className="flex h-14 items-center justify-between border-b border-sand bg-ivory px-6">
       <h1 className="font-display text-display-sm text-ink">{title}</h1>
       <div className="flex items-center gap-3">
-        <span className="rounded-full bg-sand px-3 py-1 text-body-sm text-ink">
+        <span className="rounded-md bg-sand px-3 py-1 text-body-sm text-ink">
           {storeName}
         </span>
       </div>

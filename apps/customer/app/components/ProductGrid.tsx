@@ -79,7 +79,7 @@ export async function ProductGrid({ filters, customerSizeProfileUsualSize, wishl
         <p className="text-body-md text-mist mb-6">AYVANA hasn&apos;t found a match — try asking her</p>
         <Link
           href="/chat"
-          className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
+          className="inline-flex items-center gap-2 rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
         >
           <span className="text-gold">◑</span> Chat with AYVANA
         </Link>
@@ -118,7 +118,7 @@ export async function ProductGrid({ filters, customerSizeProfileUsualSize, wishl
                   }}
                 />
                 {lowStockInYourSize && (
-                  <span className="absolute bottom-14 left-2 rounded bg-coral px-2 py-0.5 text-label text-ivory">
+                  <span className="absolute left-3 top-3 z-10 rounded bg-coral px-2 py-1 text-label uppercase text-ivory shadow-sm">
                     Low stock in your size
                   </span>
                 )}

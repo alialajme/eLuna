@@ -29,6 +29,7 @@ const config: Config = {
         "surface-200": "#eceae7",
         "line-strong": "#8f8880",
         onyx: "#121212",
+        "ink-elevated": "#2a2420",
         "signal-sale": "#a3312a",
         "signal-success": "#3f6146",
         "signal-warn": "#7a5c15",
