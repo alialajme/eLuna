@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Sym } from '@/components/ui/Sym';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -34,7 +34,7 @@ export default function HomeScreen() {
       <SafeAreaView edges={['top']} style={styles.header}>
         <Wordmark />
         <Pressable hitSlop={10} onPress={() => router.push('/browse')}>
-          <Ionicons name="search" size={22} color={c.text} />
+          <Sym name="search" size={22} color={c.text} />
         </Pressable>
       </SafeAreaView>
 
@@ -81,7 +81,7 @@ export default function HomeScreen() {
                 <Txt variant="bodySemiMd" color="text">
                   Explore the edit
                 </Txt>
-                <Ionicons name="arrow-forward" size={16} color={c.text} />
+                <Sym name="arrow-right" size={16} color={c.text} />
               </View>
             </View>
           </Pressable>
@@ -120,7 +120,7 @@ export default function HomeScreen() {
           <Pressable
             onPress={() => router.push('/chat')}
             style={[styles.band, { backgroundColor: c.surfaceInk }]}>
-            <MaterialCommunityIcons name="star-four-points" size={20} color={c.fill} />
+            <Sym name="spark" size={20} color={c.fill} />
             <Txt variant="displaySm" color="textOnInk" style={styles.bandTitle}>
               Your AYVANA stylist
             </Txt>
@@ -131,7 +131,7 @@ export default function HomeScreen() {
               <Txt variant="bodySemiMd" color="fill">
                 Find your fit
               </Txt>
-              <Ionicons name="arrow-forward" size={15} color={c.fill} />
+              <Sym name="arrow-right" size={15} color={c.fill} />
             </View>
           </Pressable>
 
@@ -181,7 +181,7 @@ function CategoryTile({ category }: { category: Category }) {
         {category.name}
       </Txt>
       <View style={styles.catArrow}>
-        <Ionicons name="arrow-forward" size={15} color={c.tint} />
+        <Sym name="arrow-right" size={15} color={c.tint} />
       </View>
     </Pressable>
   );

@@ -40,8 +40,19 @@ local Sign-in, Settings (delivery address, size profile, preferences).
 - **Auth & payment are stand-ins.** Sign-in is a local on-device account and
   checkout is cash-on-delivery, because Clerk and Stripe keys are absent in this
   environment. Real auth/card payment are wired on the web and need keys here.
-- **Known craft follow-ups (from the finish review):** replace content-area
-  Ionicons/MaterialCommunityIcons with SF Symbols (iOS) / Material (Android) so
-  iconography matches the native tab bar; give the size-system picker a native
-  segmented control; resolve the RN LogBox animation warnings on the product
-  screen.
+- **iOS persistence falls back to in-memory.** Bag / wishlist / account persist
+  via `src/lib/storage.ts`, which uses AsyncStorage when available and otherwise
+  degrades to in-memory for the session (so a missing native module can never
+  crash the app). AsyncStorage autolinks correctly on **Android** (real
+  persistence), but on **iOS** its RN-community TurboModule is not registered in
+  the generated `RCTModuleProviders.mm` under the from-source build we use to
+  avoid the flaky Hermes/React-Core Maven downloads — so iOS state resets on app
+  restart. The spec (`rnasyncstorageJSI.h`) is generated and the pod is
+  autolinked, but a direct codegen regen does not add it to the provider map;
+  the real fix is a prebuilt-React-Native build (which needs reliable access to
+  the ~94 MB React-Core + Hermes Maven artifacts) or resolving why the provider
+  map omits this autolinked TurboModule. Invisible unless you restart the app.
+- **Known craft follow-ups:** give the size-system picker a native segmented
+  control (currently cut bordered tiles); the benign RN "onAnimatedValueUpdate"
+  LogBox warnings are harmless. (Icon consistency is done — content icons now
+  render as SF Symbols on iOS / vector icons on Android via `components/ui/Sym`.)

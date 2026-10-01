@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Sym } from '@/components/ui/Sym';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -47,8 +47,8 @@ export function ProductCard({ item, width }: { item: ProductListItem; width: num
             toggle(item);
           }}
           style={[styles.heart, { backgroundColor: c.surface }]}>
-          <Ionicons
-            name={wishlisted ? 'heart' : 'heart-outline'}
+          <Sym
+            name={wishlisted ? 'heart-fill' : 'heart'}
             size={17}
             color={wishlisted ? c.sale : c.text}
           />
