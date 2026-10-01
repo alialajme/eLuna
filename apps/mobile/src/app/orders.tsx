@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Sym } from '@/components/ui/Sym';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -44,7 +44,7 @@ export default function OrdersScreen() {
     return (
       <View style={[styles.center, { backgroundColor: c.background }]}>
         <View style={[styles.disc, { backgroundColor: c.fillSoft }]}>
-          <Ionicons name="receipt-outline" size={30} color={c.tint} />
+          <Sym name="receipt" size={30} color={c.tint} />
         </View>
         <Txt variant="displaySm" color="text">
           No orders yet

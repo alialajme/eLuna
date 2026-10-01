@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Sym } from '@/components/ui/Sym';
 import { View } from 'react-native';
 
 import { Txt } from '@/components/ui/Txt';
@@ -22,7 +22,7 @@ export function Wordmark({
       <Txt variant="wordmark" color={textColor}>
         AYVANA
       </Txt>
-      {showSpark && <MaterialCommunityIcons name="star-four-points" size={13} color={sparkColor} />}
+      {showSpark && <Sym name="spark" size={13} color={sparkColor} />}
     </View>
   );
 }
