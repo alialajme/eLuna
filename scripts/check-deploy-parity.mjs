@@ -18,9 +18,15 @@ import { dirname, join } from "node:path";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const errors = [];
 
+// Native apps shipped to the App/Play stores (not Next.js services deployed to
+// AKS) are exempt from the deploy-parity guard — they have no ACR image, Helm
+// release, or HTTP health probes.
+const NOT_DEPLOYED = new Set(["mobile"]);
+
 const apps = readdirSync(join(root, "apps"), { withFileTypes: true })
   .filter((d) => d.isDirectory())
-  .map((d) => d.name);
+  .map((d) => d.name)
+  .filter((name) => !NOT_DEPLOYED.has(name));
 
 const deployYml = readFileSync(join(root, ".github/workflows/azure-deploy.yml"), "utf8");
 const loopMatch = deployYml.match(/for app in ([^;]+);/);

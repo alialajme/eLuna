@@ -1,3 +1,6 @@
 packages:
   - "apps/*"
   - "packages/*"
+  # apps/mobile is a self-contained Expo app managed by npm (not pnpm) to avoid
+  # Metro/pnpm hoisting friction; it talks to the backend over HTTP.
+  - "!apps/mobile"
