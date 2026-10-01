@@ -87,7 +87,7 @@ export default async function SupplierPayoutsPage() {
                     <td className="px-4 py-3 text-mist">{p.ibanNumber}</td>
                     <td className="px-4 py-3">
                       <span
-                        className={`rounded-full px-2.5 py-1 text-body-xs ${STATUS_CLASSES[p.status] ?? "bg-sand text-mist"}`}
+                        className={`rounded-md px-2.5 py-1 text-body-xs ${STATUS_CLASSES[p.status] ?? "bg-sand text-mist"}`}
                       >
                         {label(p.status)}
                       </span>

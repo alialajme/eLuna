@@ -51,7 +51,7 @@ export function TradeLicenseForm({ initialNumber, status }: Props) {
         />
       </div>
       <div>
-        <span className={`rounded-full px-3 py-1 text-body-sm font-medium ${badge.className}`}>{badge.label}</span>
+        <span className={`rounded-md px-3 py-1 text-body-sm font-medium ${badge.className}`}>{badge.label}</span>
       </div>
       {error && <p className="text-body-sm text-coral">{error}</p>}
       {ok && <p className="text-body-sm text-sage">{ok}</p>}
@@ -59,7 +59,7 @@ export function TradeLicenseForm({ initialNumber, status }: Props) {
         type="button"
         onClick={handleSubmit}
         disabled={isPending || num.trim().length < 4}
-        className="rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
+        className="rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
       >
         {isPending ? "Verifying…" : "Verify licence"}
       </button>

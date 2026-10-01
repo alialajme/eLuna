@@ -23,7 +23,7 @@ export default async function CheckoutPage() {
         <p className="text-body-md text-mist mb-6">You need an account to place an order.</p>
         <Link
           href="/sign-in"
-          className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
+          className="inline-flex items-center gap-2 rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
         >
           Sign in
         </Link>

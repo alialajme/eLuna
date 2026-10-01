@@ -44,7 +44,7 @@ export function TrnForm({ initialTrn }: { initialTrn: string | null }) {
         type="button"
         onClick={handleSave}
         disabled={isPending || trn.length !== 15}
-        className="rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
+        className="rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
       >
         {isPending ? "Saving…" : "Save TRN"}
       </button>

@@ -47,7 +47,7 @@ export default async function StudioPage() {
         </div>
         <Link
           href="/studio/new"
-          className="rounded-full bg-ink px-5 py-2 text-body-sm font-medium text-gold hover:bg-ink/90"
+          className="rounded-md bg-ink px-5 py-2 text-body-sm font-medium text-gold hover:bg-ink/90"
         >
           ✦ New Campaign
         </Link>
@@ -111,7 +111,7 @@ export default async function StudioPage() {
                 </div>
 
                 <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-body-xs font-medium ${STATUS_BADGE[upload.status] ?? "bg-sand text-mist"}`}
+                  className={`shrink-0 rounded-md px-2 py-0.5 text-body-xs font-medium ${STATUS_BADGE[upload.status] ?? "bg-sand text-mist"}`}
                 >
                   {STATUS_LABEL[upload.status] ?? upload.status}
                 </span>

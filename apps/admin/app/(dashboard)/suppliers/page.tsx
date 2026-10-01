@@ -43,7 +43,7 @@ export default async function SuppliersPage({ searchParams }: Props) {
         <h2 className="font-display text-display-md text-ink">Suppliers</h2>
         <Link
           href="/suppliers/new"
-          className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors"
+          className="rounded-md bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors"
         >
           + Add supplier
         </Link>
@@ -75,7 +75,7 @@ export default async function SuppliersPage({ searchParams }: Props) {
                 })}
               </p>
               <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-body-xs font-medium ${STATUS_BADGE[s.status] ?? "bg-sand text-mist"}`}
+                className={`shrink-0 rounded-md px-2 py-0.5 text-body-xs font-medium ${STATUS_BADGE[s.status] ?? "bg-sand text-mist"}`}
               >
                 {s.status.charAt(0) + s.status.slice(1).toLowerCase()}
               </span>

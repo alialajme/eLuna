@@ -53,7 +53,7 @@ export function CategoryManager({ categories }: Props) {
                 setNewSlug("");
               })
             }
-            className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-sage hover:text-ink disabled:opacity-50 transition-colors"
+            className="rounded-md bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-sage hover:text-ink disabled:opacity-50 transition-colors"
           >
             Add
           </button>
@@ -119,7 +119,7 @@ function CategoryRow({
         type="button"
         disabled={isPending}
         onClick={() => run(() => updateCategory(category.id, { name, slug, sortOrder: Number(sortOrder) || 0 }))}
-        className="rounded-full bg-ink px-3 py-1.5 text-body-xs font-medium text-ivory hover:bg-sage hover:text-ink disabled:opacity-50 transition-colors"
+        className="rounded-md bg-ink px-3 py-1.5 text-body-xs font-medium text-ivory hover:bg-sage hover:text-ink disabled:opacity-50 transition-colors"
       >
         Save
       </button>
@@ -127,7 +127,7 @@ function CategoryRow({
         type="button"
         disabled={isPending}
         onClick={() => run(() => deleteCategory(category.id))}
-        className="rounded-full border border-sand px-3 py-1.5 text-body-xs font-medium text-ink hover:border-coral hover:text-coral disabled:opacity-50 transition-colors"
+        className="rounded-md border border-sand px-3 py-1.5 text-body-xs font-medium text-ink hover:border-coral hover:text-coral disabled:opacity-50 transition-colors"
       >
         Delete
       </button>

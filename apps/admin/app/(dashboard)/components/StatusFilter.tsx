@@ -22,8 +22,8 @@ export function StatusFilter({ status, options }: Props) {
             }
             className={
               active
-                ? "rounded-full bg-ink px-4 py-1.5 text-body-xs font-medium text-sage"
-                : "rounded-full px-4 py-1.5 text-body-xs text-mist hover:text-ink"
+                ? "rounded-md bg-ink px-4 py-1.5 text-body-xs font-medium text-sage"
+                : "rounded-md px-4 py-1.5 text-body-xs text-mist hover:text-ink"
             }
           >
             {label}

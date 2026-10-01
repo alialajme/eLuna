@@ -79,7 +79,7 @@ export function PlaceOrderForm({ materialId, moq, stock, unitPrice, unit }: Prop
         type="button"
         onClick={handleSubmit}
         disabled={isPending || !validQty}
-        className="w-full rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
+        className="w-full rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
       >
         {isPending ? "Placing…" : "Place order"}
       </button>

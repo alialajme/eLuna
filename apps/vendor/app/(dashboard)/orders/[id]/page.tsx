@@ -172,7 +172,7 @@ export default async function OrderDetailPage({ params }: Props) {
           <div className="border-t border-sand pt-4">
             <p className="text-body-xs text-mist mb-2">Tax invoice</p>
             {invoice ? (
-              <Link href={`/invoices/${invoice.id}`} className="inline-flex rounded-full border border-sand px-5 py-2.5 text-body-sm text-ink hover:border-ink transition-colors">
+              <Link href={`/invoices/${invoice.id}`} className="inline-flex rounded-md border border-sand px-5 py-2.5 text-body-sm text-ink hover:border-ink transition-colors">
                 View tax invoice →
               </Link>
             ) : canInvoice ? (

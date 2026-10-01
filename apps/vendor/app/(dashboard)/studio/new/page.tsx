@@ -155,7 +155,7 @@ export default function StudioNewPage() {
       <button
         onClick={handleSubmit}
         disabled={!allFilled || isLoading}
-        className="w-full rounded-full bg-ink py-3 text-body-sm font-medium text-gold disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-md bg-ink py-3 text-body-sm font-medium text-gold disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLoading
           ? "Generating your campaign… this takes about 15 seconds"

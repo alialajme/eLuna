@@ -15,7 +15,7 @@ export function PeriodToggle({ period }: Props) {
   const pathname = usePathname();
 
   return (
-    <div className="flex overflow-hidden rounded-full border border-sand">
+    <div className="flex overflow-hidden rounded-md border border-sand">
       {PERIODS.map(({ label, value }) => (
         <button
           key={value}

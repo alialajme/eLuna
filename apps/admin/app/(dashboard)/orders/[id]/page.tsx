@@ -91,7 +91,7 @@ export default async function OrderDetailPage({ params }: Props) {
           </p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-3 py-1 text-body-sm font-medium ${ORDER_STATUS_BADGE[order.status] ?? "bg-sand text-mist"}`}
+          className={`shrink-0 rounded-md px-3 py-1 text-body-sm font-medium ${ORDER_STATUS_BADGE[order.status] ?? "bg-sand text-mist"}`}
         >
           {statusLabel}
         </span>

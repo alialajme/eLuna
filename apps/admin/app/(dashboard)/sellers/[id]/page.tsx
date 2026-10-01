@@ -85,7 +85,7 @@ export default async function SellerDetailPage({ params }: Props) {
           </div>
         </div>
         <span
-          className={`shrink-0 rounded-full px-3 py-1 text-body-sm font-medium ${STATUS_BADGE[vendor.status] ?? "bg-sand text-mist"}`}
+          className={`shrink-0 rounded-md px-3 py-1 text-body-sm font-medium ${STATUS_BADGE[vendor.status] ?? "bg-sand text-mist"}`}
         >
           {statusLabel}
         </span>

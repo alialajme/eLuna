@@ -73,7 +73,7 @@ export default async function SupplierReturnsPage({ searchParams }: Props) {
           const href = t.value ? `/returns?status=${t.value}` : "/returns";
           return (
             <Link key={t.label} href={href}
-              className={`rounded-full px-4 py-1.5 text-body-sm transition-colors ${
+              className={`rounded-md px-4 py-1.5 text-body-sm transition-colors ${
                 active ? "bg-ink text-ivory" : "border border-sand text-mist hover:border-ink hover:text-ink"
               }`}>
               {t.label}
@@ -102,7 +102,7 @@ export default async function SupplierReturnsPage({ searchParams }: Props) {
                   </div>
                   <div className="flex items-center gap-4 shrink-0">
                     <p className="text-body-sm text-ink">{aed(r.refundAmount)}</p>
-                    <span className={`rounded-full px-3 py-1 text-body-xs font-medium ${STATUS_CLASSES[r.status] ?? "bg-sand text-mist"}`}>
+                    <span className={`rounded-md px-3 py-1 text-body-xs font-medium ${STATUS_CLASSES[r.status] ?? "bg-sand text-mist"}`}>
                       {label(r.status)}
                     </span>
                   </div>

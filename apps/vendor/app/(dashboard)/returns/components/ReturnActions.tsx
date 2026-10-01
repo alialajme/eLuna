@@ -37,7 +37,7 @@ export function ReturnActions({ returnId, status }: { returnId: string; status: 
             type="button"
             disabled={isPending}
             onClick={() => run(() => approveReturn(returnId))}
-            className="rounded-full bg-ink px-4 py-1.5 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
+            className="rounded-md bg-ink px-4 py-1.5 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
           >
             Approve
           </button>
@@ -45,7 +45,7 @@ export function ReturnActions({ returnId, status }: { returnId: string; status: 
             type="button"
             disabled={isPending}
             onClick={() => run(() => rejectReturn(returnId))}
-            className="rounded-full border border-sand px-4 py-1.5 text-body-sm font-medium text-ink hover:border-coral hover:text-coral disabled:opacity-50 transition-colors"
+            className="rounded-md border border-sand px-4 py-1.5 text-body-sm font-medium text-ink hover:border-coral hover:text-coral disabled:opacity-50 transition-colors"
           >
             Reject
           </button>
@@ -56,7 +56,7 @@ export function ReturnActions({ returnId, status }: { returnId: string; status: 
           type="button"
           disabled={isPending}
           onClick={() => run(() => markReturnReceived(returnId))}
-          className="rounded-full bg-ink px-4 py-1.5 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
+          className="rounded-md bg-ink px-4 py-1.5 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
         >
           Mark Received
         </button>
@@ -76,7 +76,7 @@ export function ReturnActions({ returnId, status }: { returnId: string; status: 
             type="button"
             disabled={isPending}
             onClick={() => run(() => refundReturn(returnId, restock))}
-            className="rounded-full bg-ink px-4 py-1.5 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
+            className="rounded-md bg-ink px-4 py-1.5 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink disabled:opacity-50 transition-colors"
           >
             {isPending ? "Processing…" : "Issue Refund"}
           </button>

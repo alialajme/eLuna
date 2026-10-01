@@ -53,7 +53,7 @@ export default async function MaterialOrderDetailPage({ params }: Props) {
           <h2 className="font-display text-display-md text-ink">Order</h2>
           <p className="text-body-sm text-mist">{order.supplier.companyName}</p>
         </div>
-        <span className="rounded-full bg-sand px-3 py-1 text-body-sm font-medium text-ink">{label(order.status)}</span>
+        <span className="rounded-md bg-sand px-3 py-1 text-body-sm font-medium text-ink">{label(order.status)}</span>
       </div>
 
       <div className="rounded-2xl border border-sand bg-ivory p-5 space-y-3">
@@ -112,7 +112,7 @@ export default async function MaterialOrderDetailPage({ params }: Props) {
         <div className="rounded-2xl border border-sand bg-ivory p-5 space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-label text-mist">RETURN</p>
-            <span className={`rounded-full px-3 py-1 text-body-xs font-medium ${RETURN_STATUS_CLASSES[ret.status] ?? "bg-sand text-mist"}`}>
+            <span className={`rounded-md px-3 py-1 text-body-xs font-medium ${RETURN_STATUS_CLASSES[ret.status] ?? "bg-sand text-mist"}`}>
               {label(ret.status)}
             </span>
           </div>

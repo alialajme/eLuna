@@ -65,7 +65,7 @@ export default async function StudioResultPage({ params }: Props) {
             {copy?.titleEn ?? "Campaign"}
           </h2>
           <span
-            className={`mt-1 inline-block rounded-full px-2 py-0.5 text-body-xs font-medium ${
+            className={`mt-1 inline-block rounded-md px-2 py-0.5 text-body-xs font-medium ${
               upload.status === "COMPLETE"
                 ? "bg-sage/20 text-sage"
                 : upload.status === "FAILED"
@@ -83,7 +83,7 @@ export default async function StudioResultPage({ params }: Props) {
         {copy && (
           <Link
             href={`/products/new?studioId=${id}`}
-            className="rounded-full bg-ink px-5 py-2 text-body-sm font-medium text-gold hover:bg-ink/90"
+            className="rounded-md bg-ink px-5 py-2 text-body-sm font-medium text-gold hover:bg-ink/90"
           >
             Use this copy →
           </Link>
@@ -140,7 +140,7 @@ export default async function StudioResultPage({ params }: Props) {
                   .map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-sand px-3 py-1 text-body-xs text-ink"
+                      className="rounded-md bg-sand px-3 py-1 text-body-xs text-ink"
                     >
                       {tag}
                     </span>
@@ -164,7 +164,7 @@ export default async function StudioResultPage({ params }: Props) {
                   {copy.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-sand px-2 py-0.5 text-body-xs text-mist"
+                      className="rounded-md bg-sand px-2 py-0.5 text-body-xs text-mist"
                     >
                       #{tag}
                     </span>

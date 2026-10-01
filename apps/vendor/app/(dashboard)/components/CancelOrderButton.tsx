@@ -28,7 +28,7 @@ export function CancelOrderButton({ orderId }: { orderId: string }) {
         type="button"
         onClick={handleCancel}
         disabled={isPending}
-        className="rounded-full bg-coral/10 px-5 py-2.5 text-body-sm font-medium text-coral hover:bg-coral/20 transition-colors disabled:opacity-50"
+        className="rounded-md bg-coral/10 px-5 py-2.5 text-body-sm font-medium text-coral hover:bg-coral/20 transition-colors disabled:opacity-50"
       >
         {isPending ? "Cancelling…" : "Cancel order"}
       </button>
