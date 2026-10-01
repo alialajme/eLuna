@@ -212,9 +212,21 @@ importers:
       '@ayvana/einvoice':
         specifier: workspace:*
         version: link:../../packages/einvoice
+      '@ayvana/fashion':
+        specifier: workspace:*
+        version: link:../../packages/fashion
+      '@ayvana/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
       '@ayvana/payments':
         specifier: workspace:*
         version: link:../../packages/payments
+      '@ayvana/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
+      '@ayvana/studio':
+        specifier: workspace:*
+        version: link:../../packages/studio
       '@ayvana/ui':
         specifier: workspace:*
         version: link:../../packages/ui
