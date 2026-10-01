@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import {
   createGarmentAction,
   beginShootAction,
@@ -85,7 +86,24 @@ export function ProductStudioLauncher({ productId, onApproved, onClose }: Props)
   const garmentIdRef = useRef<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [session, setSession] = useState<SessionSnapshot | null>(null);
+  const [shootsLeft, setShootsLeft] = useState<number | null>(null);
+  const [outOfCredits, setOutOfCredits] = useState(false);
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fetch the vendor's shoot balance on open so the modal can show "N shoots
+  // left" and block the generate action with an upgrade prompt when empty.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/ai-studio/credits", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b: { available?: number } | null) => {
+        if (!cancelled && b && typeof b.available === "number") setShootsLeft(b.available);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Close on Escape — the overlay holds focus for a multi-step task, so a clear
   // keyboard exit matters.
@@ -199,7 +217,13 @@ export function ProductStudioLauncher({ productId, onApproved, onClose }: Props)
         backgroundId: background,
         productId: productId ?? null,
       });
-      if (!res.ok) throw new Error(res.error);
+      if (!res.ok) {
+        if (res.needsCredits) {
+          setOutOfCredits(true);
+          setShootsLeft(0);
+        }
+        throw new Error(res.error);
+      }
       setSessionId(res.sessionId);
       setStep("shoot");
     } catch (err) {
@@ -229,6 +253,7 @@ export function ProductStudioLauncher({ productId, onApproved, onClose }: Props)
         .sort((a, b) => IMAGE_ORDER.indexOf(a.type) - IMAGE_ORDER.indexOf(b.type))
     : [];
   const simulated = images.some((a) => a.isSimulated);
+  const noShoots = outOfCredits || shootsLeft === 0;
   const shootRunning = !!session && !TERMINAL.has(session.status);
   const ready = !!session && (session.status === "PREVIEW" || session.status === "APPROVED") && images.length > 0;
   const failed = session?.status === "FAILED";
@@ -384,8 +409,35 @@ export function ProductStudioLauncher({ productId, onApproved, onClose }: Props)
                 <p className="text-body-sm text-ink">
                   We&apos;ll create four on-model views — front, back, and both three-quarter angles — from your photos.
                 </p>
-                <p className="mt-1 text-body-xs text-mist">Takes a minute or two.</p>
+                <p className="mt-1 text-body-xs text-mist">
+                  Takes a minute or two.
+                  {shootsLeft != null && (
+                    <>
+                      {" "}Uses 1 of your{" "}
+                      <span className="font-medium text-ink">
+                        {shootsLeft} shoot{shootsLeft === 1 ? "" : "s"}
+                      </span>
+                      .
+                    </>
+                  )}
+                </p>
               </div>
+
+              {noShoots && (
+                <div className="rounded-md border border-gold/40 bg-gold/5 px-4 py-4">
+                  <p className="text-body-sm font-medium text-ink">You have no AI Shoots left</p>
+                  <p className="mt-1 text-body-sm text-ink/80">
+                    Upgrade your plan or buy a shoot pack to continue. Your photos are saved — come back and generate
+                    once you&apos;ve topped up.
+                  </p>
+                  <Link
+                    href="/billing"
+                    className="mt-3 inline-block rounded-md bg-ink px-4 py-2 text-body-sm font-medium text-gold transition-colors hover:bg-ink-elevated"
+                  >
+                    Go to Billing
+                  </Link>
+                </div>
+              )}
             </section>
           )}
 
@@ -491,7 +543,7 @@ export function ProductStudioLauncher({ productId, onApproved, onClose }: Props)
               <button
                 type="button"
                 onClick={startShoot}
-                disabled={busy}
+                disabled={busy || noShoots}
                 className="rounded-md bg-ink px-5 py-2.5 text-body-sm font-medium text-gold transition-colors hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy ? "Starting your shoot…" : "Generate shoot"}
