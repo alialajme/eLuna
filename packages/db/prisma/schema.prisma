@@ -197,7 +197,7 @@ enum NotificationType {
 // ─────────────────────────────────────────────
 
 model User {
-  id         String     @id                 // Clerk user ID
+  id         String     @id // Clerk user ID
   email      String     @unique
   role       UserRole
   mfaEnabled Boolean    @default(false)
@@ -244,10 +244,10 @@ model SizeProfile {
   hip                  Float?
   shoulder             Float?
   // Garment preferences
-  sleeveLength         String?  // SHORT | THREE_QUARTER | FULL
-  preferredAbayaLength String?  // MIDI | MAXI | FLOOR
-  fitPreference        String?  // FITTED | REGULAR | LOOSE | OVERSIZED
-  usualSize            String?  // XS | S | M | L | XL | XXL | 3XL
+  sleeveLength         String? // SHORT | THREE_QUARTER | FULL
+  preferredAbayaLength String? // MIDI | MAXI | FLOOR
+  fitPreference        String? // FITTED | REGULAR | LOOSE | OVERSIZED
+  usualSize            String? // XS | S | M | L | XL | XXL | 3XL
   sizeSystem           String?  @default("INTL") // INTL | US | UK | EU | GCC
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -275,41 +275,44 @@ model Vendor {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  products       Product[]
-  orderItems     OrderItem[]
-  payouts        Payout[]
-  studioUploads  StudioUpload[]
-  shipments      Shipment[]
-  materialOrders  MaterialOrder[]
-  orderInvoices   OrderInvoice[]
-  ledgerEntries   LedgerEntry[]
-  materialReturns MaterialReturn[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products           Product[]
+  orderItems         OrderItem[]
+  payouts            Payout[]
+  studioUploads      StudioUpload[]
+  shipments          Shipment[]
+  materialOrders     MaterialOrder[]
+  orderInvoices      OrderInvoice[]
+  ledgerEntries      LedgerEntry[]
+  materialReturns    MaterialReturn[]
+  garmentAssets      GarmentAsset[]
+  aiModelProfiles    AIModelProfile[]
+  generationSessions GenerationSession[]
 
   @@index([status])
 }
 
 model Supplier {
-  id            String         @id @default(cuid())
-  userId        String         @unique
-  companyName   String
-  companySlug   String         @unique
-  description   String?
-  logoUrl       String?
-  bannerUrl     String?
-  status        SupplierStatus @default(PENDING)
-  materialTypes String[]
-  ibanNumber    String?
-  trn           String?
-  mfaVerifiedAt DateTime?
+  id                     String             @id @default(cuid())
+  userId                 String             @unique
+  companyName            String
+  companySlug            String             @unique
+  description            String?
+  logoUrl                String?
+  bannerUrl              String?
+  status                 SupplierStatus     @default(PENDING)
+  materialTypes          String[]
+  ibanNumber             String?
+  trn                    String?
+  mfaVerifiedAt          DateTime?
   // UAE trade-licence verification (credential-gated registry integration).
   tradeLicenseNumber     String?
   tradeLicenseStatus     TradeLicenseStatus @default(UNVERIFIED)
   tradeLicenseExpiry     DateTime?
   tradeLicenseVerifiedAt DateTime?
   tradeLicenseRef        String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
 
   user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   materials         Material[]
@@ -350,19 +353,19 @@ model Material {
 }
 
 model MaterialOrder {
-  id           String              @id @default(cuid())
-  vendorId     String
-  supplierId   String
-  status       MaterialOrderStatus @default(PENDING)
-  total        Decimal             @db.Decimal(10, 2)
-  note         String?
-  trackingNote String?
+  id             String              @id @default(cuid())
+  vendorId       String
+  supplierId     String
+  status         MaterialOrderStatus @default(PENDING)
+  total          Decimal             @db.Decimal(10, 2)
+  note           String?
+  trackingNote   String?
   courier        String?
   trackingNumber String?
   externalRef    String?
   labelUrl       String?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   vendor         Vendor              @relation(fields: [vendorId], references: [id])
   supplier       Supplier            @relation(fields: [supplierId], references: [id])
@@ -478,28 +481,30 @@ model OrderInvoice {
 // ─────────────────────────────────────────────
 
 model Product {
-  id          String        @id @default(cuid())
-  vendorId    String
-  title       String
-  slug        String        @unique
-  description String?
-  price       Decimal       @db.Decimal(10, 2)
-  compareAt   Decimal?      @db.Decimal(10, 2)
-  category    String
-  fabric      String?
-  careGuide   String?
-  aiImages    Json          @default("[]")
-  sizeGuide   Json          @default("{}")
-  status      ProductStatus @default(DRAFT)
+  id                 String        @id @default(cuid())
+  vendorId           String
+  title              String
+  slug               String        @unique
+  description        String?
+  price              Decimal       @db.Decimal(10, 2)
+  compareAt          Decimal?      @db.Decimal(10, 2)
+  category           String
+  fabric             String?
+  careGuide          String?
+  aiImages           Json          @default("[]")
+  sizeGuide          Json          @default("{}")
+  status             ProductStatus @default(DRAFT)
   dropshipSupplierId String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
-  vendor           Vendor           @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  dropshipSupplier Supplier?        @relation("SupplierDropshipProducts", fields: [dropshipSupplierId], references: [id])
-  variants         ProductVariant[]
-  wishlists        Wishlist[]
-  reviews          Review[]
+  vendor             Vendor              @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  dropshipSupplier   Supplier?           @relation("SupplierDropshipProducts", fields: [dropshipSupplierId], references: [id])
+  variants           ProductVariant[]
+  wishlists          Wishlist[]
+  reviews            Review[]
+  garmentAssets      GarmentAsset[]
+  generationSessions GenerationSession[]
 
   @@index([vendorId])
   @@index([status])
@@ -533,13 +538,13 @@ model ProductVariant {
 model Address {
   id           String   @id @default(cuid())
   userId       String
-  label        String?  // Home | Work | etc.
+  label        String? // Home | Work | etc.
   fullName     String
   phone        String
   addressLine1 String
   addressLine2 String?
   city         String
-  emirate      String?  // UAE-specific
+  emirate      String? // UAE-specific
   country      String   @default("AE")
   isDefault    Boolean  @default(false)
   createdAt    DateTime @default(now())
@@ -669,7 +674,7 @@ model PaymentTransaction {
   status      PaymentStatus @default(PENDING)
   amount      Decimal       @db.Decimal(10, 2)
   currency    String        @default("AED")
-  externalRef String?       // Stripe/Tabby/Tamara payment ID
+  externalRef String? // Stripe/Tabby/Tamara payment ID
   metadata    Json          @default("{}")
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -822,7 +827,7 @@ model Review {
   id                String   @id @default(cuid())
   productId         String
   customerProfileId String
-  rating            Int      // 1–5
+  rating            Int // 1–5
   body              String?
   isVerified        Boolean  @default(false)
   createdAt         DateTime @default(now())
@@ -883,8 +888,8 @@ model AISession {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@unique([userId, agentType])
+  @@index([userId])
 }
 
 // ─────────────────────────────────────────────
@@ -894,10 +899,10 @@ model AISession {
 model StudioUpload {
   id              String   @id @default(cuid())
   vendorId        String
-  sourceImages    Json     @default("[]")  // URLs of 3 uploaded photos
-  generatedAssets Json     @default("{}")  // AI-generated images, video, copy
+  sourceImages    Json     @default("[]") // URLs of 3 uploaded photos
+  generatedAssets Json     @default("{}") // AI-generated images, video, copy
   status          String   @default("PENDING") // PENDING | PROCESSING | COMPLETE | FAILED
-  productId       String?  // Linked product if created
+  productId       String? // Linked product if created
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -927,4 +932,267 @@ model Category {
   updatedAt DateTime @updatedAt
 
   @@index([isActive, sortOrder])
+}
+
+// ─────────────────────────────────────────────
+// AI FASHION STUDIO (Phase 1 — foundation)
+//
+// Productionizes the stubbed Phase 5 Studio. New models use UUID PKs (the
+// feature standard, per the Phase 0 ADR §11); existing models use cuid().
+// Money is Decimal, never float. Every asset chains to a vendorId for strict
+// seller/org isolation — Seller A can never read Seller B's garments/sessions/
+// assets. Billing (credits/subscriptions) is Phase 4 and deliberately absent;
+// the schema leaves clean seams (Session relates to Vendor directly for now).
+// ─────────────────────────────────────────────
+
+enum GarmentStatus {
+  UPLOADED
+  QC_PASSED
+  QC_FAILED
+  ANALYZED
+}
+
+enum GarmentImageRole {
+  FRONT
+  BACK
+  OPEN
+  SLEEVE
+  EMBROIDERY
+  BUTTON
+  FABRIC
+  LOGO
+  COLLAR
+  BELT
+  POCKET
+  DETAIL
+}
+
+enum StudioSessionStatus {
+  DRAFT
+  RUNNING
+  PREVIEW
+  APPROVED
+  PUBLISHED
+  REVIEW_REQUIRED
+  FAILED
+  CANCELLED
+}
+
+enum GenerationJobKind {
+  ANALYZE
+  IMAGE
+  VIDEO
+  FIDELITY
+  PUBLISH
+}
+
+enum GenerationJobState {
+  QUEUED
+  VALIDATING
+  ANALYZING
+  GENERATING_IMAGES
+  VALIDATING_IMAGES
+  GENERATING_VIDEO
+  VALIDATING_VIDEO
+  COMPLETED
+  FAILED
+  REVIEW_REQUIRED
+  CANCELLED
+}
+
+enum GeneratedAssetType {
+  IMAGE_FRONT
+  IMAGE_BACK
+  IMAGE_34_FRONT
+  IMAGE_34_BACK
+  VIDEO_TURNTABLE
+}
+
+// ───────── Garment intelligence ─────────
+model GarmentAsset {
+  id         String        @id @default(uuid())
+  vendorId   String // seller/org isolation anchor (→ Vendor)
+  productId  String? // optional link to an existing Product
+  status     GarmentStatus @default(UPLOADED)
+  category   String?
+  silhouette String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  vendor   Vendor              @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  product  Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  images   GarmentImage[]
+  analysis GarmentAnalysis?
+  sessions GenerationSession[]
+
+  @@index([vendorId])
+  @@index([vendorId, status])
+  @@index([productId])
+}
+
+model GarmentImage {
+  id         String           @id @default(uuid())
+  garmentId  String
+  role       GarmentImageRole
+  storageKey String // object-storage key (never bytes)
+  width      Int?
+  height     Int?
+  qcPassed   Boolean          @default(false)
+  qcIssues   Json             @default("[]") // actionable QC errors
+  createdAt  DateTime         @default(now())
+
+  garment GarmentAsset @relation(fields: [garmentId], references: [id], onDelete: Cascade)
+
+  @@index([garmentId])
+  @@index([garmentId, role])
+}
+
+model GarmentAnalysis {
+  id                String   @id @default(uuid())
+  garmentId         String   @unique
+  colors            Json     @default("[]") // [{name,hex,coverage}]
+  material          String?
+  pattern           String?
+  length            String?
+  sleeve            String?
+  neckline          String?
+  closure           String?
+  buttons           Json     @default("{}")
+  embroidery        Json     @default("{}")
+  logo              Json     @default("{}")
+  pockets           Json     @default("{}")
+  belt              Json     @default("{}")
+  segmentationMasks Json     @default("[]") // storage keys for masks
+  detailCrops       Json     @default("[]") // storage keys for crops
+  embeddings        Json     @default("{}") // {model, dim, vectorRef}
+  modelName         String // which analyzer produced this
+  createdAt         DateTime @default(now())
+
+  garment GarmentAsset @relation(fields: [garmentId], references: [id], onDelete: Cascade)
+}
+
+// ───────── Model library ─────────
+model AIModelProfile {
+  id            String   @id @default(uuid())
+  vendorId      String? // null = platform-shared model
+  name          String
+  descriptor    Json     @default("{}") // synthetic identity (NO real person)
+  referenceKeys Json     @default("[]") // storage keys of locked identity references
+  seed          BigInt?
+  isActive      Boolean  @default(true)
+  isShared      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  vendor   Vendor?             @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  sessions GenerationSession[]
+
+  @@index([vendorId])
+  @@index([isShared, isActive])
+}
+
+// ───────── Generation session (the consistency anchor) ─────────
+model GenerationSession {
+  id             String              @id @default(uuid())
+  vendorId       String // seller/org isolation anchor
+  garmentId      String
+  modelProfileId String?
+  productId      String?
+  status         StudioSessionStatus @default(DRAFT)
+  seed           BigInt?
+  referenceKeys  Json                @default("[]") // locked try-on composite + garment refs
+  lighting       Json                @default("{}")
+  environment    Json                @default("{}")
+  camera         Json                @default("{}")
+  backgroundId   String?
+  provider       String? // chosen primary provider id (audit)
+  providerParams Json                @default("{}")
+  resolution     String?
+  correlationId  String? // links request→session→jobs→provider→assets
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  vendor       Vendor           @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  garment      GarmentAsset     @relation(fields: [garmentId], references: [id], onDelete: Cascade)
+  modelProfile AIModelProfile?  @relation(fields: [modelProfileId], references: [id], onDelete: SetNull)
+  product      Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+  jobs         GenerationJob[]
+  assets       GeneratedAsset[]
+
+  @@index([vendorId])
+  @@index([vendorId, status])
+  @@index([garmentId])
+}
+
+// ───────── Jobs (async; first real consumer of the outbox) ─────────
+model GenerationJob {
+  id             String             @id @default(uuid())
+  sessionId      String
+  kind           GenerationJobKind
+  state          GenerationJobState @default(QUEUED)
+  attempts       Int                @default(0)
+  maxAttempts    Int                @default(3)
+  idempotencyKey String             @unique
+  availableAt    DateTime           @default(now())
+  provider       String?
+  providerRef    String? // external job id
+  error          String?
+  correlationId  String // links request→session→jobs→provider→assets
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  session GenerationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([state, availableAt])
+  @@index([sessionId])
+  @@index([correlationId])
+}
+
+model GeneratedAsset {
+  id            String             @id @default(uuid())
+  sessionId     String
+  type          GeneratedAssetType
+  storageKey    String
+  cdnUrl        String? // set only after publish
+  provider      String
+  providerModel String
+  width         Int?
+  height        Int?
+  durationSec   Decimal?           @db.Decimal(5, 2)
+  c2paSigned    Boolean            @default(false)
+  isSimulated   Boolean            @default(false) // placeholder output — never publishable in prod
+  createdAt     DateTime           @default(now())
+
+  session GenerationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([sessionId, type])
+}
+
+// ───────── Provider registry (seam for the Phase-4 cost router) ─────────
+model Provider {
+  id          String  @id @default(uuid())
+  code        String  @unique // fashn | flux2 | veo3 | kling | rekognition | claude-vision
+  displayName String
+  operations  Json    @default("[]") // ["TRYON","MULTIVIEW","VIDEO","FIDELITY","MODERATION"]
+  isActive    Boolean @default(true)
+  config      Json    @default("{}") // non-secret config; keys live in Key Vault
+
+  models ProviderModel[]
+}
+
+model ProviderModel {
+  id          String  @id @default(uuid())
+  providerId  String
+  modelCode   String // e.g. "fashn/tryon/v1.6"
+  operation   String
+  unitCost    Decimal @db.Decimal(10, 6) // per image / per second / per MP
+  unit        String // IMAGE | SECOND | MEGAPIXEL | CALL
+  minPlanTier String?
+  isActive    Boolean @default(true)
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, modelCode])
 }
