@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Sym } from '@/components/ui/Sym';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -125,8 +125,8 @@ export default function ProductScreen() {
         options={{
           headerRight: () => (
             <Pressable hitSlop={10} onPress={toggleWishlist}>
-              <Ionicons
-                name={wishlisted ? 'heart' : 'heart-outline'}
+              <Sym
+                name={wishlisted ? 'heart-fill' : 'heart'}
                 size={22}
                 color={wishlisted ? c.sale : c.text}
               />
@@ -239,7 +239,7 @@ export default function ProductScreen() {
 
           {/* Fit hint */}
           <View style={[styles.fitHint, { backgroundColor: c.fillSoft }]}>
-            <Ionicons name="sparkles-outline" size={16} color={c.tint} />
+            <Sym name="spark" size={16} color={c.tint} />
             <Txt variant="bodySm" color="text" style={{ flex: 1 }}>
               Free returns within 14 days · Shipped across the GCC
             </Txt>
@@ -284,7 +284,7 @@ export default function ProductScreen() {
             onPress={onAdd}
             disabled={!size}
             style={[styles.addBtn, { backgroundColor: added ? c.success : c.surfaceInk }, !size && { opacity: 0.4 }]}>
-            {added && <Ionicons name="checkmark" size={18} color={c.textOnInk} />}
+            {added && <Sym name="check" size={18} color={c.textOnInk} />}
             <Txt variant="bodySemiMd" color="textOnInk">
               {added ? 'Added to bag' : size ? 'Add to bag' : 'Select a size'}
             </Txt>

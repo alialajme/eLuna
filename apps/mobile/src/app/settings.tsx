@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Sym } from '@/components/ui/Sym';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
@@ -127,7 +127,7 @@ function NavRow({ label, hint, onPress, c }: { label: string; hint?: string; onP
           </Txt>
         )}
       </View>
-      <Ionicons name="chevron-forward" size={18} color={c.hairlineStrong} />
+      <Sym name="chevron-right" size={18} color={c.hairlineStrong} />
     </Pressable>
   );
 }

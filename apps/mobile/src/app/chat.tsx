@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Sym } from '@/components/ui/Sym';
 import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -66,8 +66,8 @@ export default function ChatScreen() {
             </View>
           ) : (
             <View key={i} style={[styles.bubble, styles.bot, { backgroundColor: c.surfaceAlt }]}>
-              <MaterialCommunityIcons
-                name="star-four-points"
+              <Sym
+                name="spark"
                 size={13}
                 color={c.tint}
                 style={{ marginBottom: 4 }}
@@ -100,7 +100,7 @@ export default function ChatScreen() {
             onPress={send}
             disabled={!input.trim() || sending}
             style={[styles.send, { backgroundColor: c.surfaceInk }, (!input.trim() || sending) && { opacity: 0.4 }]}>
-            <Ionicons name="arrow-up" size={20} color={c.textOnInk} />
+            <Sym name="arrow-up" size={20} color={c.textOnInk} />
           </Pressable>
         </View>
       </SafeAreaView>

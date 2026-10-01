@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Sym } from '@/components/ui/Sym';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -24,7 +24,7 @@ export default function BagScreen() {
         </SafeAreaView>
         <View style={styles.empty}>
           <View style={[styles.emptyDisc, { backgroundColor: c.fillSoft }]}>
-            <Ionicons name="bag-outline" size={30} color={c.tint} />
+            <Sym name="bag" size={30} color={c.tint} />
           </View>
           <Txt variant="displaySm" color="text">
             Your bag is empty
@@ -102,13 +102,13 @@ function BagRow({ line, onQty, onRemove }: { line: BagLine; onQty: (q: number) =
         <View style={styles.rowBottom}>
           <View style={[styles.stepper, { borderColor: c.hairline }]}>
             <Pressable onPress={() => onQty(line.qty - 1)} hitSlop={6} style={styles.stepBtn}>
-              <Ionicons name="remove" size={16} color={c.text} />
+              <Sym name="minus" size={16} color={c.text} />
             </Pressable>
             <Txt variant="bodySemiMd" color="text" style={styles.qty}>
               {line.qty}
             </Txt>
             <Pressable onPress={() => onQty(line.qty + 1)} hitSlop={6} style={styles.stepBtn}>
-              <Ionicons name="add" size={16} color={c.text} />
+              <Sym name="plus" size={16} color={c.text} />
             </Pressable>
           </View>
           <Txt variant="price" color="text">
@@ -117,7 +117,7 @@ function BagRow({ line, onQty, onRemove }: { line: BagLine; onQty: (q: number) =
         </View>
       </View>
       <Pressable onPress={onRemove} hitSlop={8} style={styles.remove}>
-        <Ionicons name="close" size={18} color={c.textSecondary} />
+        <Sym name="close" size={18} color={c.textSecondary} />
       </Pressable>
     </View>
   );

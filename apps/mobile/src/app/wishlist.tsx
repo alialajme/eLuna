@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Sym } from '@/components/ui/Sym';
 import { router } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -22,7 +22,7 @@ export default function WishlistScreen() {
     return (
       <View style={[styles.empty, { backgroundColor: c.background }]}>
         <View style={[styles.disc, { backgroundColor: c.fillSoft }]}>
-          <Ionicons name="heart-outline" size={30} color={c.tint} />
+          <Sym name="heart" size={30} color={c.tint} />
         </View>
         <Txt variant="displaySm" color="text">
           No saved abayas yet

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Sym, type SymName } from '@/components/ui/Sym';
 import { router } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,14 +9,14 @@ import { BottomTabInset, Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAccount } from '@/lib/account';
 
-type Row = { icon: keyof typeof Ionicons.glyphMap; label: string; hint: string; href?: string };
+type Row = { icon: SymName; label: string; hint: string; href?: string };
 
 const ROWS: Row[] = [
-  { icon: 'receipt-outline', label: 'Orders', hint: 'Track and reorder', href: '/orders' },
-  { icon: 'heart-outline', label: 'Wishlist', hint: 'Saved abayas', href: '/wishlist' },
-  { icon: 'resize-outline', label: 'Size profile', hint: 'Powers your fit', href: '/size-profile' },
-  { icon: 'wallet-outline', label: 'Wallet & cashback', hint: 'AYVANA credit' },
-  { icon: 'settings-outline', label: 'Settings', hint: 'Preferences', href: '/settings' },
+  { icon: 'receipt', label: 'Orders', hint: 'Track and reorder', href: '/orders' },
+  { icon: 'heart', label: 'Wishlist', hint: 'Saved abayas', href: '/wishlist' },
+  { icon: 'ruler', label: 'Size profile', hint: 'Powers your fit', href: '/size-profile' },
+  { icon: 'wallet', label: 'Wallet & cashback', hint: 'AYVANA credit' },
+  { icon: 'settings', label: 'Settings', hint: 'Preferences', href: '/settings' },
 ];
 
 export default function ProfileScreen() {
@@ -66,7 +66,7 @@ export default function ProfileScreen() {
               onPress={() => (row.href ? router.push(row.href) : soon(row.label))}
               style={[styles.row, i > 0 && { borderTopColor: c.hairline, borderTopWidth: StyleSheet.hairlineWidth }]}>
               <View style={[styles.rowIcon, { backgroundColor: c.fillSoft }]}>
-                <Ionicons name={row.icon} size={18} color={c.tint} />
+                <Sym name={row.icon} size={18} color={c.tint} />
               </View>
               <View style={{ flex: 1 }}>
                 <Txt variant="bodySemiMd" color="text">
@@ -76,7 +76,7 @@ export default function ProfileScreen() {
                   {row.hint}
                 </Txt>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={c.hairlineStrong} />
+              <Sym name="chevron-right" size={18} color={c.hairlineStrong} />
             </Pressable>
           ))}
         </View>
