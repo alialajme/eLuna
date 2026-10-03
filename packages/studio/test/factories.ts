@@ -1,7 +1,8 @@
+import { randomBytes } from "node:crypto";
 import { prisma } from "@ayvana/db";
 
 let n = 0;
-const uid = (p: string) => `${p}_studio_${Date.now()}_${n++}_${Math.random().toString(36).slice(2, 8)}`;
+const uid = (p: string) => `${p}_studio_${Date.now()}_${n++}_${randomBytes(4).toString("hex")}`;
 
 /** Create an ACTIVE (default) vendor with a User. */
 export async function makeVendor(status: "ACTIVE" | "PENDING" | "SUSPENDED" = "ACTIVE") {
