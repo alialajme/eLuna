@@ -25,7 +25,7 @@
 - **Reference patterns already in the repo:**
   - Agent factory shape: `packages/ai/src/agents/seller.ts` (`buildSellerTools(vendorId)` + `runSellerAgent`).
   - Route shape: `apps/customer/app/api/chat/route.ts` (imports `safeCurrentUser as currentUser` from `../../lib/auth`).
-  - Config import: `import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";`
+  - Config import: `import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";`
 - **`safeCurrentUser()`** (`apps/customer/app/lib/auth.ts`) returns the Clerk user or `null` (null in dev when Clerk keys absent).
 
 ---
@@ -58,7 +58,7 @@ import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
 import { prisma } from "@ayvana/db";
-import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
+import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const PAYMENT_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
@@ -195,7 +195,7 @@ export async function runPaymentAgent(
   options: { customerId: string },
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: PAYMENT_SYSTEM,
     messages,
     tools: buildPaymentTools(options.customerId),

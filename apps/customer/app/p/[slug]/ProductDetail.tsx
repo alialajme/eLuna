@@ -83,7 +83,7 @@ export function ProductDetail({
           </p>
           <h1 className="font-display text-display-md text-ink mt-1">{title}</h1>
           {fabric && (
-            <span className="mt-2 inline-block rounded-full border border-sand px-3 py-1 text-body-sm text-mist">
+            <span className="mt-2 inline-block rounded-md border border-sand px-3 py-1 text-body-sm text-mist">
               {fabric}
             </span>
           )}
@@ -146,7 +146,7 @@ export function ProductDetail({
             type="button"
             onClick={handleAddToBag}
             disabled={!selectedVariantId || adding}
-            className="flex-1 rounded-full bg-ink py-4 text-body-md font-semibold text-ivory transition-colors hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex-1 rounded-md bg-ink py-4 text-body-md font-semibold text-ivory transition-colors hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {adding ? "Adding…" : addedMessage ?? "Add to Bag"}
           </button>

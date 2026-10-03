@@ -27,11 +27,11 @@ export function PayoutActions({ payoutId, status }: Props) {
   }
 
   const goldBtn =
-    "rounded-full bg-gold/20 px-4 py-2 text-body-sm font-medium text-gold hover:bg-gold/30 disabled:opacity-50";
+    "rounded-md bg-gold/20 px-4 py-2 text-body-sm font-medium text-gold hover:bg-gold/30 disabled:opacity-50";
   const sageBtn =
-    "rounded-full bg-sage/20 px-4 py-2 text-body-sm font-medium text-sage hover:bg-sage/30 disabled:opacity-50";
+    "rounded-md bg-sage/20 px-4 py-2 text-body-sm font-medium text-sage hover:bg-sage/30 disabled:opacity-50";
   const coralBtn =
-    "rounded-full bg-coral/20 px-4 py-2 text-body-sm font-medium text-coral hover:bg-coral/30 disabled:opacity-50";
+    "rounded-md bg-coral/20 px-4 py-2 text-body-sm font-medium text-coral hover:bg-coral/30 disabled:opacity-50";
 
   return (
     <div className="space-y-1.5">

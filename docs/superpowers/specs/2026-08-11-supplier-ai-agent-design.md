@@ -47,7 +47,7 @@ Clone the Seller-agent shape:
    - `buildSupplierTools(supplierId: string)` returns the four tools below; `supplierId` is captured in
      the closure and is **never** a tool parameter.
    - `runSupplierAgent(messages: CoreMessage[], options: { supplierId: string; onFinish?: (event: { text: string }) => void | Promise<void> })`
-     calls `streamText({ model: anthropic(LUNA_MODEL), system: SUPPLIER_SYSTEM, messages, tools:
+     calls `streamText({ model: anthropic(AYVANA_MODEL), system: SUPPLIER_SYSTEM, messages, tools:
      buildSupplierTools(options.supplierId), maxSteps: 5, onFinish: options.onFinish })`.
    - `SUPPLIER_SYSTEM` = `${DEFAULT_SYSTEM_CONTEXT}` + a supplier-specific prompt: "You are the Supplier
      Agent for a AYVANA materials supplier. Ground every answer in the supplier's real data via your

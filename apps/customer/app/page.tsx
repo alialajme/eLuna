@@ -144,7 +144,7 @@ export default async function HomePage() {
             </div>
             <Link
               href="/chat"
-              className="shrink-0 flex items-center gap-2 rounded-full border border-gold px-6 py-3 text-body-md font-medium text-gold hover:bg-gold hover:text-ink transition-colors"
+              className="shrink-0 flex items-center gap-2 rounded-md border border-gold px-6 py-3 text-body-md font-medium text-gold hover:bg-gold hover:text-ink transition-colors"
             >
               <span>◑</span> Chat with AYVANA →
             </Link>

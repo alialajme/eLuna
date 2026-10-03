@@ -185,7 +185,7 @@ export default async function DashboardPage() {
       {/* AYVANA AI Alert Strip */}
       {lowStock.length > 0 && (
         <div className="rounded-2xl bg-ink px-5 py-4">
-          <p className="text-label text-gold mb-2">✦ LUNA AI — LOW STOCK ALERT</p>
+          <p className="text-label text-gold mb-2">✦ AYVANA AI — LOW STOCK ALERT</p>
           <div className="space-y-1">
             {lowStock.map((variant) => (
               <div

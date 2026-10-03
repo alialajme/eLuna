@@ -50,7 +50,7 @@ export function IbanForm({ currentIban }: Props) {
           type="button"
           onClick={handleSubmit}
           disabled={isPending}
-          className="rounded-full bg-gold px-4 py-2 text-body-sm font-medium text-ink hover:bg-gold/80 disabled:opacity-50 transition-colors"
+          className="rounded-md bg-gold px-4 py-2 text-body-sm font-medium text-ink hover:bg-gold/80 disabled:opacity-50 transition-colors"
         >
           {isPending ? "Saving…" : "Save IBAN"}
         </button>

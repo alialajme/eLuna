@@ -58,7 +58,7 @@ export default async function IncomingOrdersPage({ searchParams }: Props) {
           const href = t.value ? `/orders?status=${t.value}` : "/orders";
           return (
             <Link key={t.label} href={href}
-              className={`rounded-full px-4 py-1.5 text-body-sm transition-colors ${
+              className={`rounded-md px-4 py-1.5 text-body-sm transition-colors ${
                 active ? "bg-ink text-ivory" : "border border-sand text-mist hover:border-ink hover:text-ink"
               }`}>
               {t.label}
@@ -89,7 +89,7 @@ export default async function IncomingOrdersPage({ searchParams }: Props) {
                   <p className="text-body-sm text-ink">
                     AED {Number(o.total).toLocaleString("en-AE", { minimumFractionDigits: 2 })}
                   </p>
-                  <span className={`rounded-full px-3 py-1 text-body-xs font-medium ${STATUS_CLASSES[o.status] ?? "bg-sand text-mist"}`}>
+                  <span className={`rounded-md px-3 py-1 text-body-xs font-medium ${STATUS_CLASSES[o.status] ?? "bg-sand text-mist"}`}>
                     {label(o.status)}
                   </span>
                 </div>

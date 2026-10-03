@@ -64,7 +64,7 @@ export function AddVendorForm() {
       <div className="flex items-center gap-3 pt-2">
         <button type="button" onClick={submit}
           disabled={isPending || !email || storeName.length < 2 || storeSlug.length < 3}
-          className="rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50">
+          className="rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50">
           {isPending ? "Creating…" : "Create & invite"}
         </button>
         <button type="button" onClick={() => router.push("/sellers")}

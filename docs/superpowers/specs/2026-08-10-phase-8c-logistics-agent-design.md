@@ -176,7 +176,7 @@ export async function runLogisticsAgent(
   options: { customerId: string },
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: LOGISTICS_SYSTEM,
     messages,
     tools: buildLogisticsTools(options.customerId),

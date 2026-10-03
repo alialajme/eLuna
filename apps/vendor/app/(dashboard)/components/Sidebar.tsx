@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AyvanaLogo, Icon } from "@ayvana/ui";
 import { SignOutButton } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
-  { icon: "📊", label: "Dashboard", href: "/" },
-  { icon: "📦", label: "Products", href: "/products" },
-  { icon: "📋", label: "Orders", href: "/orders" },
-  { icon: "↩️", label: "Returns", href: "/returns" },
-  { icon: "🏭", label: "Inventory", href: "/inventory" },
-  { icon: "🧶", label: "Sourcing", href: "/sourcing" },
-  { icon: "📈", label: "Analytics", href: "/analytics" },
-  { icon: "💸", label: "Payouts", href: "/payouts" },
-  { icon: "🧾", label: "Invoices", href: "/invoices" },
-  { icon: "⚙️", label: "Settings", href: "/settings" },
+  { icon: "grid", label: "Dashboard", href: "/" },
+  { icon: "bag", label: "Products", href: "/products" },
+  { icon: "clipboard", label: "Orders", href: "/orders" },
+  { icon: "undo", label: "Returns", href: "/returns" },
+  { icon: "boxes", label: "Inventory", href: "/inventory" },
+  { icon: "cart", label: "Sourcing", href: "/sourcing" },
+  { icon: "chart", label: "Analytics", href: "/analytics" },
+  { icon: "banknote", label: "Payouts", href: "/payouts" },
+  { icon: "receipt", label: "Invoices", href: "/invoices" },
+  { icon: "sliders", label: "Settings", href: "/settings" },
 ] as const;
 
 type Props = {
@@ -25,11 +26,10 @@ export function Sidebar({ storeName }: Props) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col bg-ink min-h-screen">
+    <aside className="flex w-56 shrink-0 flex-col bg-ink-elevated min-h-screen">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-white/10">
-        <p className="font-display text-display-sm text-gold">✦ AYVANA</p>
-        <p className="text-body-xs text-mist mt-0.5">Vendor OS</p>
+        <AyvanaLogo tone="onDark" subtitle="Vendor OS" />
       </div>
 
       {/* Nav */}
@@ -46,7 +46,7 @@ export function Sidebar({ storeName }: Props) {
                   : "text-mist hover:text-ivory hover:bg-white/5"
               }`}
             >
-              <span className="text-base">{icon}</span>
+              <Icon name={icon} className="shrink-0" />
               <span>{label}</span>
             </Link>
           );

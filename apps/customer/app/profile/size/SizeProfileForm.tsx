@@ -152,7 +152,7 @@ export function SizeProfileForm({ initial }: Props) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-full bg-ink px-8 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-60"
+        className="rounded-md bg-ink px-8 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-60"
       >
         {isPending ? "Saving…" : "Save Profile"}
       </button>

@@ -9,9 +9,9 @@ if (!apiKey) {
 
 export const anthropic = createAnthropic({ apiKey });
 
-export const LUNA_MODEL = "claude-sonnet-4-6";
+export const AYVANA_MODEL = "claude-sonnet-4-6";
 
-export const DEFAULT_SYSTEM_CONTEXT = `You are AYVANA, an AI assistant for AYVANA — the Gulf's AI-powered abaya marketplace.
+export const DEFAULT_SYSTEM_CONTEXT = `You are AYVANA, an AI assistant for AYVANA — the abaya marketplace across the GCC.
 You help customers discover modest fashion, assist vendors with their boutiques, and ensure smooth platform operations.
 Always respond in the language the user writes in (Arabic or English).
 Be warm, culturally aware, and fashion-forward.`;

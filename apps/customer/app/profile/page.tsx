@@ -18,7 +18,7 @@ export default async function ProfilePage() {
         <p className="font-display text-display-md text-ink mb-4">Sign in to view your profile</p>
         <Link
           href="/sign-in"
-          className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory"
+          className="inline-flex rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory"
         >
           Sign in
         </Link>
@@ -147,7 +147,7 @@ export default async function ProfilePage() {
             <p className="text-body-md font-medium text-ink">Password</p>
             <p className="text-body-sm text-mist">Change your account password</p>
           </div>
-          <button className="rounded-full border border-sand px-4 py-2 text-body-sm text-ink hover:border-ink transition-colors">
+          <button className="rounded-md border border-sand px-4 py-2 text-body-sm text-ink hover:border-ink transition-colors">
             Change
           </button>
         </div>
@@ -156,7 +156,7 @@ export default async function ProfilePage() {
             <p className="text-body-md font-medium text-ink">Two-factor authentication (MFA)</p>
             <p className="text-body-sm text-mist">Required on all AYVANA accounts</p>
           </div>
-          <span className={`rounded-full px-3 py-1 text-body-sm font-medium ${mfaEnabled ? "bg-sage/20 text-sage" : "bg-coral/10 text-coral"}`}>
+          <span className={`rounded-md px-3 py-1 text-body-sm font-medium ${mfaEnabled ? "bg-sage/20 text-sage" : "bg-coral/10 text-coral"}`}>
             {mfaEnabled ? "Enabled" : "Off"}
           </span>
         </div>
@@ -174,7 +174,7 @@ export default async function ProfilePage() {
           </div>
           <span className="text-body-sm text-gold">✦ Default</span>
         </div>
-        <button className="rounded-full border border-sand px-4 py-2 text-body-sm text-ink hover:border-ink transition-colors">
+        <button className="rounded-md border border-sand px-4 py-2 text-body-sm text-ink hover:border-ink transition-colors">
           Add payment method
         </button>
         <p className="text-body-xs text-mist">Demo — live payments are processed at checkout via Stripe / Gulf BNPL.</p>

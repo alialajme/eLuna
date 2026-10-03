@@ -52,7 +52,7 @@ export default async function IncomingOrderDetailPage({ params }: Props) {
           <h2 className="font-display text-display-md text-ink">Order</h2>
           <p className="text-body-sm text-mist">From {order.vendor.storeName}</p>
         </div>
-        <span className="rounded-full bg-sand px-3 py-1 text-body-sm font-medium text-ink">{label(order.status)}</span>
+        <span className="rounded-md bg-sand px-3 py-1 text-body-sm font-medium text-ink">{label(order.status)}</span>
       </div>
 
       <div className="rounded-2xl border border-sand bg-ivory p-5 space-y-3">
@@ -114,7 +114,7 @@ export default async function IncomingOrderDetailPage({ params }: Props) {
       {order.invoice ? (
         <Link
           href={`/invoices/${order.invoice.id}`}
-          className="inline-flex rounded-full border border-sand px-5 py-2.5 text-body-sm text-ink hover:border-ink transition-colors"
+          className="inline-flex rounded-md border border-sand px-5 py-2.5 text-body-sm text-ink hover:border-ink transition-colors"
         >
           View tax invoice →
         </Link>

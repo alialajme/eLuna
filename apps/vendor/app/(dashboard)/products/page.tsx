@@ -59,7 +59,7 @@ export default async function ProductsPage({ searchParams }: Props) {
         <h2 className="font-display text-display-md text-ink">Products</h2>
         <Link
           href="/products/new"
-          className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink transition-colors"
+          className="rounded-md bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-gold hover:text-ink transition-colors"
         >
           + New product
         </Link>
@@ -132,7 +132,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                 </td>
                 <td className="py-3 pr-4">
                   <span
-                    className={`rounded-full px-2 py-0.5 text-body-xs font-medium ${STATUS_CLASSES[p.status]}`}
+                    className={`rounded-md px-2 py-0.5 text-body-xs font-medium ${STATUS_CLASSES[p.status]}`}
                   >
                     {STATUS_LABELS[p.status]}
                   </span>

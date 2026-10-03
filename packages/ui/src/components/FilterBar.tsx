@@ -81,7 +81,7 @@ export function FilterBar({ categories = [], fabrics = [], totalCount }: FilterB
           <button
             key={key}
             onClick={() => removeFilter(key as keyof FilterState)}
-            className="flex shrink-0 items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-body-sm font-medium text-ivory"
+            className="flex shrink-0 items-center gap-1 rounded-md bg-ink px-3 py-1.5 text-body-sm font-medium text-ivory"
           >
             {val}
             <span aria-hidden>✕</span>
@@ -91,7 +91,7 @@ export function FilterBar({ categories = [], fabrics = [], totalCount }: FilterB
         {/* Filters trigger */}
         <button
           onClick={() => setDrawerOpen(true)}
-          className="shrink-0 rounded-full border border-sand px-3 py-1.5 text-body-sm text-ink hover:bg-sand transition-colors"
+          className="shrink-0 rounded-md border border-sand px-3 py-1.5 text-body-sm text-ink hover:bg-sand transition-colors"
         >
           + Filters
         </button>
@@ -106,7 +106,7 @@ export function FilterBar({ categories = [], fabrics = [], totalCount }: FilterB
           <select
             value={current.sort ?? "newest"}
             onChange={(e) => applyFilter({ sort: e.target.value })}
-            className="rounded-full border border-sand bg-ivory px-3 py-1.5 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-gold"
+            className="rounded-md border border-sand bg-ivory px-3 py-1.5 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-gold"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>

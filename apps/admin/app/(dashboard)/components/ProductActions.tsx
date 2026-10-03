@@ -31,9 +31,9 @@ export function ProductActions({ productId, status }: Props) {
   }
 
   const approveBtn =
-    "rounded-full bg-sage/20 px-4 py-2 text-body-sm font-medium text-sage hover:bg-sage/30 disabled:opacity-50";
+    "rounded-md bg-sage/20 px-4 py-2 text-body-sm font-medium text-sage hover:bg-sage/30 disabled:opacity-50";
   const dangerBtn =
-    "rounded-full bg-coral/20 px-4 py-2 text-body-sm font-medium text-coral hover:bg-coral/30 disabled:opacity-50";
+    "rounded-md bg-coral/20 px-4 py-2 text-body-sm font-medium text-coral hover:bg-coral/30 disabled:opacity-50";
 
   return (
     <div className="space-y-1.5">

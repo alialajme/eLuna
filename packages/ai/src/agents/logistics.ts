@@ -2,7 +2,7 @@ import { streamText, tool } from "ai";
 import type { CoreMessage } from "ai";
 import { z } from "zod";
 import { prisma } from "@ayvana/db";
-import { anthropic, LUNA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
+import { anthropic, AYVANA_MODEL, DEFAULT_SYSTEM_CONTEXT } from "../config";
 
 const LOGISTICS_SYSTEM = `${DEFAULT_SYSTEM_CONTEXT}
 
@@ -154,7 +154,7 @@ export async function runLogisticsAgent(
   options: { customerId: string; onFinish?: (event: { text: string }) => void | Promise<void> },
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: LOGISTICS_SYSTEM,
     messages,
     tools: buildLogisticsTools(options.customerId),

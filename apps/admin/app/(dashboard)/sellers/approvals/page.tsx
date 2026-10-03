@@ -53,10 +53,10 @@ export default async function ApprovalsPage() {
               )}
 
               <div className="mb-4 flex flex-wrap gap-2">
-                <span className="rounded-full bg-sand px-2 py-0.5 text-body-xs text-ink">
+                <span className="rounded-md bg-sand px-2 py-0.5 text-body-xs text-ink">
                   {v.ibanNumber ? "IBAN on file" : "No IBAN"}
                 </span>
-                <span className="rounded-full bg-sand px-2 py-0.5 text-body-xs text-ink">
+                <span className="rounded-md bg-sand px-2 py-0.5 text-body-xs text-ink">
                   {v.mfaVerifiedAt ? "MFA verified" : "MFA pending"}
                 </span>
               </div>

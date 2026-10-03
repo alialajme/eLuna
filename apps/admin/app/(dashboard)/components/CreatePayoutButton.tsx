@@ -29,7 +29,7 @@ export function CreatePayoutButton({ vendorId, disabled }: Props) {
       <button
         onClick={handleClick}
         disabled={disabled || isLoading}
-        className="rounded-full bg-sage/20 px-4 py-2 text-body-sm font-medium text-sage hover:bg-sage/30 disabled:opacity-50"
+        className="rounded-md bg-sage/20 px-4 py-2 text-body-sm font-medium text-sage hover:bg-sage/30 disabled:opacity-50"
       >
         {isLoading ? "Creating…" : "Create Payout"}
       </button>

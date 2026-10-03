@@ -98,7 +98,7 @@ export default async function OrdersPage({ searchParams }: Props) {
                 AED {Number(order.total).toLocaleString("en-AE", { maximumFractionDigits: 0 })}
               </p>
               <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-body-xs font-medium ${ORDER_STATUS_BADGE[order.status] ?? "bg-sand text-mist"}`}
+                className={`shrink-0 rounded-md px-2 py-0.5 text-body-xs font-medium ${ORDER_STATUS_BADGE[order.status] ?? "bg-sand text-mist"}`}
               >
                 {order.status.charAt(0) + order.status.slice(1).toLowerCase()}
               </span>

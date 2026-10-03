@@ -25,7 +25,7 @@ export function LoadMoreButton({ currentPage, totalCount, loadedCount }: LoadMor
     <button
       type="button"
       onClick={handleLoadMore}
-      className="rounded-full border border-sand px-8 py-3 text-body-md text-ink hover:bg-sand transition-colors"
+      className="rounded-md border border-sand px-8 py-3 text-body-md text-ink hover:bg-sand transition-colors"
     >
       Load more ({totalCount - loadedCount} remaining)
     </button>

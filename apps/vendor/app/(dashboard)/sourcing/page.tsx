@@ -44,7 +44,7 @@ export default async function SourcingPage({ searchParams }: Props) {
           const href = t.value ? `/sourcing?type=${t.value}` : "/sourcing";
           return (
             <Link key={t.label} href={href}
-              className={`rounded-full px-4 py-1.5 text-body-sm transition-colors ${
+              className={`rounded-md px-4 py-1.5 text-body-sm transition-colors ${
                 active ? "bg-ink text-ivory" : "border border-sand text-mist hover:border-ink hover:text-ink"
               }`}>
               {t.label}

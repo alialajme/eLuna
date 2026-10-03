@@ -76,7 +76,7 @@ export function AddSupplierForm() {
         <div className="flex flex-wrap gap-2">
           {MATERIAL_TYPES.map((m) => (
             <button key={m.value} type="button" onClick={() => toggle(m.value)}
-              className={`rounded-full px-4 py-2 text-body-sm transition-colors ${
+              className={`rounded-md px-4 py-2 text-body-sm transition-colors ${
                 types.includes(m.value) ? "bg-ink text-ivory" : "border border-sand text-mist hover:border-ink hover:text-ink"
               }`}>
               {m.label}
@@ -90,7 +90,7 @@ export function AddSupplierForm() {
       <div className="flex items-center gap-3 pt-2">
         <button type="button" onClick={submit}
           disabled={isPending || !email || companyName.length < 2 || companySlug.length < 3 || types.length === 0}
-          className="rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50">
+          className="rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50">
           {isPending ? "Creating…" : "Create & invite"}
         </button>
         <button type="button" onClick={() => router.push("/suppliers")}

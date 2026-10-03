@@ -122,7 +122,7 @@ export default async function UsersPage() {
                     {(u.vendor || u.supplier) && <p className="text-body-xs text-mist">{u.email}</p>}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-3 py-1 text-body-xs font-medium ${ROLE_BADGE[u.role] ?? "bg-sand text-mist"}`}>
+                    <span className={`rounded-md px-3 py-1 text-body-xs font-medium ${ROLE_BADGE[u.role] ?? "bg-sand text-mist"}`}>
                       {u.role.charAt(0) + u.role.slice(1).toLowerCase()}
                     </span>
                   </td>

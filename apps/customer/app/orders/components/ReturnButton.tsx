@@ -54,7 +54,7 @@ export function ReturnButton({ orderItemId }: { orderItemId: string }) {
           type="button"
           onClick={submit}
           disabled={isPending}
-          className="rounded-full bg-ink px-4 py-1.5 text-body-sm font-medium text-ivory hover:bg-ink/90 disabled:opacity-50 transition-colors"
+          className="rounded-md bg-ink px-4 py-1.5 text-body-sm font-medium text-ivory hover:bg-ink/90 disabled:opacity-50 transition-colors"
         >
           {isPending ? "Submitting…" : "Submit"}
         </button>

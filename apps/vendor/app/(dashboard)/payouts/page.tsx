@@ -163,7 +163,7 @@ export default async function PayoutsPage() {
                   </td>
                   <td className="py-2.5">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-body-xs font-medium ${STATUS_BADGE[p.status] ?? "bg-sand text-mist"}`}
+                      className={`rounded-md px-2 py-0.5 text-body-xs font-medium ${STATUS_BADGE[p.status] ?? "bg-sand text-mist"}`}
                     >
                       {STATUS_LABEL[p.status] ?? p.status}
                     </span>

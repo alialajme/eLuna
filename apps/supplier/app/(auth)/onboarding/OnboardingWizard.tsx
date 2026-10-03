@@ -58,7 +58,7 @@ export function OnboardingWizard({ userEmail }: Props) {
         <div className="flex items-center justify-between mb-2">
           {STEPS.map((label, i) => (
             <div key={label} className="flex flex-col items-center gap-1 flex-1">
-              <div className={`h-2 w-full rounded-full ${i + 1 <= step ? "bg-gold" : "bg-sand"}`} />
+              <div className={`h-2 w-full rounded-md ${i + 1 <= step ? "bg-gold" : "bg-sand"}`} />
               <span className={`text-body-xs hidden sm:block ${i + 1 === step ? "text-ink" : "text-mist"}`}>
                 {label}
               </span>
@@ -116,7 +116,7 @@ export function OnboardingWizard({ userEmail }: Props) {
                       key={m.value}
                       type="button"
                       onClick={() => toggleType(m.value)}
-                      className={`rounded-full border px-4 py-2 text-body-sm transition-colors ${
+                      className={`rounded-md border px-4 py-2 text-body-sm transition-colors ${
                         active
                           ? "border-ink bg-ink text-ivory"
                           : "border-sand text-mist hover:border-ink hover:text-ink"
@@ -138,7 +138,7 @@ export function OnboardingWizard({ userEmail }: Props) {
             type="button"
             onClick={handleStep1}
             disabled={isPending || !name.trim() || !slug.trim() || types.length === 0}
-            className="w-full rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
+            className="w-full rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
           >
             {isPending ? "Creating…" : "Next →"}
           </button>
@@ -165,7 +165,7 @@ export function OnboardingWizard({ userEmail }: Props) {
           <button
             type="button"
             onClick={handleFinish}
-            className="w-full rounded-full bg-gold px-6 py-3 text-body-md font-medium text-ink hover:bg-gold/90 transition-colors"
+            className="w-full rounded-md bg-gold px-6 py-3 text-body-md font-medium text-ink hover:bg-gold/90 transition-colors"
           >
             Finish setup ✦
           </button>
