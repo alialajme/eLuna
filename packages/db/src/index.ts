@@ -14,4 +14,7 @@ export * from "./audit";
 export * from "./resilience";
 export * from "./outbox";
 export * from "./supplier-payouts";
+export * from "./studio-credits";
+export * from "./studio-billing";
+export * from "./studio-payment";
 export * from "./clerk-sync";

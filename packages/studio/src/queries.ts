@@ -11,6 +11,7 @@ export type SessionView = {
   id: string;
   status: string;
   garmentId: string;
+  productId: string | null;
   createdAt: Date;
   jobs: { id: string; kind: string; state: string; error: string | null }[];
   assets: { id: string; type: string; url: string; isSimulated: boolean }[];
@@ -26,6 +27,7 @@ export async function getSessionForVendor(sessionId: string, vendorId: string): 
         vendorId: true,
         status: true,
         garmentId: true,
+        productId: true,
         createdAt: true,
         jobs: { select: { id: true, kind: true, state: true, error: true }, orderBy: { createdAt: "asc" } },
         assets: {
@@ -56,20 +58,44 @@ export async function getSessionForVendor(sessionId: string, vendorId: string): 
     id: session.id,
     status: session.status,
     garmentId: session.garmentId,
+    productId: session.productId,
     createdAt: session.createdAt,
     jobs: session.jobs,
     assets,
   };
 }
 
-/** List a vendor's recent sessions (newest first). */
+/** List a vendor's recent sessions (newest first), with the linked product's title. */
 export async function listSessionsForVendor(vendorId: string, limit = 50) {
   return prisma.generationSession
     .findMany({
       where: { vendorId },
       orderBy: { createdAt: "desc" },
       take: limit,
-      select: { id: true, status: true, garmentId: true, createdAt: true },
+      select: {
+        id: true,
+        status: true,
+        garmentId: true,
+        productId: true,
+        createdAt: true,
+        product: { select: { id: true, title: true } },
+      },
+    })
+    .catch(() => []);
+}
+
+/**
+ * List the sessions (shoots) linked to one product, newest first. Vendor-scoped:
+ * both the product and the session must belong to the caller, so a cross-vendor
+ * productId can never surface another seller's shoots.
+ */
+export async function listSessionsForProduct(productId: string, vendorId: string, limit = 20) {
+  return prisma.generationSession
+    .findMany({
+      where: { productId, vendorId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: { id: true, status: true, createdAt: true },
     })
     .catch(() => []);
 }

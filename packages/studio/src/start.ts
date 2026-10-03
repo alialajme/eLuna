@@ -1,4 +1,4 @@
-import { prisma, appendOutboxEvent } from "@ayvana/db";
+import { prisma, appendOutboxEvent, reserveCredit } from "@ayvana/db";
 import { logger } from "@ayvana/observability";
 import {
   OUTBOX_GENERATION_ENQUEUED,
@@ -7,6 +7,14 @@ import {
 } from "./types";
 
 const log = logger.child({ module: "studio.start" });
+
+/** Thrown inside the start transaction to roll back when the wallet is empty. */
+class InsufficientCreditsError extends Error {
+  constructor() {
+    super("INSUFFICIENT_CREDITS");
+    this.name = "InsufficientCreditsError";
+  }
+}
 
 /**
  * Start an AI Shoot: create a GenerationSession + a QUEUED ANALYZE GenerationJob
@@ -19,7 +27,13 @@ const log = logger.child({ module: "studio.start" });
  * vendor must be ACTIVE. Idempotent: a duplicate idempotencyKey returns the same
  * session/job instead of starting a second shoot (no double-generation).
  *
- * Credits are Phase 4 — this phase reserves nothing; it just starts the job.
+ * Credits (Phase 4): one AI Shoot is RESERVED from the vendor's wallet INSIDE
+ * the same transaction that creates the session/job/outbox event. Because the
+ * reserve row-locks the wallet (`SELECT … FOR UPDATE`) and the job's
+ * idempotencyKey dedupes replays, (a) two concurrent generations can't spend one
+ * remaining shoot twice, and (b) a duplicate request can't double-charge. If the
+ * wallet is empty the whole transaction is rolled back — no session, no job, no
+ * reservation — and the caller gets INSUFFICIENT_CREDITS to prompt an upgrade.
  */
 export async function startGeneration(input: StartGenerationInput): Promise<StartGenerationResult> {
   const l = log.child({ correlationId: input.correlationId, vendorId: input.vendorId });
@@ -51,7 +65,7 @@ export async function startGeneration(input: StartGenerationInput): Promise<Star
   if (garment.vendor.status !== "ACTIVE") return { ok: false, reason: "VENDOR_INACTIVE" };
 
   try {
-    const { sessionId, jobId } = await prisma.$transaction(async (tx) => {
+    const outcome = await prisma.$transaction(async (tx) => {
       const session = await tx.generationSession.create({
         data: {
           vendorId: input.vendorId,
@@ -78,6 +92,25 @@ export async function startGeneration(input: StartGenerationInput): Promise<Star
         select: { id: true },
       });
 
+      // Reserve 1 AI Shoot atomically (row-locked wallet). Keyed to this session
+      // so the pipeline can CONSUME on success / RELEASE on platform failure.
+      // An empty wallet rolls back the whole transaction (no orphan session/job).
+      const reserve = await reserveCredit(
+        {
+          vendorId: input.vendorId,
+          shoots: 1,
+          idempotencyKey: `reserve:${session.id}`,
+          sessionId: session.id,
+          jobId: job.id,
+          reason: "AI shoot started",
+        },
+        tx,
+      );
+      if (!reserve.ok) {
+        // Throw to roll back the session + job; caught below as INSUFFICIENT_CREDITS.
+        throw new InsufficientCreditsError();
+      }
+
       await appendOutboxEvent(tx, {
         type: OUTBOX_GENERATION_ENQUEUED,
         payload: { jobId: job.id, sessionId: session.id, correlationId: input.correlationId },
@@ -86,9 +119,13 @@ export async function startGeneration(input: StartGenerationInput): Promise<Star
       return { sessionId: session.id, jobId: job.id };
     });
 
-    l.info("startGeneration enqueued", { sessionId, jobId });
-    return { ok: true, sessionId, jobId, deduped: false };
+    l.info("startGeneration enqueued", { sessionId: outcome.sessionId, jobId: outcome.jobId });
+    return { ok: true, sessionId: outcome.sessionId, jobId: outcome.jobId, deduped: false };
   } catch (err) {
+    if (err instanceof InsufficientCreditsError) {
+      l.info("startGeneration blocked — no shoots");
+      return { ok: false, reason: "INSUFFICIENT_CREDITS" };
+    }
     const message = err instanceof Error ? err.message : "unknown";
     l.error("startGeneration failed", { error: message });
     return { ok: false, reason: "ERROR", message };

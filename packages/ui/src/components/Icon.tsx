@@ -23,9 +23,14 @@ export type IconName =
   | "cart"
   | "receipt"
   | "package"
-  | "inbox";
+  | "inbox"
+  | "sparkles";
 
 const PATHS: Record<IconName, React.ReactNode> = {
+  // Four-point spark — the AYVANA brand device, used for AI Studio.
+  sparkles: (
+    <path d="M12 3 L13.8 10.2 L21 12 L13.8 13.8 L12 21 L10.2 13.8 L3 12 L10.2 10.2 Z" />
+  ),
   grid: (
     <>
       <rect x="3.5" y="3.5" width="7" height="7" />

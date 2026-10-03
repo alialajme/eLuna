@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { icon: "wallet", label: "Supplier Payouts", href: "/supplier-payouts" },
   { icon: "percent", label: "Commissions", href: "/commissions" },
   { icon: "chart", label: "Analytics", href: "/analytics" },
+  { icon: "sparkles", label: "AI Studio", href: "/ai-studio" },
   { icon: "users", label: "Customers", href: "/customers" },
   { icon: "alert", label: "Fraud", href: "/fraud" },
   { icon: "sliders", label: "Settings", href: "/settings" },
@@ -52,6 +53,8 @@ export function Sidebar() {
                         ? pathname === "/commissions"
                         : href === "/analytics"
                           ? pathname === "/analytics"
+                          : href === "/ai-studio"
+                          ? pathname === "/ai-studio" || pathname.startsWith("/ai-studio/")
                           : href === "/customers"
                             ? pathname === "/customers" || pathname.startsWith("/customers/")
                             : href === "/fraud"

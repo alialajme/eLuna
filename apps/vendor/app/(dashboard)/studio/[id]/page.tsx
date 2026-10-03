@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { prisma } from "@ayvana/db";
 import { getSessionForVendor } from "@ayvana/studio";
 import { safeCurrentUser } from "../../../lib/auth";
 import { getVendorByUserId } from "../../../lib/vendor";
@@ -19,5 +20,20 @@ export default async function StudioResultPage({ params }: { params: Promise<{ i
   const session = await getSessionForVendor(id, vendor.id);
   if (!session) notFound();
 
-  return <ShootResults initial={{ ...session, createdAt: session.createdAt.toISOString() }} />;
+  // Cross-link back to the product this shoot is for (vendor-scoped).
+  const product = session.productId
+    ? await prisma.product
+        .findFirst({
+          where: { id: session.productId, vendorId: vendor.id },
+          select: { id: true, title: true },
+        })
+        .catch(() => null)
+    : null;
+
+  return (
+    <ShootResults
+      initial={{ ...session, createdAt: session.createdAt.toISOString() }}
+      product={product}
+    />
+  );
 }

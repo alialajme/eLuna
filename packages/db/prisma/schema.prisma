@@ -288,6 +288,8 @@ model Vendor {
   garmentAssets      GarmentAsset[]
   aiModelProfiles    AIModelProfile[]
   generationSessions GenerationSession[]
+  creditWallet       CreditWallet?
+  studioSubscription StudioSubscription?
 
   @@index([status])
 }
@@ -1195,4 +1197,242 @@ model ProviderModel {
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, modelCode])
+}
+
+// ─────────────────────────────────────────────
+// AI FASHION STUDIO — Phase 4 (MONETIZATION)
+//
+// Hybrid model: subscription tiers grant included "AI Shoots" + credit packs
+// for overage. The "AI Shoot" is the billing unit (GPU/token internals hidden).
+// Plan/pack params are config-in-DB (admin-editable, never hard-coded). Money is
+// Decimal, never float. Credit ledger is APPEND-ONLY (ADR-0003). Everything is
+// keyed to vendorId for strict seller isolation (consistent with Phase 1, which
+// relates GenerationSession → Vendor directly rather than an AIStudioSeller layer).
+// ─────────────────────────────────────────────
+
+enum StudioSubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  TRIALING
+  EXPIRED
+}
+
+enum StudioBillingCycle {
+  MONTHLY
+  ANNUAL
+}
+
+enum CreditTxnType {
+  GRANT // subscription-included shoots granted at activation/renewal
+  PURCHASE // credit-pack purchase
+  RESERVE // shoot reserved at generation start (signed −)
+  CONSUME // shoot consumed on delivery/approval
+  RELEASE // reservation released (platform failure / cancel) (signed +)
+  EXPIRE // unused credits expired
+  ADJUST // manual admin correction (reversing entry)
+  ROLLOVER // carried from a prior period
+}
+
+enum StudioPaymentKind {
+  SUBSCRIPTION
+  CREDIT_PACK
+}
+
+enum StudioPaymentStatus {
+  PENDING
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+// Plans are config-in-DB — admin edits price/includedShoots/limits without deploy.
+model SubscriptionPlan {
+  id                 String   @id @default(uuid())
+  code               String   @unique // TRY BOUTIQUE PROFESSIONAL BRAND ENTERPRISE
+  name               String
+  priceMonthly       Decimal  @db.Decimal(10, 2)
+  priceAnnual        Decimal? @db.Decimal(10, 2)
+  currency           String   @default("AED")
+  includedShoots     Int
+  maxResolution      String   @default("2K") // "2K" | "4K"
+  allowedModels      Json     @default("[]") // provider/model allowlist for this tier
+  downloadsAllowed   Boolean  @default(true)
+  rolloverShoots     Int      @default(0)
+  overageCreditPrice Decimal? @db.Decimal(10, 2)
+  monthlyLimit       Int? // null = unlimited overage
+  sortOrder          Int      @default(0)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  subscriptions StudioSubscription[]
+}
+
+model StudioSubscription {
+  id                   String                   @id @default(uuid())
+  vendorId             String                   @unique
+  planId               String
+  status               StudioSubscriptionStatus @default(ACTIVE)
+  billingCycle         StudioBillingCycle       @default(MONTHLY)
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  stripeSubscriptionId String?
+  cancelAtPeriodEnd    Boolean                  @default(false)
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  vendor Vendor           @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([currentPeriodEnd])
+}
+
+model CreditWallet {
+  id               String   @id @default(uuid())
+  vendorId         String   @unique
+  available        Decimal  @default(0) @db.Decimal(12, 2) // shoots available
+  reserved         Decimal  @default(0) @db.Decimal(12, 2) // shoots reserved by in-flight generations
+  lifetimeConsumed Decimal  @default(0) @db.Decimal(12, 2)
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+
+  vendor       Vendor              @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  transactions CreditTransaction[]
+
+  @@index([vendorId])
+}
+
+// APPEND-ONLY (ADR-0003): rows never UPDATE/DELETE; corrections are ADJUST entries.
+model CreditTransaction {
+  id             String        @id @default(uuid())
+  walletId       String
+  vendorId       String // denormalized for scoped queries + isolation
+  type           CreditTxnType
+  amount         Decimal       @db.Decimal(12, 2) // signed
+  balanceAfter   Decimal       @db.Decimal(12, 2) // available snapshot after this entry
+  sessionId      String?
+  jobId          String?
+  paymentId      String?
+  idempotencyKey String        @unique
+  reason         String?
+  actor          String? // "system" | "webhook" | adminUserId
+  metadata       Json          @default("{}")
+  createdAt      DateTime      @default(now())
+
+  wallet CreditWallet @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@index([walletId])
+  @@index([vendorId])
+  @@index([walletId, createdAt])
+  @@index([sessionId])
+}
+
+model CreditPackage {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  credits   Int
+  price     Decimal  @db.Decimal(10, 2)
+  currency  String   @default("AED")
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Studio billing payments (subscriptions + packs). Mirrors PaymentTransaction
+// discipline: order-first, idempotent webhook reconcile (duplicate ≠ double-credit).
+model StudioPayment {
+  id             String              @id @default(uuid())
+  vendorId       String
+  kind           StudioPaymentKind
+  status         StudioPaymentStatus @default(PENDING)
+  amount         Decimal             @db.Decimal(10, 2)
+  currency       String              @default("AED")
+  method         String              @default("CARD")
+  // what this payment grants on capture:
+  planId         String? // for SUBSCRIPTION
+  billingCycle   StudioBillingCycle? // for SUBSCRIPTION
+  packageId      String? // for CREDIT_PACK
+  grantedCredits Int                 @default(0) // packs: pack.credits; subs: plan.includedShoots
+  externalRef    String?
+  idempotencyKey String              @unique
+  metadata       Json                @default("{}")
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  invoice StudioInvoice?
+
+  @@index([vendorId])
+  @@index([status])
+}
+
+// UAE 5% VAT tax invoice for a Studio payment (AYVANA is the seller to the vendor).
+// Plan/pack prices are treated VAT-EXCLUSIVE (B2B SaaS) → VAT added on top.
+model StudioInvoice {
+  id            String   @id @default(uuid())
+  paymentId     String   @unique
+  invoiceNumber String   @unique
+  sellerName    String   @default("AYVANA")
+  sellerTRN     String?
+  buyerName     String
+  buyerTRN      String?
+  subtotal      Decimal  @db.Decimal(10, 2) // net
+  vatRate       Decimal  @default(0.05) @db.Decimal(4, 2)
+  vatAmount     Decimal  @db.Decimal(10, 2)
+  total         Decimal  @db.Decimal(10, 2)
+  lines         Json     @default("[]")
+  externalRef   String?
+  issuedAt      DateTime @default(now())
+
+  payment StudioPayment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+}
+
+// REAL variable cost per shoot → margin engine. One row per session.
+model GenerationCost {
+  id                String   @id @default(uuid())
+  sessionId         String   @unique
+  vendorId          String // denormalized for per-vendor/plan aggregation
+  planCode          String? // the vendor's plan at shoot time (revenue allocation basis)
+  provider          String
+  model             String
+  images            Int      @default(0)
+  retries           Int      @default(0)
+  videoSeconds      Decimal  @default(0) @db.Decimal(6, 2)
+  resolution        String?
+  tokens            Int      @default(0)
+  gpuCost           Decimal  @default(0) @db.Decimal(10, 6)
+  storageCost       Decimal  @default(0) @db.Decimal(10, 6)
+  cdnCost           Decimal  @default(0) @db.Decimal(10, 6)
+  moderationCost    Decimal  @default(0) @db.Decimal(10, 6)
+  qaCost            Decimal  @default(0) @db.Decimal(10, 6)
+  totalVariableCost Decimal  @db.Decimal(10, 4)
+  sellerRevenue     Decimal? @db.Decimal(10, 2) // allocated plan/pack revenue for this shoot
+  createdAt         DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([vendorId])
+  @@index([planCode])
+}
+
+// Per-provider-call usage (one row per provider operation in a shoot).
+model ProviderUsage {
+  id            String   @id @default(uuid())
+  sessionId     String?
+  jobId         String?
+  providerCode  String
+  model         String
+  operation     String // TRYON | MULTIVIEW | VIDEO | FIDELITY | MODERATION | ANALYZE
+  units         Decimal  @db.Decimal(12, 4) // images / seconds / MP
+  cost          Decimal  @db.Decimal(10, 6)
+  latencyMs     Int?
+  success       Boolean  @default(true)
+  correlationId String?
+  createdAt     DateTime @default(now())
+
+  @@index([providerCode, createdAt])
+  @@index([sessionId])
+  @@index([operation])
 }
