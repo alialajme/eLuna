@@ -1,0 +1,16 @@
+{
+  "name": "@ayvana/fashion",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@ayvana/storage": "workspace:*"
+  },
+  "devDependencies": {
+    "@ayvana/config": "workspace:*",
+    "@types/node": "^20",
+    "typescript": "^5.4.0"
+  }
+}
