@@ -77,7 +77,7 @@ export function FilterDrawer({
                   <button
                     key={cat}
                     onClick={() => toggle("category", cat)}
-                    className={`rounded-full px-4 py-2 text-body-sm transition-colors ${
+                    className={`rounded-md px-4 py-2 text-body-sm transition-colors ${
                       draft.category === cat
                         ? "bg-ink text-ivory"
                         : "border border-sand text-ink hover:bg-sand"
@@ -119,7 +119,7 @@ export function FilterDrawer({
                   <button
                     key={fabric}
                     onClick={() => toggle("fabric", fabric)}
-                    className={`rounded-full px-4 py-2 text-body-sm transition-colors ${
+                    className={`rounded-md px-4 py-2 text-body-sm transition-colors ${
                       draft.fabric === fabric
                         ? "bg-ink text-ivory"
                         : "border border-sand text-ink hover:bg-sand"
@@ -165,13 +165,13 @@ export function FilterDrawer({
               setDraft({});
               onApply({});
             }}
-            className="flex-1 rounded-full border border-sand py-3 text-body-md text-ink hover:bg-sand transition-colors"
+            className="flex-1 rounded-md border border-sand py-3 text-body-md text-ink hover:bg-sand transition-colors"
           >
             Clear all
           </button>
           <button
             onClick={() => onApply(draft)}
-            className="flex-1 rounded-full bg-ink py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
+            className="flex-1 rounded-md bg-ink py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors"
           >
             Show results
           </button>

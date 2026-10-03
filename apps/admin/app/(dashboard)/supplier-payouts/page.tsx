@@ -151,7 +151,7 @@ export default async function SupplierPayoutsPage({ searchParams }: Props) {
                   })}
                 </p>
                 <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-body-xs font-medium ${PAYOUT_STATUS_BADGE[p.status] ?? "bg-sand text-mist"}`}
+                  className={`shrink-0 rounded-md px-2 py-0.5 text-body-xs font-medium ${PAYOUT_STATUS_BADGE[p.status] ?? "bg-sand text-mist"}`}
                 >
                   {p.status.charAt(0) + p.status.slice(1).toLowerCase()}
                 </span>

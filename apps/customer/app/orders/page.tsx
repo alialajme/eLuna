@@ -27,7 +27,7 @@ export default async function OrdersPage() {
         <p className="font-display text-display-md text-ink mb-4">Sign in to view your orders</p>
         <Link
           href="/sign-in"
-          className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory"
+          className="inline-flex rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory"
         >
           Sign in
         </Link>
@@ -57,7 +57,7 @@ export default async function OrdersPage() {
         <p className="text-body-md text-mist mb-6">Your orders will appear here once you shop</p>
         <Link
           href="/browse"
-          className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory"
+          className="inline-flex rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory"
         >
           Start shopping
         </Link>
@@ -93,7 +93,7 @@ export default async function OrdersPage() {
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className={`rounded-full px-3 py-1 text-label uppercase ${statusClass}`}>
+                  <span className={`rounded-md px-3 py-1 text-label uppercase ${statusClass}`}>
                     {order.status}
                   </span>
                   <p className="font-display text-body-lg text-gold">

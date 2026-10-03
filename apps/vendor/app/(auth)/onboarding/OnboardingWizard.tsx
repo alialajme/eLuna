@@ -96,7 +96,7 @@ export function OnboardingWizard({ userEmail }: Props) {
           {STEPS.map((label, i) => (
             <div key={label} className="flex flex-col items-center gap-1 flex-1">
               <div
-                className={`h-2 w-full rounded-full ${
+                className={`h-2 w-full rounded-md ${
                   i + 1 <= step ? "bg-gold" : "bg-sand"
                 }`}
               />
@@ -158,7 +158,7 @@ export function OnboardingWizard({ userEmail }: Props) {
             type="button"
             onClick={handleStep1}
             disabled={isPending || !name.trim() || !slug.trim()}
-            className="w-full rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
+            className="w-full rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
           >
             {isPending ? "Creating…" : "Next →"}
           </button>
@@ -209,7 +209,7 @@ export function OnboardingWizard({ userEmail }: Props) {
             <button
               type="button"
               onClick={handleStep2Skip}
-              className="flex-1 rounded-full border border-sand px-6 py-3 text-body-md text-mist hover:border-ink hover:text-ink transition-colors"
+              className="flex-1 rounded-md border border-sand px-6 py-3 text-body-md text-mist hover:border-ink hover:text-ink transition-colors"
             >
               Skip for now
             </button>
@@ -217,7 +217,7 @@ export function OnboardingWizard({ userEmail }: Props) {
               type="button"
               onClick={handleStep2}
               disabled={isPending}
-              className="flex-1 rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
+              className="flex-1 rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
             >
               {isPending ? "Saving…" : "Save & Continue →"}
             </button>
@@ -254,7 +254,7 @@ export function OnboardingWizard({ userEmail }: Props) {
             <button
               type="button"
               onClick={handleStep3Skip}
-              className="flex-1 rounded-full border border-sand px-6 py-3 text-body-md text-mist hover:border-ink hover:text-ink transition-colors"
+              className="flex-1 rounded-md border border-sand px-6 py-3 text-body-md text-mist hover:border-ink hover:text-ink transition-colors"
             >
               Skip for now
             </button>
@@ -262,7 +262,7 @@ export function OnboardingWizard({ userEmail }: Props) {
               type="button"
               onClick={handleStep3}
               disabled={isPending || !iban.trim()}
-              className="flex-1 rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
+              className="flex-1 rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
             >
               {isPending ? "Saving…" : "Save & Continue →"}
             </button>
@@ -292,14 +292,14 @@ export function OnboardingWizard({ userEmail }: Props) {
           {/* Fix 3: replaced broken Clerk staff URL with /settings internal link */}
           <a
             href="/settings"
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-ink px-6 py-3 text-body-md font-medium text-ink hover:bg-ink hover:text-ivory transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-ink px-6 py-3 text-body-md font-medium text-ink hover:bg-ink hover:text-ivory transition-colors"
           >
             Go to Account Settings →
           </a>
           <button
             type="button"
             onClick={handleFinish}
-            className="w-full rounded-full bg-gold px-6 py-3 text-body-md font-medium text-ink hover:bg-gold/90 transition-colors"
+            className="w-full rounded-md bg-gold px-6 py-3 text-body-md font-medium text-ink hover:bg-gold/90 transition-colors"
           >
             Finish setup ✦
           </button>

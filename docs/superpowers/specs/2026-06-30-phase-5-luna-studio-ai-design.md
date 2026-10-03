@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
 import { revalidatePath } from "next/cache";
 import { generateText } from "ai";
 import { prisma } from "@ayvana/db";
-import { anthropic, LUNA_MODEL } from "@ayvana/ai";
+import { anthropic, AYVANA_MODEL } from "@ayvana/ai";
 import { safeCurrentUser } from "../lib/auth";
 import { getVendorByUserId } from "../lib/vendor";
 ```
@@ -190,7 +190,7 @@ export async function detectGarment(imageUrls: string[]): Promise<{
 **Implementation:**
 ```ts
 const { text } = await generateText({
-  model: anthropic(LUNA_MODEL),
+  model: anthropic(AYVANA_MODEL),
   messages: [
     {
       role: "user",
@@ -235,7 +235,7 @@ export async function writeCopy(garment: {
 **Implementation:**
 ```ts
 const { text } = await generateText({
-  model: anthropic(LUNA_MODEL),
+  model: anthropic(AYVANA_MODEL),
   prompt: `You are a luxury Gulf fashion copywriter. Write product copy for this abaya:
 ${JSON.stringify(garment)}
 

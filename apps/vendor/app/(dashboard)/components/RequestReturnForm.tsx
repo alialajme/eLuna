@@ -29,7 +29,7 @@ export function RequestReturnForm({ orderId }: { orderId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-full border border-sand px-5 py-2.5 text-body-sm text-ink hover:border-ink transition-colors"
+        className="rounded-md border border-sand px-5 py-2.5 text-body-sm text-ink hover:border-ink transition-colors"
       >
         Request return
       </button>
@@ -52,7 +52,7 @@ export function RequestReturnForm({ orderId }: { orderId: string }) {
           type="button"
           disabled={isPending || reason.trim().length < 3}
           onClick={submit}
-          className="rounded-full bg-ink px-5 py-2.5 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
+          className="rounded-md bg-ink px-5 py-2.5 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
         >
           {isPending ? "Submitting…" : "Submit request"}
         </button>
@@ -60,7 +60,7 @@ export function RequestReturnForm({ orderId }: { orderId: string }) {
           type="button"
           disabled={isPending}
           onClick={() => setOpen(false)}
-          className="rounded-full px-5 py-2.5 text-body-sm text-mist hover:text-ink transition-colors"
+          className="rounded-md px-5 py-2.5 text-body-sm text-mist hover:text-ink transition-colors"
         >
           Cancel
         </button>

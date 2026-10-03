@@ -51,7 +51,7 @@ export default async function SupplierApprovalsPage() {
                     {(() => {
                       const b = LICENSE_BADGE[s.tradeLicenseStatus] ?? LICENSE_BADGE.UNVERIFIED!;
                       return (
-                        <span className={`rounded-full px-2.5 py-0.5 text-body-xs font-medium ${b.className}`}>
+                        <span className={`rounded-md px-2.5 py-0.5 text-body-xs font-medium ${b.className}`}>
                           {b.label}
                         </span>
                       );

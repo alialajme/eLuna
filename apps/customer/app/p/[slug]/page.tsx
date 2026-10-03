@@ -119,7 +119,7 @@ export default async function ProductDetailPage({ params }: Props) {
       {/* Vendor badge */}
       <Link
         href={`/vendors/${product.vendor.id}`}
-        className="mb-4 inline-flex items-center gap-1 rounded-full border border-sand px-3 py-1 text-body-sm text-mist hover:border-gold hover:text-gold transition-colors"
+        className="mb-4 inline-flex items-center gap-1 rounded-md border border-sand px-3 py-1 text-body-sm text-mist hover:border-gold hover:text-gold transition-colors"
       >
         {product.vendor.storeName} →
       </Link>

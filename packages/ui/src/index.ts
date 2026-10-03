@@ -10,5 +10,8 @@ export { ProductGallery } from "./components/ProductGallery";
 export { SizeSelector } from "./components/SizeSelector";
 export { ChatMessage } from "./components/ChatMessage";
 export { AyvanaChatWidget } from "./components/AyvanaChatWidget";
+export { AyvanaLogo, AyvanaMark } from "./components/AyvanaLogo";
+export { Icon } from "./components/Icon";
+export type { IconName } from "./components/Icon";
 export { TaxInvoiceDocument } from "./components/TaxInvoiceDocument";
 export type { TaxInvoiceProps } from "./components/TaxInvoiceDocument";

@@ -23,8 +23,8 @@ const ibmArabic = IBM_Plex_Sans_Arabic({
 const reemKufi = Reem_Kufi({ subsets: ["arabic"], weight: ["400","500","700"], variable: "--font-reem-kufi", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "AYVANA — The Gulf's AI-powered abaya marketplace",
-  description: "Discover abayas styled for you by AI",
+  title: "AYVANA — The Abaya Marketplace",
+  description: "Curated abayas and modest luxury across the GCC",
 };
 
 // Only bundle Clerk when keys are configured — prevents client crash when keys are absent

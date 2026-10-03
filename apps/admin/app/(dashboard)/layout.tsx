@@ -22,7 +22,7 @@ export default async function DashboardLayout({
           </p>
           <Link
             href="/sign-in"
-            className="inline-flex rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory"
+            className="inline-flex rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory"
           >
             Sign in
           </Link>

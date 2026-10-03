@@ -132,7 +132,7 @@ export async function runPaymentAgent(
   options: { customerId: string }
 ) {
   return streamText({
-    model: anthropic(LUNA_MODEL),
+    model: anthropic(AYVANA_MODEL),
     system: PAYMENT_SYSTEM,
     messages,
     tools: buildPaymentTools(options.customerId),

@@ -54,7 +54,7 @@ export function SettingsForm({ fields, values }: Props) {
               type="button"
               onClick={() => save(f.key)}
               disabled={isPending}
-              className="rounded-full bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-sage hover:text-ink disabled:opacity-50 transition-colors"
+              className="rounded-md bg-ink px-4 py-2 text-body-sm font-medium text-ivory hover:bg-sage hover:text-ink disabled:opacity-50 transition-colors"
             >
               {isPending ? "…" : "Save"}
             </button>

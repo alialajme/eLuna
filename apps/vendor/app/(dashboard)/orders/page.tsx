@@ -165,7 +165,7 @@ export default async function OrdersPage({ searchParams }: Props) {
                 </td>
                 <td className="py-3 pr-4">
                   <span
-                    className={`rounded-full px-2 py-0.5 text-body-xs font-medium ${
+                    className={`rounded-md px-2 py-0.5 text-body-xs font-medium ${
                       STATUS_CLASSES[o.status] ?? "bg-sand text-mist"
                     }`}
                   >

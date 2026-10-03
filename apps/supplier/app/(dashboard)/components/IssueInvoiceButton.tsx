@@ -28,7 +28,7 @@ export function IssueInvoiceButton({ orderId, hasTrn }: { orderId: string; hasTr
         type="button"
         onClick={handleIssue}
         disabled={isPending || !hasTrn}
-        className="rounded-full bg-ink px-5 py-2.5 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
+        className="rounded-md bg-ink px-5 py-2.5 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-50"
       >
         {isPending ? "Issuing…" : "Issue tax invoice"}
       </button>

@@ -65,7 +65,7 @@ export default async function ReturnsPage() {
                 </div>
                 <div className="shrink-0 text-right">
                   <span
-                    className={`rounded-full px-3 py-1 text-label uppercase font-semibold ${
+                    className={`rounded-md px-3 py-1 text-label uppercase font-semibold ${
                       STATUS_STYLES[r.status] ?? "bg-sand text-ink"
                     }`}
                   >

@@ -46,7 +46,7 @@ export default async function MaterialsPage({ searchParams }: Props) {
       <div className="flex items-center justify-between">
         <h2 className="font-display text-display-md text-ink">Materials</h2>
         <Link href="/materials/new"
-          className="rounded-full bg-ink px-5 py-2.5 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors">
+          className="rounded-md bg-ink px-5 py-2.5 text-body-sm font-medium text-ivory hover:bg-ink/90 transition-colors">
           ＋ Add material
         </Link>
       </div>
@@ -57,7 +57,7 @@ export default async function MaterialsPage({ searchParams }: Props) {
           const href = t.value ? `/materials?status=${t.value}` : "/materials";
           return (
             <Link key={t.label} href={href}
-              className={`rounded-full px-4 py-1.5 text-body-sm transition-colors ${
+              className={`rounded-md px-4 py-1.5 text-body-sm transition-colors ${
                 active ? "bg-ink text-ivory" : "border border-sand text-mist hover:border-ink hover:text-ink"
               }`}>
               {t.label}
@@ -96,7 +96,7 @@ export default async function MaterialsPage({ searchParams }: Props) {
                   </p>
                   <p className="text-body-xs text-mist">{m.stock} in stock</p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-body-xs font-medium ${STATUS_CLASSES[m.status] ?? "bg-sand text-mist"}`}>
+                <span className={`rounded-md px-3 py-1 text-body-xs font-medium ${STATUS_CLASSES[m.status] ?? "bg-sand text-mist"}`}>
                   {m.status.charAt(0) + m.status.slice(1).toLowerCase()}
                 </span>
               </div>

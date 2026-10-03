@@ -14,7 +14,7 @@ export function AccountNav() {
         <Link
           key={i.href}
           href={i.href}
-          className="rounded-full border border-sand px-4 py-1.5 text-body-sm text-mist transition-colors hover:border-ink hover:text-ink"
+          className="rounded-md border border-sand px-4 py-1.5 text-body-sm text-mist transition-colors hover:border-ink hover:text-ink"
         >
           {i.label}
         </Link>

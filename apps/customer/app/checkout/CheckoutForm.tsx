@@ -272,7 +272,7 @@ export function CheckoutForm({ addresses, cartTotal, cartSubtotal, shippingFee, 
           <button
             type="submit"
             disabled={isPending}
-            className="mt-6 flex w-full items-center justify-center rounded-full bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-60"
+            className="mt-6 flex w-full items-center justify-center rounded-md bg-ink px-6 py-3 text-body-md font-medium text-ivory hover:bg-ink/90 transition-colors disabled:opacity-60"
           >
             {isPending ? "Processing…" : "Place Order"}
           </button>

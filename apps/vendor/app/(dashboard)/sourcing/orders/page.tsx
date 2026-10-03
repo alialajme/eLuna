@@ -62,7 +62,7 @@ export default async function MyMaterialOrdersPage() {
                   <p className="text-body-sm text-ink">
                     AED {Number(o.total).toLocaleString("en-AE", { minimumFractionDigits: 2 })}
                   </p>
-                  <span className={`rounded-full px-3 py-1 text-body-xs font-medium ${STATUS_CLASSES[o.status] ?? "bg-sand text-mist"}`}>
+                  <span className={`rounded-md px-3 py-1 text-body-xs font-medium ${STATUS_CLASSES[o.status] ?? "bg-sand text-mist"}`}>
                     {label(o.status)}
                   </span>
                 </div>

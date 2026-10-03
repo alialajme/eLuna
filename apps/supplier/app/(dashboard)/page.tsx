@@ -81,7 +81,7 @@ export default async function DashboardPage() {
             supplier.materialTypes.map((t) => (
               <span
                 key={t}
-                className="rounded-full border border-sand px-3 py-1 text-body-sm text-ink capitalize"
+                className="rounded-md border border-sand px-3 py-1 text-body-sm text-ink capitalize"
               >
                 {t}
               </span>
