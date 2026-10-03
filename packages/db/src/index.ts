@@ -18,3 +18,4 @@ export * from "./studio-credits";
 export * from "./studio-billing";
 export * from "./studio-payment";
 export * from "./clerk-sync";
+export * from "./case-seed";
