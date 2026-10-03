@@ -1,7 +1,37 @@
+import { randomBytes } from "node:crypto";
 import { prisma } from "../src/client";
 
 let n = 0;
 const uid = (p: string) => `${p}_test_${Date.now()}_${n++}_${Math.random().toString(36).slice(2, 8)}`;
+
+export const caseUid = (p: string) => `${p}_case_${Date.now()}_${randomBytes(4).toString("hex")}`;
+
+/** A category to file cases under. */
+export async function makeCategory(overrides: Partial<{ slug: string; defaultPriority: "LOW" | "MEDIUM" | "HIGH" | "URGENT" }> = {}) {
+  return prisma.caseCategory.create({
+    data: {
+      slug: overrides.slug ?? caseUid("cat"),
+      name: "Service",
+      defaultPriority: overrides.defaultPriority ?? "MEDIUM",
+      sortOrder: 0,
+    },
+  });
+}
+
+/** Minimal CreateCaseInput for a customer website complaint. */
+export function caseInput(categoryId: string, over: Record<string, unknown> = {}) {
+  return {
+    type: "COMPLAINT" as const,
+    categoryId,
+    channel: "WEBSITE" as const,
+    subject: "Order arrived damaged",
+    description: "The abaya had a tear.",
+    openerUserId: caseUid("usr"),
+    openerRole: "CUSTOMER" as const,
+    contact: { name: "Aisha", email: "aisha@example.com", phone: "+971500000000" },
+    ...over,
+  };
+}
 
 /** Create a customer (User + CustomerProfile) with an optional starting wallet balance. */
 export async function makeCustomer(walletBalance = 0) {
