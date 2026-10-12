@@ -9,6 +9,7 @@ type Props = {
   categories: CaseCategoryOption[];
   defaultContactName?: string;
   defaultContactEmail?: string;
+  defaultContactPhone?: string;
   action: (data: {
     type: "COMPLAINT" | "SUGGESTION" | "QUESTION";
     categoryId: string;
@@ -16,6 +17,7 @@ type Props = {
     description: string;
     contactName: string;
     contactEmail: string;
+    contactPhone: string;
     orderId?: string;
   }) => Promise<CaseSubmitResult>;
   orderId?: string;
@@ -26,6 +28,7 @@ export function CaseSubmitForm({
   action,
   defaultContactName = "",
   defaultContactEmail = "",
+  defaultContactPhone = "",
   orderId,
 }: Props) {
   const [busy, setBusy] = useState(false);
@@ -44,6 +47,7 @@ export function CaseSubmitForm({
       description: String(fd.get("description")),
       contactName: String(fd.get("contactName")),
       contactEmail: String(fd.get("contactEmail")),
+      contactPhone: String(fd.get("contactPhone")),
       orderId,
     });
     setBusy(false);
@@ -105,6 +109,15 @@ export function CaseSubmitForm({
         type="email"
         placeholder="Email"
         defaultValue={defaultContactEmail}
+        className="rounded-md border border-sand bg-white p-2 text-body-sm"
+      />
+      <input
+        name="contactPhone"
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        placeholder="Mobile number"
+        defaultValue={defaultContactPhone}
         className="rounded-md border border-sand bg-white p-2 text-body-sm"
       />
       {error && <p className="text-label text-coral">{error}</p>}

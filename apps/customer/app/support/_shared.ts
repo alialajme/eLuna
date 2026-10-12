@@ -13,6 +13,7 @@ export async function submitCustomerCase(data: {
   description: string;
   contactName: string;
   contactEmail: string;
+  contactPhone: string;
   orderId?: string;
 }): Promise<CaseSubmitResultShape> {
   if (!data.subject.trim() || !data.description.trim())
@@ -33,7 +34,7 @@ export async function submitCustomerCase(data: {
     description: data.description,
     openerUserId: user.id,
     openerRole: "CUSTOMER",
-    contact: { name: data.contactName, email: data.contactEmail || null },
+    contact: { name: data.contactName, email: data.contactEmail || null, phone: data.contactPhone || null },
     links: { customerId, orderId: data.orderId ?? null },
   });
   return { ok: true, caseNumber: res.caseNumber };

@@ -32,6 +32,7 @@ export default function NewCaseScreen() {
   const [categoryId, setCategoryId] = useState('');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,7 +51,7 @@ export default function NewCaseScreen() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await createCase({ type, categoryId, subject: subject.trim(), description: description.trim() });
+      const res = await createCase({ type, categoryId, subject: subject.trim(), description: description.trim(), contactPhone: phone.trim() || undefined });
       if (!res) {
         setError('Failed to submit. Please try again.');
         return;
@@ -140,6 +141,21 @@ export default function NewCaseScreen() {
           numberOfLines={5}
           maxLength={2000}
           textAlignVertical="top"
+        />
+
+        {/* Mobile number */}
+        <Txt variant="label" color="textSecondary" style={styles.fieldLabel}>
+          MOBILE NUMBER
+        </Txt>
+        <TextInput
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="e.g. +971 50 123 4567"
+          placeholderTextColor={c.textSecondary}
+          style={[styles.input, { borderColor: c.hairline, backgroundColor: c.surface, color: c.text }]}
+          keyboardType="phone-pad"
+          autoComplete="tel"
+          maxLength={20}
         />
 
         {error && (

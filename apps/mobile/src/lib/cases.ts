@@ -14,7 +14,7 @@ export async function getCase(id: string): Promise<CaseDetail | null> {
   return r.ok ? await r.json() as CaseDetail : null;
 }
 
-export async function createCase(input: { type: string; categoryId: string; subject: string; description: string; contactName?: string }): Promise<{ id: string; caseNumber: string } | null> {
+export async function createCase(input: { type: string; categoryId: string; subject: string; description: string; contactName?: string; contactPhone?: string }): Promise<{ id: string; caseNumber: string } | null> {
   const r = await fetch(`${API_BASE}/api/mobile/cases`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
