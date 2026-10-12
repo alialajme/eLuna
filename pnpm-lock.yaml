@@ -78,6 +78,9 @@ importers:
       '@ayvana/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@ayvana/messaging':
+        specifier: workspace:*
+        version: link:../../packages/messaging
       '@ayvana/observability':
         specifier: workspace:*
         version: link:../../packages/observability
