@@ -76,6 +76,9 @@ export default function RootLayout() {
             <Stack.Screen name="settings" options={{ ...headerOptions, title: 'Settings' }} />
             <Stack.Screen name="address" options={{ ...headerOptions, title: 'Delivery address' }} />
             <Stack.Screen name="size-profile" options={{ ...headerOptions, title: 'Size profile' }} />
+            <Stack.Screen name="support/index" options={{ ...headerOptions, title: 'Support' }} />
+            <Stack.Screen name="support/new" options={{ ...headerOptions, title: 'New Case' }} />
+            <Stack.Screen name="support/[id]" options={{ ...headerOptions, title: 'Case Thread' }} />
           </Stack>
         </ThemeProvider>
       </WishlistProvider>

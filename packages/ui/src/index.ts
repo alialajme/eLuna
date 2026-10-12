@@ -15,3 +15,8 @@ export { Icon } from "./components/Icon";
 export type { IconName } from "./components/Icon";
 export { TaxInvoiceDocument } from "./components/TaxInvoiceDocument";
 export type { TaxInvoiceProps } from "./components/TaxInvoiceDocument";
+export { CaseStatusBadge } from "./components/CaseStatusBadge";
+export { CaseSubmitForm } from "./components/CaseSubmitForm";
+export type { CaseCategoryOption, CaseSubmitResult } from "./components/CaseSubmitForm";
+export { CaseThread } from "./components/CaseThread";
+export type { CaseThreadMessage } from "./components/CaseThread";

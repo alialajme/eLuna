@@ -16,6 +16,8 @@ enum UserRole {
   VENDOR
   ADMIN
   SUPPLIER
+  SUPPORT
+  CALL_CENTER
 }
 
 enum MfaMethod {
@@ -182,6 +184,7 @@ enum AIAgentType {
   PAYMENT
   POS
   SUPPLIER
+  CASE
 }
 
 enum NotificationType {
@@ -190,6 +193,7 @@ enum NotificationType {
   PROMOTION
   AI_SUGGESTION
   SYSTEM
+  CASE_UPDATE
 }
 
 // ─────────────────────────────────────────────
@@ -1388,6 +1392,174 @@ model StudioInvoice {
   issuedAt      DateTime @default(now())
 
   payment StudioPayment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+}
+
+// ─────────────────────────────────────────────
+// CASE MANAGER
+// ─────────────────────────────────────────────
+
+enum CaseType {
+  COMPLAINT
+  SUGGESTION
+  QUESTION
+}
+
+enum CaseStatus {
+  NEW
+  ASSIGNED
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+  CANCELLED
+}
+
+enum CasePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum CaseChannel {
+  WEBSITE
+  MOBILE
+  WHATSAPP
+}
+
+enum CaseOpenerRole {
+  CUSTOMER
+  VENDOR
+  SUPPLIER
+}
+
+enum CaseAuthorRole {
+  CUSTOMER
+  VENDOR
+  SUPPLIER
+  SUPPORT
+  CALL_CENTER
+  ADMIN
+  SYSTEM
+}
+
+enum CaseTeam {
+  SUPPORT
+  CALL_CENTER
+}
+
+enum CaseEventType {
+  CREATED
+  ASSIGNED
+  STATUS_CHANGED
+  MESSAGE
+  ESCALATED
+  RESOLVED
+  REOPENED
+  CATEGORY_CHANGED
+  PRIORITY_CHANGED
+}
+
+model CaseCategory {
+  id              String       @id @default(cuid())
+  slug            String       @unique
+  name            String
+  description     String?
+  defaultPriority CasePriority @default(MEDIUM)
+  defaultTeam     CaseTeam?
+  isActive        Boolean      @default(true)
+  sortOrder       Int          @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  cases Case[]
+
+  @@index([isActive, sortOrder])
+}
+
+model Case {
+  id          String       @id @default(cuid())
+  caseNumber  String       @unique
+  type        CaseType
+  categoryId  String
+  channel     CaseChannel
+  status      CaseStatus   @default(NEW)
+  priority    CasePriority @default(MEDIUM)
+  subject     String
+  description String
+
+  openerUserId String?
+  openerRole   CaseOpenerRole
+  contactName  String
+  contactEmail String?
+  contactPhone String?
+
+  customerId      String?
+  vendorId        String?
+  supplierId      String?
+  orderId         String?
+  studioSessionId String?
+
+  assignedToUserId String?
+  assignedTeam     CaseTeam?
+
+  suggestedCategoryId String?
+  suggestedPriority   CasePriority?
+
+  firstResponseDueAt DateTime?
+  resolutionDueAt    DateTime?
+  firstRespondedAt   DateTime?
+  resolvedAt         DateTime?
+  closedAt           DateTime?
+
+  relatedReturnId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category CaseCategory  @relation(fields: [categoryId], references: [id])
+  messages CaseMessage[]
+  events   CaseEvent[]
+
+  @@index([status])
+  @@index([assignedToUserId, status])
+  @@index([customerId])
+  @@index([vendorId])
+  @@index([supplierId])
+  @@index([channel])
+  @@index([categoryId])
+  @@index([priority, status])
+  @@index([contactPhone])
+}
+
+model CaseMessage {
+  id           String         @id @default(cuid())
+  caseId       String
+  authorUserId String?
+  authorRole   CaseAuthorRole
+  body         String
+  isInternal   Boolean        @default(false)
+  channel      CaseChannel
+  attachments  Json           @default("[]")
+  externalRef  String?
+  createdAt    DateTime       @default(now())
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId, createdAt])
+}
+
+model CaseEvent {
+  id          String        @id @default(cuid())
+  caseId      String
+  actorUserId String?
+  type        CaseEventType
+  data        Json          @default("{}")
+  createdAt   DateTime      @default(now())
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId, createdAt])
 }
 
 // REAL variable cost per shoot → margin engine. One row per session.

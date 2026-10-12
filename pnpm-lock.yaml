@@ -9,6 +9,7 @@ overrides:
   postcss@<8.5.18: '>=8.5.18'
   js-cookie@<3.0.7: '>=3.0.7'
   jsondiffpatch@<0.7.6: '>=0.7.6'
+  source-map-js@<1.2.2: '>=1.2.2'
 
 importers:
 
@@ -78,6 +79,9 @@ importers:
       '@ayvana/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@ayvana/messaging':
+        specifier: workspace:*
+        version: link:../../packages/messaging
       '@ayvana/observability':
         specifier: workspace:*
         version: link:../../packages/observability
@@ -315,6 +319,37 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@20.19.43)
 
+  packages/cases:
+    dependencies:
+      '@ayvana/ai':
+        specifier: workspace:*
+        version: link:../ai
+      '@ayvana/db':
+        specifier: workspace:*
+        version: link:../db
+      '@ayvana/messaging':
+        specifier: workspace:*
+        version: link:../messaging
+    devDependencies:
+      '@ayvana/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      dotenv:
+        specifier: ^16.4.0
+        version: 16.6.1
+      tsx:
+        specifier: ^4.7.0
+        version: 4.22.4
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@20.19.43)
+
   packages/config:
     devDependencies:
       '@typescript-eslint/eslint-plugin':
@@ -403,6 +438,21 @@ importers:
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
+
+  packages/messaging:
+    devDependencies:
+      '@ayvana/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@20.19.43)
 
   packages/observability:
     devDependencies:
@@ -3003,8 +3053,8 @@ packages:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
 
-  source-map-js@1.2.1:
-    resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
+  source-map-js@1.2.2:
+    resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
     engines: {node: '>=0.10.0'}
 
   stable-hash@0.0.5:
@@ -5402,7 +5452,7 @@ snapshots:
     dependencies:
       '@babel/parser': 7.29.8
       '@babel/types': 7.29.8
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
 
   make-dir@4.0.0:
     dependencies:
@@ -5629,7 +5679,7 @@ snapshots:
     dependencies:
       nanoid: 3.3.19
       picocolors: 1.1.1
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
 
   prelude-ls@1.2.1: {}
 
@@ -5881,7 +5931,7 @@ snapshots:
 
   slash@3.0.0: {}
 
-  source-map-js@1.2.1: {}
+  source-map-js@1.2.2: {}
 
   stable-hash@0.0.5: {}
 
