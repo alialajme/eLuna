@@ -26,6 +26,16 @@ describe("case worker handlers (integration)", () => {
     expect(notifs.length).toBeGreaterThan(0);
   });
 
+  it("case.status_changed writes a CASE_UPDATE notification for the opener", async () => {
+    const c = await cat();
+    const openerUserId = await makeUser();
+    const { id, caseNumber } = await createCase(input(c.id, openerUserId));
+    await handleCaseEvent({ id: "e2", type: "case.status_changed", payload: { caseId: id }, attempts: 0 });
+    const notifs = await prisma.notification.findMany({ where: { userId: openerUserId, type: "CASE_UPDATE", title: `${caseNumber} updated` } });
+    expect(notifs.length).toBe(1);
+    expect((notifs[0]!.data as { caseId: string }).caseId).toBe(id);
+  });
+
   it("sweepCaseSla emits case.sla_breached for overdue open cases and is idempotent", async () => {
     const c = await cat();
     const openerUserId = await makeUser();

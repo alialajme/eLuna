@@ -54,6 +54,12 @@ export async function handleCaseEvent(event: OutboxRecord): Promise<void> {
     await notify(c?.openerUserId, `${c?.caseNumber} resolved`, "Your case has been resolved.", payload.caseId);
     return;
   }
+
+  if (event.type === "case.status_changed") {
+    const c = await prisma.case.findUnique({ where: { id: payload.caseId }, select: { openerUserId: true, caseNumber: true } });
+    await notify(c?.openerUserId, `${c?.caseNumber} updated`, "Your case status has changed.", payload.caseId);
+    return;
+  }
 }
 
 /**
