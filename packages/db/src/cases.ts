@@ -1,4 +1,5 @@
-import type { Prisma, CaseType, CaseChannel, CaseOpenerRole, CasePriority, CaseAuthorRole } from "@prisma/client";
+import type { Prisma, CaseType, CaseChannel, CaseOpenerRole, CasePriority, CaseAuthorRole, CaseStatus, CaseTeam } from "@prisma/client";
+import { assertCaseTransition } from "./case-status";
 import { prisma } from "./client";
 import { appendOutboxEvent } from "./outbox";
 import { caseSlaDueDates } from "./case-status";
@@ -129,5 +130,43 @@ export async function addCaseMessage(input: AddCaseMessageInput): Promise<{ id: 
     await appendOutboxEvent(tx, { type: "case.message_added", payload: { caseId: input.caseId, messageId: msg.id } });
 
     return msg;
+  });
+}
+
+export async function assignCase(params: {
+  caseId: string;
+  assignedToUserId: string;
+  assignedTeam?: CaseTeam | null;
+  actorUserId: string;
+}): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    const current = await tx.case.findUniqueOrThrow({ where: { id: params.caseId }, select: { status: true } });
+    const nextStatus: CaseStatus = current.status === "NEW" ? "ASSIGNED" : current.status;
+    await tx.case.update({
+      where: { id: params.caseId },
+      data: { assignedToUserId: params.assignedToUserId, assignedTeam: params.assignedTeam ?? null, status: nextStatus },
+    });
+    await tx.caseEvent.create({
+      data: { caseId: params.caseId, actorUserId: params.actorUserId, type: "ASSIGNED", data: { assignedToUserId: params.assignedToUserId, assignedTeam: params.assignedTeam ?? null } },
+    });
+    await appendOutboxEvent(tx, { type: "case.assigned", payload: { caseId: params.caseId, assignedToUserId: params.assignedToUserId } });
+  });
+}
+
+/** Apply a validated status change. Throws CaseTransitionError on illegal moves. */
+export async function transitionCase(params: {
+  caseId: string;
+  to: CaseStatus;
+  actorUserId: string;
+  reason?: string;
+}): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    const current = await tx.case.findUniqueOrThrow({ where: { id: params.caseId }, select: { status: true } });
+    assertCaseTransition(current.status, params.to);
+    await tx.case.update({ where: { id: params.caseId }, data: { status: params.to } });
+    await tx.caseEvent.create({
+      data: { caseId: params.caseId, actorUserId: params.actorUserId, type: "STATUS_CHANGED", data: { from: current.status, to: params.to, reason: params.reason ?? null } },
+    });
+    await appendOutboxEvent(tx, { type: "case.status_changed", payload: { caseId: params.caseId, from: current.status, to: params.to } });
   });
 }
