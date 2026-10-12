@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   // anonymous one). Require a resolved customer before creating a case.
   const customer = await resolveMobileCustomer();
   if (!customer) return Response.json({ error: "Unauthorized" }, { status: 401 });
-  const body = (await req.json().catch(() => null)) as { type?: string; categoryId?: string; subject?: string; description?: string; contactName?: string; contactEmail?: string } | null;
+  const body = (await req.json().catch(() => null)) as { type?: string; categoryId?: string; subject?: string; description?: string; contactName?: string; contactEmail?: string; contactPhone?: string } | null;
   if (!body?.categoryId || !body.subject?.trim() || !body.description?.trim()) {
     return Response.json({ error: "categoryId, subject and description are required" }, { status: 400 });
   }
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     description: body.description,
     openerUserId: user.userId,
     openerRole: "CUSTOMER",
-    contact: { name: body.contactName ?? "Mobile user", email: body.contactEmail ?? null },
+    contact: { name: body.contactName ?? "Mobile user", email: body.contactEmail ?? null, phone: body.contactPhone ?? null },
     links: { customerId: customer.id },
   });
   return Response.json({ id: res.id, caseNumber: res.caseNumber });
