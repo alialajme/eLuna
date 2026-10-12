@@ -34,4 +34,13 @@ describe("addCaseMessage (integration)", () => {
     c = await prisma.case.findUnique({ where: { id } });
     expect(c?.firstRespondedAt?.getTime()).toBe(firstAt?.getTime()); // unchanged
   });
+
+  it("does NOT stamp firstRespondedAt when a HANDLER message is an internal note", async () => {
+    const cat = await makeCategory();
+    const { id } = await createCase(caseInput(cat.id));
+
+    await addCaseMessage({ caseId: id, authorRole: "SUPPORT", authorUserId: "agent1", body: "internal note", channel: "WEBSITE", isInternal: true });
+    const c = await prisma.case.findUnique({ where: { id } });
+    expect(c?.firstRespondedAt).toBeNull();
+  });
 });
