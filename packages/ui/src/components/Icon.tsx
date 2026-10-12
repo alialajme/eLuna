@@ -24,12 +24,21 @@ export type IconName =
   | "receipt"
   | "package"
   | "inbox"
-  | "sparkles";
+  | "sparkles"
+  | "lifebuoy";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   // Four-point spark — the AYVANA brand device, used for AI Studio.
   sparkles: (
     <path d="M12 3 L13.8 10.2 L21 12 L13.8 13.8 L12 21 L10.2 13.8 L3 12 L10.2 10.2 Z" />
+  ),
+  // Life-ring — concentric rings + four spokes, the support/help signifier.
+  lifebuoy: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M14.5 9.5 L18.4 5.6 M9.5 9.5 L5.6 5.6 M14.5 14.5 L18.4 18.4 M9.5 14.5 L5.6 18.4" />
+    </>
   ),
   grid: (
     <>

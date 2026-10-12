@@ -5,6 +5,7 @@ const ITEMS = [
   { href: "/profile/size", label: "Size & Fit" },
   { href: "/orders", label: "Orders" },
   { href: "/wishlist", label: "Wishlist" },
+  { href: "/support", label: "Support" },
 ];
 
 export function AccountNav() {
