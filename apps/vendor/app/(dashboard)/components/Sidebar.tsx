@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { icon: "banknote", label: "Payouts", href: "/payouts" },
   { icon: "wallet", label: "Billing", href: "/billing" },
   { icon: "receipt", label: "Invoices", href: "/invoices" },
+  { icon: "lifebuoy", label: "Support", href: "/support" },
   { icon: "sliders", label: "Settings", href: "/settings" },
 ] as const;
 
