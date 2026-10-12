@@ -1,4 +1,4 @@
-import type { Prisma, CaseType, CaseChannel, CaseOpenerRole, CasePriority } from "@prisma/client";
+import type { Prisma, CaseType, CaseChannel, CaseOpenerRole, CasePriority, CaseAuthorRole } from "@prisma/client";
 import { prisma } from "./client";
 import { appendOutboxEvent } from "./outbox";
 import { caseSlaDueDates } from "./case-status";
@@ -78,5 +78,56 @@ export async function createCase(input: CreateCaseInput): Promise<{ id: string; 
     await appendOutboxEvent(tx, { type: "case.created", payload: { caseId: created.id } });
 
     return created;
+  });
+}
+
+const HANDLER_ROLES: CaseAuthorRole[] = ["SUPPORT", "CALL_CENTER", "ADMIN"];
+
+export type AddCaseMessageInput = {
+  caseId: string;
+  authorUserId?: string | null;
+  authorRole: CaseAuthorRole;
+  body: string;
+  channel: CaseChannel;
+  isInternal?: boolean;
+  attachments?: Prisma.InputJsonValue;
+  externalRef?: string | null;
+};
+
+/**
+ * Append a message to a case. The first non-internal HANDLER reply stamps
+ * `firstRespondedAt` (SLA metric). Message + MESSAGE event + outbox are atomic.
+ */
+export async function addCaseMessage(input: AddCaseMessageInput): Promise<{ id: string }> {
+  const isHandlerResponse = !input.isInternal && HANDLER_ROLES.includes(input.authorRole);
+
+  return prisma.$transaction(async (tx) => {
+    const msg = await tx.caseMessage.create({
+      data: {
+        caseId: input.caseId,
+        authorUserId: input.authorUserId ?? null,
+        authorRole: input.authorRole,
+        body: input.body,
+        channel: input.channel,
+        isInternal: input.isInternal ?? false,
+        attachments: input.attachments ?? [],
+        externalRef: input.externalRef ?? null,
+      },
+      select: { id: true },
+    });
+
+    if (isHandlerResponse) {
+      await tx.case.updateMany({
+        where: { id: input.caseId, firstRespondedAt: null },
+        data: { firstRespondedAt: new Date() },
+      });
+    }
+
+    await tx.caseEvent.create({
+      data: { caseId: input.caseId, actorUserId: input.authorUserId ?? null, type: "MESSAGE", data: { messageId: msg.id, isInternal: input.isInternal ?? false } },
+    });
+    await appendOutboxEvent(tx, { type: "case.message_added", payload: { caseId: input.caseId, messageId: msg.id } });
+
+    return msg;
   });
 }
