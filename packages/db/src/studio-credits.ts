@@ -1,4 +1,4 @@
-import type { Prisma, CreditTxnType } from "@prisma/client";
+import { Prisma, type CreditTxnType } from "@prisma/client";
 import { prisma } from "./client";
 import { money, round2, type Money } from "./money";
 
@@ -126,45 +126,55 @@ export async function consumeCredit(params: {
 }): Promise<{ ok: true; deduped: boolean }> {
   const shoots = params.shoots ?? 1;
   const idempotencyKey = `consume:${params.sessionId}`;
-  return prisma.$transaction(async (tx) => {
-    const prior = await tx.creditTransaction.findUnique({ where: { idempotencyKey }, select: { id: true } });
-    if (prior) return { ok: true, deduped: true };
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const prior = await tx.creditTransaction.findUnique({ where: { idempotencyKey }, select: { id: true } });
+      if (prior) return { ok: true, deduped: true };
 
-    // Only consume against an actual RESERVE for this session (never invent a charge).
-    const reserved = await tx.creditTransaction.findFirst({
-      where: { sessionId: params.sessionId, type: "RESERVE" },
-      select: { id: true },
-    });
-    if (!reserved) return { ok: true, deduped: true };
+      // Only consume against an actual RESERVE for this session (never invent a charge).
+      const reserved = await tx.creditTransaction.findFirst({
+        where: { sessionId: params.sessionId, type: "RESERVE" },
+        select: { id: true },
+      });
+      if (!reserved) return { ok: true, deduped: true };
 
-    await tx.$queryRaw`SELECT id FROM "CreditWallet" WHERE "vendorId" = ${params.vendorId} FOR UPDATE`;
-    const wallet = await tx.creditWallet.findUnique({
-      where: { vendorId: params.vendorId },
-      select: { id: true, reserved: true, lifetimeConsumed: true, available: true },
-    });
-    if (!wallet) return { ok: true, deduped: true };
+      await tx.$queryRaw`SELECT id FROM "CreditWallet" WHERE "vendorId" = ${params.vendorId} FOR UPDATE`;
+      const wallet = await tx.creditWallet.findUnique({
+        where: { vendorId: params.vendorId },
+        select: { id: true, reserved: true, lifetimeConsumed: true, available: true },
+      });
+      if (!wallet) return { ok: true, deduped: true };
 
-    const newReserved = round2(maxZero(money(wallet.reserved).minus(shoots)));
-    const newConsumed = round2(money(wallet.lifetimeConsumed).plus(shoots));
-    await tx.creditWallet.update({
-      where: { vendorId: params.vendorId },
-      data: { reserved: newReserved, lifetimeConsumed: newConsumed },
+      const newReserved = round2(maxZero(money(wallet.reserved).minus(shoots)));
+      const newConsumed = round2(money(wallet.lifetimeConsumed).plus(shoots));
+      await tx.creditWallet.update({
+        where: { vendorId: params.vendorId },
+        data: { reserved: newReserved, lifetimeConsumed: newConsumed },
+      });
+      await tx.creditTransaction.create({
+        data: {
+          walletId: wallet.id,
+          vendorId: params.vendorId,
+          type: "CONSUME",
+          amount: round2(money(-shoots)),
+          balanceAfter: round2(money(wallet.available)),
+          sessionId: params.sessionId,
+          idempotencyKey,
+          reason: params.reason ?? "shoot delivered",
+          actor: "system",
+        },
+      });
+      return { ok: true, deduped: false };
     });
-    await tx.creditTransaction.create({
-      data: {
-        walletId: wallet.id,
-        vendorId: params.vendorId,
-        type: "CONSUME",
-        amount: round2(money(-shoots)),
-        balanceAfter: round2(money(wallet.available)),
-        sessionId: params.sessionId,
-        idempotencyKey,
-        reason: params.reason ?? "shoot delivered",
-        actor: "system",
-      },
-    });
-    return { ok: true, deduped: false };
-  });
+  } catch (e) {
+    // Two concurrent consumes for the same session both passed the prior-check,
+    // then raced to INSERT the same idempotencyKey.  The loser gets P2002 — treat
+    // it as a successful dedup (the winner committed the single entry).
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { ok: true, deduped: true };
+    }
+    throw e;
+  }
 }
 
 /**
@@ -180,45 +190,55 @@ export async function releaseCredit(params: {
 }): Promise<{ ok: true; deduped: boolean }> {
   const shoots = params.shoots ?? 1;
   const idempotencyKey = `release:${params.sessionId}`;
-  return prisma.$transaction(async (tx) => {
-    const prior = await tx.creditTransaction.findUnique({ where: { idempotencyKey }, select: { id: true } });
-    if (prior) return { ok: true, deduped: true };
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const prior = await tx.creditTransaction.findUnique({ where: { idempotencyKey }, select: { id: true } });
+      if (prior) return { ok: true, deduped: true };
 
-    // Only release against an actual RESERVE, and never after a CONSUME.
-    const [reserved, consumed] = await Promise.all([
-      tx.creditTransaction.findFirst({ where: { sessionId: params.sessionId, type: "RESERVE" }, select: { id: true } }),
-      tx.creditTransaction.findFirst({ where: { sessionId: params.sessionId, type: "CONSUME" }, select: { id: true } }),
-    ]);
-    if (!reserved || consumed) return { ok: true, deduped: true };
+      // Only release against an actual RESERVE, and never after a CONSUME.
+      const [reserved, consumed] = await Promise.all([
+        tx.creditTransaction.findFirst({ where: { sessionId: params.sessionId, type: "RESERVE" }, select: { id: true } }),
+        tx.creditTransaction.findFirst({ where: { sessionId: params.sessionId, type: "CONSUME" }, select: { id: true } }),
+      ]);
+      if (!reserved || consumed) return { ok: true, deduped: true };
 
-    await tx.$queryRaw`SELECT id FROM "CreditWallet" WHERE "vendorId" = ${params.vendorId} FOR UPDATE`;
-    const wallet = await tx.creditWallet.findUnique({
-      where: { vendorId: params.vendorId },
-      select: { id: true, reserved: true, available: true },
-    });
-    if (!wallet) return { ok: true, deduped: true };
+      await tx.$queryRaw`SELECT id FROM "CreditWallet" WHERE "vendorId" = ${params.vendorId} FOR UPDATE`;
+      const wallet = await tx.creditWallet.findUnique({
+        where: { vendorId: params.vendorId },
+        select: { id: true, reserved: true, available: true },
+      });
+      if (!wallet) return { ok: true, deduped: true };
 
-    const newReserved = round2(maxZero(money(wallet.reserved).minus(shoots)));
-    const newAvailable = round2(money(wallet.available).plus(shoots));
-    await tx.creditWallet.update({
-      where: { vendorId: params.vendorId },
-      data: { reserved: newReserved, available: newAvailable },
+      const newReserved = round2(maxZero(money(wallet.reserved).minus(shoots)));
+      const newAvailable = round2(money(wallet.available).plus(shoots));
+      await tx.creditWallet.update({
+        where: { vendorId: params.vendorId },
+        data: { reserved: newReserved, available: newAvailable },
+      });
+      await tx.creditTransaction.create({
+        data: {
+          walletId: wallet.id,
+          vendorId: params.vendorId,
+          type: "RELEASE",
+          amount: round2(money(shoots)),
+          balanceAfter: newAvailable,
+          sessionId: params.sessionId,
+          idempotencyKey,
+          reason: params.reason ?? "released (platform failure)",
+          actor: "system",
+        },
+      });
+      return { ok: true, deduped: false };
     });
-    await tx.creditTransaction.create({
-      data: {
-        walletId: wallet.id,
-        vendorId: params.vendorId,
-        type: "RELEASE",
-        amount: round2(money(shoots)),
-        balanceAfter: newAvailable,
-        sessionId: params.sessionId,
-        idempotencyKey,
-        reason: params.reason ?? "released (platform failure)",
-        actor: "system",
-      },
-    });
-    return { ok: true, deduped: false };
-  });
+  } catch (e) {
+    // Two concurrent releases for the same session both passed the prior-check,
+    // then raced to INSERT the same idempotencyKey.  The loser gets P2002 — treat
+    // it as a successful dedup (the winner committed the single entry).
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { ok: true, deduped: true };
+    }
+    throw e;
+  }
 }
 
 /**
