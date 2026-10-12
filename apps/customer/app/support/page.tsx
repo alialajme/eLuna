@@ -29,11 +29,7 @@ export default async function MyCasesPage() {
       </div>
       {!user && (
         <p className="text-body-sm text-mist">
-          Sign in to see your cases, or{" "}
-          <Link className="underline" href="/support/new">
-            submit a new one
-          </Link>
-          .
+          Sign in to view your cases or get help.
         </p>
       )}
       <div className="flex flex-col gap-2">

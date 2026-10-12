@@ -1,10 +1,15 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@ayvana/db";
 import { CaseSubmitForm } from "@ayvana/ui";
+import { safeCurrentUser } from "../../lib/auth";
 import { submitCustomerCase } from "../_shared";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewCasePage() {
+  // Authenticated-only web intake (WhatsApp is the anonymous channel).
+  const user = await safeCurrentUser();
+  if (!user) redirect("/support");
   const categories = await prisma.caseCategory
     .findMany({
       where: { isActive: true },

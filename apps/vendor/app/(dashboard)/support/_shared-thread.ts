@@ -17,7 +17,8 @@ export async function replyToOwnCase(
     .findUnique({ where: { id: caseId }, select: { vendorId: true } })
     .catch(() => null);
   if (!c) return { ok: false, error: "Not found" };
-  if (c.vendorId && c.vendorId !== vendor.id) return { ok: false, error: "Forbidden" };
+  // Fail closed: strict ownership (a null vendorId link is not "yours").
+  if (c.vendorId !== vendor.id) return { ok: false, error: "Forbidden" };
   await addCaseMessage({
     caseId,
     authorUserId: user.id,

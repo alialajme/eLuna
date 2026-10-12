@@ -14,15 +14,17 @@ export default async function CaseThreadPage({
 }) {
   const { id } = await params;
   const user = await safeCurrentUser();
+  // Fail closed: this authenticated route only serves the signed-in user's own
+  // cases. Anonymous/WhatsApp-originated cases (openerUserId === null) are NOT
+  // viewable here — they are reached via their own channel, never by case id.
+  if (!user) redirect("/support");
   const c = await prisma.case
     .findUnique({
       where: { id },
       include: { messages: { orderBy: { createdAt: "asc" } } },
     })
     .catch(() => null);
-  // redirect if not found, or if the case belongs to a different signed-in user
-  if (!c || (user && c.openerUserId && c.openerUserId !== user.id))
-    redirect("/support");
+  if (!c || c.openerUserId !== user.id) redirect("/support");
 
   const messages: CaseThreadMessage[] = c.messages.map((m) => ({
     id: m.id,
