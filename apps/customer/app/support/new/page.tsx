@@ -1,0 +1,21 @@
+import { prisma } from "@ayvana/db";
+import { CaseSubmitForm } from "@ayvana/ui";
+import { submitCustomerCase } from "../_shared";
+
+export const dynamic = "force-dynamic";
+
+export default async function NewCasePage() {
+  const categories = await prisma.caseCategory
+    .findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      select: { id: true, name: true },
+    })
+    .catch(() => []);
+  return (
+    <main className="mx-auto max-w-lg px-4 py-8">
+      <h1 className="mb-4 text-display-sm text-ink">Get help</h1>
+      <CaseSubmitForm categories={categories} action={submitCustomerCase} />
+    </main>
+  );
+}
