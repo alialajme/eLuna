@@ -21,9 +21,17 @@ export async function POST(req: Request) {
   const parsed = getMessagingGateway().parseWebhook(raw, req.headers);
   if (parsed.kind !== "message") return Response.json({ ok: true });
 
+  // Match only prior WHATSAPP-channel cases for this phone. An inbound WhatsApp
+  // message (account-less, unverified sender) must NEVER attach to a web/mobile
+  // case that merely shares a phone number — that would let an anonymous sender
+  // inject into an authenticated opener's thread.
   const existing = await prisma.case
     .findFirst({
-      where: { contactPhone: parsed.from, status: { in: ["NEW", "ASSIGNED", "IN_PROGRESS", "WAITING_CUSTOMER"] } },
+      where: {
+        contactPhone: parsed.from,
+        channel: "WHATSAPP",
+        status: { in: ["NEW", "ASSIGNED", "IN_PROGRESS", "WAITING_CUSTOMER"] },
+      },
       orderBy: { createdAt: "desc" },
       select: { id: true },
     })
