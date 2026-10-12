@@ -404,6 +404,21 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
+  packages/messaging:
+    devDependencies:
+      '@ayvana/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@20.19.43)
+
   packages/observability:
     devDependencies:
       '@ayvana/config':
