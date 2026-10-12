@@ -170,3 +170,78 @@ export async function transitionCase(params: {
     await appendOutboxEvent(tx, { type: "case.status_changed", payload: { caseId: params.caseId, from: current.status, to: params.to } });
   });
 }
+
+export async function resolveCase(params: {
+  caseId: string;
+  actorUserId: string;
+  relatedReturnId?: string | null;
+  resolutionNote?: string;
+}): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    const current = await tx.case.findUniqueOrThrow({ where: { id: params.caseId }, select: { status: true } });
+    assertCaseTransition(current.status, "RESOLVED");
+    await tx.case.update({
+      where: { id: params.caseId },
+      data: { status: "RESOLVED", resolvedAt: new Date(), relatedReturnId: params.relatedReturnId ?? undefined },
+    });
+    await tx.caseEvent.create({
+      data: { caseId: params.caseId, actorUserId: params.actorUserId, type: "RESOLVED", data: { relatedReturnId: params.relatedReturnId ?? null, note: params.resolutionNote ?? null } },
+    });
+    await appendOutboxEvent(tx, { type: "case.resolved", payload: { caseId: params.caseId } });
+  });
+}
+
+export async function reopenCase(params: { caseId: string; actorUserId: string }): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    const current = await tx.case.findUniqueOrThrow({ where: { id: params.caseId }, select: { status: true } });
+    assertCaseTransition(current.status, "IN_PROGRESS");
+    await tx.case.update({ where: { id: params.caseId }, data: { status: "IN_PROGRESS", resolvedAt: null, closedAt: null } });
+    await tx.caseEvent.create({ data: { caseId: params.caseId, actorUserId: params.actorUserId, type: "REOPENED", data: { from: current.status } } });
+    await appendOutboxEvent(tx, { type: "case.status_changed", payload: { caseId: params.caseId, from: current.status, to: "IN_PROGRESS" } });
+  });
+}
+
+/** Store AI triage SUGGESTIONS (never auto-applies — a human confirms). */
+export async function applyCaseTriage(
+  caseId: string,
+  s: { suggestedCategoryId?: string | null; suggestedPriority?: CasePriority | null },
+): Promise<void> {
+  await prisma.case.update({
+    where: { id: caseId },
+    data: { suggestedCategoryId: s.suggestedCategoryId ?? undefined, suggestedPriority: s.suggestedPriority ?? undefined },
+  });
+}
+
+export type ListCasesFilter = {
+  status?: CaseStatus;
+  categoryId?: string;
+  channel?: CaseChannel;
+  assignedToUserId?: string;
+  openerUserId?: string;
+};
+
+export function listCases(filter: ListCasesFilter = {}) {
+  return prisma.case.findMany({
+    where: {
+      status: filter.status,
+      categoryId: filter.categoryId,
+      channel: filter.channel,
+      assignedToUserId: filter.assignedToUserId,
+      openerUserId: filter.openerUserId,
+    },
+    orderBy: [{ priority: "desc" }, { createdAt: "asc" }],
+    include: { category: { select: { name: true, slug: true } } },
+    take: 200,
+  });
+}
+
+export function getCaseDetail(caseId: string) {
+  return prisma.case.findUnique({
+    where: { id: caseId },
+    include: {
+      category: true,
+      messages: { orderBy: { createdAt: "asc" } },
+      events: { orderBy: { createdAt: "asc" } },
+    },
+  });
+}
