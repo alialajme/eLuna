@@ -1,0 +1,62 @@
+{{- if .Values.studioWorker.enabled }}
+# AI Studio background worker: drains the transactional outbox and runs
+# generation jobs off the web request path. Disabled by default — enable once
+# the studio-worker image is built/pushed and validated against a cluster.
+# Unlike the app Deployments this exposes NO HTTP port (it is a queue consumer),
+# so liveness is a process check rather than an HTTP probe.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ayvana-studio-worker
+  labels:
+    app: ayvana-studio-worker
+spec:
+  replicas: {{ .Values.studioWorker.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: ayvana-studio-worker
+  template:
+    metadata:
+      labels:
+        app: ayvana-studio-worker
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: studio-worker
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}/studio-worker:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          env:
+            - name: STUDIO_WORKER_INTERVAL_MS
+              value: {{ .Values.studioWorker.intervalMs | default 2000 | quote }}
+          # Liveness without an HTTP server: the main process (PID 1) must be alive.
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "test -d /proc/1"]
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+          envFrom:
+            - secretRef: { name: ayvana-studio-worker-secrets }
+          resources: {{ toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes: { secretProviderClass: ayvana-spc }
+{{- end }}

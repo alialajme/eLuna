@@ -49,8 +49,36 @@ for (const app of apps) {
   }
 }
 
+// Background services (not HTTP apps) that must also be built + deployable, or
+// they become the same silent production gap. Each must have: a Dockerfile, an
+// ACR build referencing it, and a Helm template. (The AI Studio worker consumes
+// the generation-job queue — if it's undeployed, jobs enqueue with no consumer.)
+const services = [
+  {
+    name: "studio-worker",
+    dockerfile: "docker/Dockerfile.studio-worker",
+    acrImage: "studio-worker",
+    helmTemplate: "infra/helm/ayvana/templates/studio-worker.yaml",
+  },
+];
+
+for (const svc of services) {
+  if (!existsSync(join(root, svc.dockerfile))) {
+    errors.push(`service "${svc.name}" is missing its Dockerfile (${svc.dockerfile})`);
+  }
+  if (!new RegExp(`/${svc.acrImage}:`).test(deployYml)) {
+    errors.push(`service "${svc.name}" is missing an ACR build step in azure-deploy.yml`);
+  }
+  if (!existsSync(join(root, svc.helmTemplate))) {
+    errors.push(`service "${svc.name}" is missing its Helm template (${svc.helmTemplate})`);
+  }
+}
+
 if (errors.length) {
   console.error("Deploy-parity check FAILED:\n" + errors.map((e) => `  - ${e}`).join("\n"));
   process.exit(1);
 }
-console.log(`Deploy-parity OK — ${apps.length} apps covered: ${apps.join(", ")}`);
+console.log(
+  `Deploy-parity OK — ${apps.length} apps covered: ${apps.join(", ")}; ` +
+    `${services.length} background service(s): ${services.map((s) => s.name).join(", ")}`,
+);
