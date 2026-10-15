@@ -8,11 +8,39 @@ import {
 
 const log = logger.child({ module: "studio.start" });
 
+/**
+ * Per-vendor ceiling on simultaneously in-flight AI Shoots. This is an abuse /
+ * runaway guard (e.g. a bug or 100 browser tabs firing generations in parallel
+ * must not drain the platform's GPU/provider budget), NOT a billing limit —
+ * plan-based monthly/overage limits (SubscriptionPlan.monthlyLimit) are a
+ * separate billing-policy concern. Generous enough never to block legitimate use.
+ */
+const MAX_CONCURRENT_JOBS_PER_VENDOR = 10;
+
+/** Job states that are actively occupying the pipeline (queued or processing). */
+const IN_FLIGHT_JOB_STATES = [
+  "QUEUED",
+  "VALIDATING",
+  "ANALYZING",
+  "GENERATING_IMAGES",
+  "VALIDATING_IMAGES",
+  "GENERATING_VIDEO",
+  "VALIDATING_VIDEO",
+] as const;
+
 /** Thrown inside the start transaction to roll back when the wallet is empty. */
 class InsufficientCreditsError extends Error {
   constructor() {
     super("INSUFFICIENT_CREDITS");
     this.name = "InsufficientCreditsError";
+  }
+}
+
+/** Thrown inside the start transaction when the vendor is at the concurrency cap. */
+class TooManyConcurrentError extends Error {
+  constructor() {
+    super("TOO_MANY_CONCURRENT");
+    this.name = "TooManyConcurrentError";
   }
 }
 
@@ -66,6 +94,19 @@ export async function startGeneration(input: StartGenerationInput): Promise<Star
 
   try {
     const outcome = await prisma.$transaction(async (tx) => {
+      // Abuse ceiling: reject if the vendor already has too many shoots in
+      // flight. Checked inside the tx (against committed state) before creating
+      // the session, so a runaway caller can't pile up unbounded work.
+      const inFlight = await tx.generationJob.count({
+        where: {
+          session: { vendorId: input.vendorId },
+          state: { in: [...IN_FLIGHT_JOB_STATES] },
+        },
+      });
+      if (inFlight >= MAX_CONCURRENT_JOBS_PER_VENDOR) {
+        throw new TooManyConcurrentError();
+      }
+
       const session = await tx.generationSession.create({
         data: {
           vendorId: input.vendorId,
@@ -125,6 +166,10 @@ export async function startGeneration(input: StartGenerationInput): Promise<Star
     if (err instanceof InsufficientCreditsError) {
       l.info("startGeneration blocked — no shoots");
       return { ok: false, reason: "INSUFFICIENT_CREDITS" };
+    }
+    if (err instanceof TooManyConcurrentError) {
+      l.info("startGeneration blocked — concurrency cap", { cap: MAX_CONCURRENT_JOBS_PER_VENDOR });
+      return { ok: false, reason: "TOO_MANY_CONCURRENT" };
     }
     const message = err instanceof Error ? err.message : "unknown";
     l.error("startGeneration failed", { error: message });
