@@ -450,7 +450,7 @@ model MaterialInvoice {
   issuedAt        DateTime      @default(now())
   createdAt       DateTime      @default(now())
 
-  order    MaterialOrder @relation(fields: [materialOrderId], references: [id])
+  order    MaterialOrder @relation(fields: [materialOrderId], references: [id], onDelete: Restrict)
   supplier Supplier      @relation(fields: [supplierId], references: [id])
 
   @@index([supplierId])
@@ -474,7 +474,7 @@ model OrderInvoice {
   issuedAt      DateTime @default(now())
   createdAt     DateTime @default(now())
 
-  order  Order  @relation(fields: [orderId], references: [id])
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Restrict)
   vendor Vendor @relation(fields: [vendorId], references: [id])
 
   @@unique([orderId, vendorId])
@@ -611,6 +611,7 @@ model OrderItem {
   @@index([vendorId])
   @@index([shipmentId])
   @@index([orderId, fulfillmentStatus])
+  @@index([vendorId, fulfillmentStatus])
 }
 
 // ─────────────────────────────────────────────
@@ -667,6 +668,8 @@ model Shipment {
   @@index([status])
   @@index([trackingNumber])
   @@index([externalRef])
+  @@index([vendorId, status])
+  @@index([supplierId, status])
 }
 
 // ─────────────────────────────────────────────
@@ -712,6 +715,7 @@ model WalletTransaction {
   @@index([customerProfileId])
   @@index([orderId])
   @@index([type])
+  @@index([customerProfileId, type])
 }
 
 model Payout {
@@ -775,6 +779,7 @@ model LedgerEntry {
   @@index([entryType])
   @@index([payoutId])
   @@index([orderId])
+  @@index([vendorId, entryType])
 }
 
 // Immutable security/audit log. Append-only record of sensitive actions (admin
@@ -1331,6 +1336,7 @@ model CreditTransaction {
   @@index([vendorId])
   @@index([walletId, createdAt])
   @@index([sessionId])
+  @@index([vendorId, createdAt])
 }
 
 model CreditPackage {
@@ -1530,6 +1536,7 @@ model Case {
   @@index([categoryId])
   @@index([priority, status])
   @@index([contactPhone])
+  @@index([openerUserId, status])
 }
 
 model CaseMessage {
