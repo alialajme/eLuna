@@ -183,8 +183,10 @@ export async function updateProduct(
   }
 
   try {
-    const existing = await prisma.product.findUnique({
-      where: { id },
+    // Fail closed: scope the READ to this vendor so a crafted id can't even
+    // read a rival's product metadata (the write below is already scoped).
+    const existing = await prisma.product.findFirst({
+      where: { id, vendorId: vendor.id },
       include: {
         variants: {
           include: { _count: { select: { orderItems: true } } },
@@ -192,7 +194,7 @@ export async function updateProduct(
       },
     });
 
-    if (!existing || existing.vendorId !== vendor.id) {
+    if (!existing) {
       return { success: false, error: "Product not found" };
     }
 
