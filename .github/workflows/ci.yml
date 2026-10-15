@@ -37,6 +37,9 @@ jobs:
       - name: Deploy-parity guard (all apps deployed + health probes)
         run: node scripts/check-deploy-parity.mjs
 
+      - name: Architecture fitness guard (one Prisma client, no cross-app imports, db stays foundational)
+        run: node scripts/check-architecture.mjs
+
       - name: Lint
         run: pnpm lint
 

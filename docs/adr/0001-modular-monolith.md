@@ -25,3 +25,7 @@ to a service without a rewrite.
 - Shared packages must keep clean boundaries; the transactional outbox (ADR-0005) is the seam for
   future async/service extraction.
 - Deploy parity across four apps is enforced by a CI guard so none is forgotten.
+- Those boundaries are now enforced automatically by `scripts/check-architecture.mjs` (CI): a single
+  Prisma client lives only in `@ayvana/db`, no app imports another app's source, and `@ayvana/db`
+  depends only on `@ayvana/config` (never "up" into feature packages, so the data layer stays
+  cycle-free and extractable). A violation fails the build instead of rotting the layering silently.
