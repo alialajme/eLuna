@@ -1,7 +1,23 @@
+import { timingSafeEqual } from "node:crypto";
 import { prisma, createCase, addCaseMessage } from "@ayvana/db";
 import { getMessagingGateway } from "@ayvana/messaging";
 
 export const dynamic = "force-dynamic";
+
+/** Constant-time string compare that never short-circuits on length. */
+function tokenMatches(provided: string, expected: string | undefined): boolean {
+  if (!expected) return false; // no verify token configured -> reject
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  // timingSafeEqual throws on length mismatch; compare against a fixed-size
+  // digest-like buffer pair so the length itself isn't a timing oracle.
+  if (a.length !== b.length) {
+    // Still spend the comparison to avoid a fast-path length leak.
+    timingSafeEqual(b, b);
+    return false;
+  }
+  return timingSafeEqual(a, b);
+}
 
 /** Meta verification handshake (GET): echo hub.challenge when the token matches. */
 export async function GET(req: Request) {
@@ -9,7 +25,7 @@ export async function GET(req: Request) {
   const mode = url.searchParams.get("hub.mode");
   const token = url.searchParams.get("hub.verify_token");
   const challenge = url.searchParams.get("hub.challenge");
-  if (mode === "subscribe" && token && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+  if (mode === "subscribe" && token && tokenMatches(token, process.env.WHATSAPP_VERIFY_TOKEN)) {
     return new Response(challenge ?? "", { status: 200 });
   }
   return new Response("forbidden", { status: 403 });
