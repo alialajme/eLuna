@@ -153,11 +153,31 @@ export async function refundReturn(returnId: string, restock: boolean): Promise<
   // payment to REFUNDED — refunding money that was never taken is a bug.
   const captured = tx?.status === "CAPTURED" || tx?.status === "PARTIALLY_REFUNDED";
 
+  // Atomically CLAIM the return before any gateway call. Two concurrent refund
+  // requests on the same return would both pass the earlier (non-atomic) status
+  // read and could each call gw.refund() -> a DOUBLE external refund. This
+  // conditional flip is a single atomic UPDATE: exactly one caller sees
+  // count === 1 and proceeds to move money; the loser aborts. If the gateway
+  // then fails we revert the claim so the return can be retried.
+  const claim = await prisma.return.updateMany({
+    where: { id, status: "RECEIVED" },
+    data: { status: "REFUNDED" },
+  });
+  if (claim.count !== 1) {
+    return { success: false, error: "This return has already been refunded or is being processed" };
+  }
+
   if (captured && tx) {
-    // Money first — abort with no state change if the gateway refund fails.
+    // Money moves only for the single winning claimant. Revert the claim if the
+    // gateway refund fails, so no return is left marked REFUNDED without money.
     const gw = getGateway(order.paymentMethod);
     const refund = await gw.refund({ externalRef: tx.externalRef ?? "", amount: Number(breakdown.gross) });
-    if (!refund.success) return { success: false, error: refund.error ?? "Refund failed" };
+    if (!refund.success) {
+      await prisma.return
+        .updateMany({ where: { id, status: "REFUNDED" }, data: { status: "RECEIVED" } })
+        .catch(() => {});
+      return { success: false, error: refund.error ?? "Refund failed" };
+    }
   }
 
   const allReturned = order.items.every(
