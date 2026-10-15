@@ -65,3 +65,11 @@ migration:
   # committed Prisma migration history exists (see docs/adr/0007-database-migrations.md):
   #   ["pnpm","--filter","@ayvana/db","exec","prisma","migrate","deploy"]
   command: ["pnpm", "--filter", "@ayvana/db", "exec", "prisma", "db", "push", "--skip-generate"]
+
+# AI Studio background worker (queue consumer for generation jobs). Disabled by
+# default: enable once the `studio-worker` image is built + pushed and the
+# Deployment has been validated against a cluster. Uses the same image.tag as the apps.
+studioWorker:
+  enabled: false
+  replicas: 1
+  intervalMs: 2000

@@ -51,6 +51,13 @@ jobs:
             --image "$IMAGE_REPO/migrator:${{ steps.tag.outputs.value }}" \
             --file docker/Dockerfile.migrate .
 
+      - name: Build & push studio-worker image (ACR)
+        run: |
+          az acr build \
+            --registry "$ACR_NAME" \
+            --image "$IMAGE_REPO/studio-worker:${{ steps.tag.outputs.value }}" \
+            --file docker/Dockerfile.studio-worker .
+
       - name: Get AKS credentials
         run: az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$AKS_NAME" --overwrite-existing
 
