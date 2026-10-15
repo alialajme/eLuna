@@ -2,6 +2,9 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    // Reset the shared ayvana_test DB once before the suite so local runs are
+    // re-runnable (CI already gets a clean container each run). See global-setup.ts.
+    globalSetup: ["./test/global-setup.ts"],
     setupFiles: ["./test/setup.ts"],
     // Integration tests share one Postgres; run files sequentially to keep
     // per-test isolation deterministic (concurrency is exercised *within* tests).
