@@ -23,6 +23,12 @@ export type StartGenerationResult =
   | { ok: true; sessionId: string; jobId: string; deduped: boolean }
   | {
       ok: false;
-      reason: "GARMENT_NOT_FOUND" | "NOT_OWNED" | "VENDOR_INACTIVE" | "INSUFFICIENT_CREDITS" | "ERROR";
+      reason:
+        | "GARMENT_NOT_FOUND"
+        | "NOT_OWNED"
+        | "VENDOR_INACTIVE"
+        | "INSUFFICIENT_CREDITS"
+        | "TOO_MANY_CONCURRENT"
+        | "ERROR";
       message?: string;
     };
