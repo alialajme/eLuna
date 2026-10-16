@@ -45,6 +45,19 @@ class TooManyConcurrentError extends Error {
 }
 
 /**
+ * Thrown when the vendor's plan sets an OPTIONAL monthly shoot ceiling
+ * (SubscriptionPlan.monthlyLimit) and they've reached it this billing period.
+ * Null (every default plan) = no ceiling; the wallet balance + credit packs
+ * remain the only limit, so this never fires for a plan that didn't opt in.
+ */
+class MonthlyLimitError extends Error {
+  constructor() {
+    super("MONTHLY_LIMIT_REACHED");
+    this.name = "MonthlyLimitError";
+  }
+}
+
+/**
  * Start an AI Shoot: create a GenerationSession + a QUEUED ANALYZE GenerationJob
  * + an outbox event, all in ONE transaction (no "committed but event lost"). The
  * API only enqueues — generation runs in the worker (no long-held HTTP; replaces
@@ -105,6 +118,31 @@ export async function startGeneration(input: StartGenerationInput): Promise<Star
       });
       if (inFlight >= MAX_CONCURRENT_JOBS_PER_VENDOR) {
         throw new TooManyConcurrentError();
+      }
+
+      // Optional per-plan monthly ceiling. Enforced ONLY when the vendor's
+      // active subscription's plan sets a non-null monthlyLimit (null = no cap,
+      // the default for every plan — the wallet + packs stay the only limit).
+      // Counts shoots STARTED in the current billing period; an expired/absent
+      // subscription has no active period, so the wallet is the sole gate.
+      const sub = await tx.studioSubscription.findUnique({
+        where: { vendorId: input.vendorId },
+        select: {
+          status: true,
+          currentPeriodStart: true,
+          currentPeriodEnd: true,
+          plan: { select: { monthlyLimit: true } },
+        },
+      });
+      const limit = sub?.plan.monthlyLimit ?? null;
+      const periodActive = !!sub && sub.status === "ACTIVE" && sub.currentPeriodEnd.getTime() > Date.now();
+      if (limit != null && periodActive) {
+        const startedThisPeriod = await tx.generationSession.count({
+          where: { vendorId: input.vendorId, createdAt: { gte: sub!.currentPeriodStart } },
+        });
+        if (startedThisPeriod >= limit) {
+          throw new MonthlyLimitError();
+        }
       }
 
       const session = await tx.generationSession.create({
@@ -170,6 +208,10 @@ export async function startGeneration(input: StartGenerationInput): Promise<Star
     if (err instanceof TooManyConcurrentError) {
       l.info("startGeneration blocked — concurrency cap", { cap: MAX_CONCURRENT_JOBS_PER_VENDOR });
       return { ok: false, reason: "TOO_MANY_CONCURRENT" };
+    }
+    if (err instanceof MonthlyLimitError) {
+      l.info("startGeneration blocked — plan monthly limit reached");
+      return { ok: false, reason: "MONTHLY_LIMIT_REACHED" };
     }
     const message = err instanceof Error ? err.message : "unknown";
     l.error("startGeneration failed", { error: message });
