@@ -29,6 +29,7 @@ export type StartGenerationResult =
         | "VENDOR_INACTIVE"
         | "INSUFFICIENT_CREDITS"
         | "TOO_MANY_CONCURRENT"
+        | "MONTHLY_LIMIT_REACHED"
         | "ERROR";
       message?: string;
     };
