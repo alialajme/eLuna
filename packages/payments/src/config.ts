@@ -7,6 +7,28 @@ export const hasTamara = () => !!process.env.TAMARA_API_KEY;
 
 const nonProd = () => process.env.NODE_ENV !== "production";
 
+export const isProd = () => process.env.NODE_ENV === "production";
+
+/**
+ * Whether the Simulated gateway may run. True in any non-production environment
+ * (local/dev/test/CI, where simulation stands in for real providers), OR in
+ * production ONLY behind an explicit, documented escape hatch for a staging-like
+ * deployment. In real production this is false, so a simulated "capture" can
+ * never settle real money — the single most important payment-safety invariant.
+ */
+export const simulationAllowed = () => nonProd() || process.env.ALLOW_SIMULATED_PAYMENTS === "true";
+
+/** Thrown when no real gateway is configured for a method and simulation is disabled (production). */
+export class PaymentProviderUnavailableError extends Error {
+  constructor(method: string) {
+    super(
+      `No real payment gateway is configured for "${method}" and the Simulated gateway is disabled in production. ` +
+        `Configure the provider's credentials, or set ALLOW_SIMULATED_PAYMENTS=true only in a non-production staging environment.`,
+    );
+    this.name = "PaymentProviderUnavailableError";
+  }
+}
+
 /**
  * Whether an external payment provider may be offered/accepted in the current environment.
  * A provider is available only when its real gateway is configured, OR in non-production (where the
