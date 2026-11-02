@@ -44,6 +44,24 @@ Environment limits (unchanged from V1, carried into V2 scoring honestly):
 - **Verification:** `pnpm --filter @ayvana/payments test` → 9/9. `tsc --noEmit` clean for `@ayvana/payments` and `@ayvana/customer` (consumer). `pnpm install --frozen-lockfile` valid.
 - **Residual / honest notes:** real Stripe capture/refund behavior remains **UNVERIFIED** (no keys) — covered by fail-closed tests, not live transactions. `providerAvailable()` intentionally has no `CARD` case because `placeOrder` excludes CARD (separate `initiateCardPayment` flow); not a gap.
 
+### V2-002 — Newly-disclosed transitive CVEs failing Trivy (deps)
+
+- **Severity:** HIGH (dependency DoS CVEs). **Status:** **CONFIRMED → BLOCKED (environment)** — remediation designed + validated, but the lockfile cannot be regenerated cleanly in this offline-constrained environment. Must be applied on a networked machine.
+- **Source:** `Trivy (deps)` on PRs #45/#46 (and therefore `main`). Time-based disclosures — not introduced by any code change in this program:
+  - `decode-uri-component` 0.2.2 → fixed **0.5.1** (CVE-2026-118664, DoS) — transitive (both `pnpm-lock.yaml` + `apps/mobile/package-lock.json`).
+  - `node-forge` 1.4.0 → fixed **1.4.1** (CVE-2026-118779/118782/119187/119188/119190) — transitive.
+  - `next` 15.5.26 → fixed **15.5.28** (CVE-2026-94482, DoS) — direct dependency of the 4 web apps.
+- **Why blocked here:** `pnpm install --lockfile-only` would not fully re-resolve offline ("downloaded 0"), and `@clerk/nextjs@6.39.7` peer-pins the vulnerable `next@15.5.26`, so a correct lock requires a clean networked install. A half-regenerated lock was produced and **reverted** rather than shipped (do not ship an inconsistent/still-vulnerable lockfile). An unbounded `next` override (`>=15.5.28`) was tried and **rejected** — it resolved to `next@16.4.4` (a major-version jump that would break all apps). The correct fix bumps the apps' pinned `next` to `15.5.28` (stays in 15.5.x).
+- **Remediation recipe (run on a machine with registry access):**
+  1. Branch off `main`.
+  2. Bump `"next": "15.5.26"` → `"15.5.28"` in `apps/{admin,customer,supplier,vendor}/package.json`. (Do **not** add an unbounded `next` pnpm override — it jumps to 16.x.)
+  3. Add to root `package.json` `pnpm.overrides`: `"decode-uri-component@<0.5.1": ">=0.5.1"`, `"node-forge@<1.4.1": ">=1.4.1"`.
+  4. Add to `apps/mobile/package.json` `overrides`: `"decode-uri-component": ">=0.5.1"`, `"node-forge": ">=1.4.1"`.
+  5. `pnpm install` (clean, networked) → regenerates `pnpm-lock.yaml`. Verify `grep -E "^  next@15\.5\.[0-9]+:" pnpm-lock.yaml` shows **only 15.5.28**. If a `next@15.5.26` node lingers (Clerk peer), run `pnpm dedupe` (Clerk's peer range is `^15`, so it accepts 15.5.28).
+  6. `cd apps/mobile && npm install --package-lock-only` to fix the npm lockfile.
+  7. `pnpm install --frozen-lockfile` must pass; commit the lockfiles + package.json edits. Re-run CI on #45/#46 (and `gh run rerun` any `next/font` CDN flake on Production build).
+- **Verification here:** fix versions confirmed to exist on the registry; `next@15.5.28` is the latest 15.5.x patch. Full lockfile regen + Trivy re-scan = **UNVERIFIED (needs networked env)**.
+
 ---
 
 ## Sprint status
