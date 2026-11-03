@@ -57,10 +57,11 @@ Environment limits (unchanged from V1, carried into V2 scoring honestly):
   2. Bump `"next": "15.5.26"` → `"15.5.28"` in `apps/{admin,customer,supplier,vendor}/package.json`. (Do **not** add an unbounded `next` pnpm override — it jumps to 16.x.)
   3. Add to root `package.json` `pnpm.overrides`: `"decode-uri-component@<0.5.1": ">=0.5.1"`, `"node-forge@<1.4.1": ">=1.4.1"`.
   4. Add to `apps/mobile/package.json` `overrides`: `"decode-uri-component": ">=0.5.1"`, `"node-forge": ">=1.4.1"`.
-  5. `pnpm install` (clean, networked) → regenerates `pnpm-lock.yaml`. Verify `grep -E "^  next@15\.5\.[0-9]+:" pnpm-lock.yaml` shows **only 15.5.28**. If a `next@15.5.26` node lingers (Clerk peer), run `pnpm dedupe` (Clerk's peer range is `^15`, so it accepts 15.5.28).
-  6. `cd apps/mobile && npm install --package-lock-only` to fix the npm lockfile.
-  7. `pnpm install --frozen-lockfile` must pass; commit the lockfiles + package.json edits. Re-run CI on #45/#46 (and `gh run rerun` any `next/font` CDN flake on Production build).
-- **Verification here:** fix versions confirmed to exist on the registry; `next@15.5.28` is the latest 15.5.x patch. Full lockfile regen + Trivy re-scan = **UNVERIFIED (needs networked env)**.
+  5. `pnpm install` (clean, networked) → regenerates `pnpm-lock.yaml`. Verify `grep -E "^  next@15\.5\.[0-9]+:" pnpm-lock.yaml` shows **only 15.5.28**.
+  6. If a `next@15.5.26` node lingers — it is peer-pinned by `@clerk/nextjs@6.39.7` (`@clerk/nextjs@6.39.7(next@15.5.26…)`) — `pnpm dedupe` may NOT collapse it. The reliable fix is a **bounded exact-version override** in root `pnpm.overrides`: `"next@15.5.26": "15.5.28"`. This rewrites every `15.5.26` node (incl. Clerk's peer context) to `15.5.28` **without** the unbounded `>=15.5.28` form that jumps to `next@16.x`. (Attempted here but could not be validated — this env's pnpm would not re-resolve/fetch; verify on the networked machine that `next@15.5.26` is gone from the lock afterward.)
+  7. `cd apps/mobile && npm install --package-lock-only` to fix the npm lockfile.
+  8. `pnpm install --frozen-lockfile` must pass; commit the lockfiles + package.json edits. Re-run CI on #45/#46 (and `gh run rerun` any `next/font` CDN flake on Production build).
+- **Verification here:** fix versions confirmed to exist on the registry; `next@15.5.28` is the latest 15.5.x patch. **Exhausted in this env (all failed — pnpm reports `downloaded 0`, won't re-resolve): `pnpm install --lockfile-only`, full `pnpm install`, `pnpm dedupe`, and the bounded `next@15.5.26→15.5.28` override.** Full lockfile regen + Trivy re-scan = **UNVERIFIED (requires a networked machine where pnpm can fetch).**
 
 ---
 
