@@ -111,3 +111,27 @@ export function assertPaymentConfig(): PreflightFinding[] {
   if (errors.length > 0) throw new PaymentConfigError(errors);
   return findings;
 }
+
+/**
+ * Startup preflight for an app's instrumentation `register()` hook: logs every
+ * finding (so warnings are visible in the first lines of the server log), then —
+ * when `assert` is true — THROWS on any error-level finding so a money-unsafe
+ * production boot fails fast instead of silently accepting e.g. simulated
+ * payments. In production we assert; the only error-level finding is
+ * `SIMULATION_ENABLED_IN_PROD`, so a correctly-configured prod never throws and
+ * the CI production build (no override set) is unaffected.
+ */
+export function runStartupPreflight(opts: { assert?: boolean } = {}): PreflightFinding[] {
+  const findings = checkPaymentConfig();
+  for (const f of findings) {
+    const line = `[payments-preflight] ${f.code}: ${f.message}`;
+    if (f.level === "error") console.error(line);
+    else if (f.level === "warn") console.warn(line);
+    else console.info(line);
+  }
+  if (opts.assert) {
+    const errors = findings.filter((f) => f.level === "error");
+    if (errors.length > 0) throw new PaymentConfigError(errors);
+  }
+  return findings;
+}
