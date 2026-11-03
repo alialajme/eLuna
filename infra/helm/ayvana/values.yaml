@@ -61,10 +61,12 @@ migration:
   enabled: false
   backoffLimit: 2
   activeDeadlineSeconds: 600
-  # Default applies the current schema. Switch to a migrate-deploy command once a
-  # committed Prisma migration history exists (see docs/adr/0007-database-migrations.md):
-  #   ["pnpm","--filter","@ayvana/db","exec","prisma","migrate","deploy"]
-  command: ["pnpm", "--filter", "@ayvana/db", "exec", "prisma", "db", "push", "--skip-generate"]
+  # Applies the committed Prisma migration history (baseline 0_init onward) as a
+  # single pre-upgrade executor. See docs/adr/0007-database-migrations.md.
+  # NOTE: an EXISTING db-push-managed database must be baselined ONCE before the
+  # first deploy: `prisma migrate resolve --applied 0_init` (marks the baseline
+  # applied without re-running it). A fresh database needs no such step.
+  command: ["pnpm", "--filter", "@ayvana/db", "exec", "prisma", "migrate", "deploy"]
 
 # AI Studio background worker (queue consumer for generation jobs). Disabled by
 # default: enable once the `studio-worker` image is built + pushed and the
