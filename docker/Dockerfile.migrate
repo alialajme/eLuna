@@ -24,8 +24,9 @@ RUN pnpm --filter "@ayvana/db" exec prisma generate
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 migrator
 USER migrator
 
-# DATABASE_URL is injected at runtime (Key Vault CSI). Default applies the current
-# schema via `db push`; switch to `prisma migrate deploy` once a committed
-# migration history exists (see docs/adr/0007-database-migrations.md). The Helm
-# Job overrides this command via .Values.migration.command.
-CMD ["pnpm", "--filter", "@ayvana/db", "exec", "prisma", "db", "push", "--skip-generate"]
+# DATABASE_URL is injected at runtime (Key Vault CSI). Applies the committed
+# migration history via `prisma migrate deploy` (baseline 0_init onward; see
+# docs/adr/0007-database-migrations.md). The Helm Job overrides this command via
+# .Values.migration.command. An existing db-push DB must be baselined ONCE first:
+# `prisma migrate resolve --applied 0_init` (non-destructive).
+CMD ["pnpm", "--filter", "@ayvana/db", "exec", "prisma", "migrate", "deploy"]
