@@ -64,3 +64,21 @@ NeoPay is surfaced in the customer checkout picker, gated by `neopayAvailable()`
 **To enable NeoPay in production:** implement `NeopayGateway.createPayment` (hosted-redirect / `requires_action`)
 and the callback/webhook, THEN set `NEOPAY_API_KEY` / `NEOPAY_MERCHANT_ID`. Do not set the keys before the
 gateway is implemented, or customers selecting NeoPay will get a "not configured" failure.
+
+## Preflight (config safety check)
+
+`@ayvana/payments` exports a deploy-time preflight so a money-unsafe configuration is
+caught instead of silently shipped:
+
+- `checkPaymentConfig(): PreflightFinding[]` — read-only; returns `error` / `warn` / `info`
+  findings for the current env. Errors: `ALLOW_SIMULATED_PAYMENTS=true` in production
+  (`SIMULATION_ENABLED_IN_PROD`). Warnings: no real provider configured
+  (`NO_REAL_PROVIDER`), or a BNPL/local key set against a still-stubbed adapter
+  (`SCAFFOLD_CONFIGURED_*`, which fails closed — see V2-003).
+- `assertPaymentConfig()` — throws `PaymentConfigError` on any **error**-level finding
+  (returns the findings otherwise). Use this for a hard fail-fast boot gate.
+
+The customer app wires a **log-only** preflight in `apps/customer/instrumentation.ts`
+(`register()`), so every server boot logs the findings. It never throws, so it cannot
+break boot or the production build. To fail fast instead, swap `checkPaymentConfig()`
+for `assertPaymentConfig()` there. Mirror the file into the other apps as needed.
