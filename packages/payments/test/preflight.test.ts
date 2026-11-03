@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { checkPaymentConfig, assertPaymentConfig, PaymentConfigError } from "../src/preflight";
+import {
+  checkPaymentConfig,
+  assertPaymentConfig,
+  runStartupPreflight,
+  PaymentConfigError,
+} from "../src/preflight";
 
 // These read process.env through the config helpers; isolate env per test.
 const PROVIDER_KEYS = [
@@ -95,5 +100,27 @@ describe("payment preflight", () => {
       expect(e).toBeInstanceOf(PaymentConfigError);
       expect((e as PaymentConfigError).findings.every((f) => f.level === "error")).toBe(true);
     }
+  });
+
+  describe("runStartupPreflight (instrumentation boot gate)", () => {
+    it("does NOT throw in production when no override is set (correct prod + real provider)", () => {
+      process.env.NODE_ENV = "production";
+      process.env.STRIPE_SECRET_KEY = "sk_live_dummy";
+      expect(() => runStartupPreflight({ assert: true })).not.toThrow();
+    });
+
+    it("THROWS in production when ALLOW_SIMULATED_PAYMENTS is set (hard fail-fast)", () => {
+      process.env.NODE_ENV = "production";
+      process.env.ALLOW_SIMULATED_PAYMENTS = "true";
+      process.env.STRIPE_SECRET_KEY = "sk_live_dummy";
+      expect(() => runStartupPreflight({ assert: true })).toThrow(PaymentConfigError);
+    });
+
+    it("never throws when assert is false (log-only / non-prod boot)", () => {
+      process.env.NODE_ENV = "production";
+      process.env.ALLOW_SIMULATED_PAYMENTS = "true";
+      expect(() => runStartupPreflight({ assert: false })).not.toThrow();
+      expect(() => runStartupPreflight()).not.toThrow(); // default: no assert
+    });
   });
 });
