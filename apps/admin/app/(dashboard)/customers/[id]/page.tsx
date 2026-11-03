@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@ayvana/db";
+import { prisma, reconcileWallet } from "@ayvana/db";
 import { safeCurrentUser } from "../../../lib/auth";
 
 type Props = { params: Promise<{ id: string }> };
@@ -20,6 +20,15 @@ const ORDER_STATUS_BADGE: Record<string, string> = {
 
 function fmtAED(n: number): string {
   return `AED ${n.toLocaleString("en-AE", { maximumFractionDigits: 0 })}`;
+}
+
+// Exact 2-dp money — the integrity figures must show sub-dirham drift that the
+// whole-AED headline formatter would round away.
+function fmtAED2(v: { toString(): string }): string {
+  return `AED ${Number(v).toLocaleString("en-AE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 function fmtDate(d: Date): string {
@@ -63,6 +72,10 @@ export default async function CustomerDetailPage({ params }: Props) {
 
   if (!customer) redirect("/customers");
 
+  // Read-only integrity audit: does the stored wallet balance match the
+  // append-only ledger? Guarded so a reconcile failure never breaks the page.
+  const integrity = await reconcileWallet(customer.id).catch(() => null);
+
   const displayName = customer.orders[0]?.address.fullName ?? "Customer";
   const totalSpent = customer.orders
     .filter((o) => o.status !== "CANCELLED" && o.status !== "REFUNDED")
@@ -105,6 +118,37 @@ export default async function CustomerDetailPage({ params }: Props) {
           </p>
         </div>
       </div>
+
+      {/* Wallet integrity — cached balance vs. the append-only ledger */}
+      {integrity && (
+        <div className="rounded-lg border border-sand bg-white p-5">
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <p className="text-body-xs font-medium uppercase tracking-wide text-mist">
+              Wallet integrity
+            </p>
+            {integrity.reconciled ? (
+              <span className="shrink-0 rounded-md bg-sage/20 px-2 py-0.5 text-body-xs font-medium text-sage">
+                Reconciled
+              </span>
+            ) : (
+              <span className="shrink-0 rounded-md bg-coral/20 px-2 py-0.5 text-body-xs font-medium text-coral">
+                Drift {fmtAED2(integrity.drift)}
+              </span>
+            )}
+          </div>
+          <p className="text-body-sm text-ink">
+            Cached {fmtAED2(integrity.cachedBalance)}
+            <span className="text-mist"> · </span>
+            Ledger {fmtAED2(integrity.ledgerBalance)}
+          </p>
+          {!integrity.reconciled && (
+            <p className="mt-2 text-body-xs text-mist">
+              The stored balance disagrees with the wallet transaction ledger.
+              Investigate before adjusting funds.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Order history */}
       <div className="rounded-lg border border-sand bg-white p-5">
