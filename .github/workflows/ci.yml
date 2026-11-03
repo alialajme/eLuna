@@ -85,8 +85,24 @@ jobs:
       - name: Run tests with coverage
         run: pnpm --filter @ayvana/db test:coverage
 
-      - name: Run package unit tests (@ayvana/auth, @ayvana/observability)
-        run: pnpm --filter @ayvana/auth --filter @ayvana/observability test
+      - name: Run unit-test packages (no DB)
+        run: >-
+          pnpm
+          --filter @ayvana/auth
+          --filter @ayvana/observability
+          --filter @ayvana/payments
+          --filter @ayvana/courier
+          --filter @ayvana/einvoice
+          --filter @ayvana/messaging
+          test
+
+      - name: Run integration-test packages (shared Postgres)
+        # Separate, sequential steps: each resets/uses the one ayvana_test DB, so
+        # they must not run concurrently with each other.
+        run: pnpm --filter @ayvana/studio test
+
+      - name: Run case-worker integration tests
+        run: pnpm --filter @ayvana/cases test
 
   build:
     name: Production build
