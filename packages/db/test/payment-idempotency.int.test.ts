@@ -18,6 +18,7 @@
 import { describe, it, expect } from "vitest";
 import { prisma } from "../src/client";
 import { applyPaymentResult } from "../../payments/src/reconcile";
+import { reserveInventory } from "../src/reservations";
 import { makeCustomer, makeVariant } from "./factories";
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -55,11 +56,16 @@ async function makePendingOrder(stock = 5, unitPrice = "100.00", qty = 1) {
     },
   });
 
-  // Reserve the stock (like checkout would do).
-  await prisma.productVariant.update({
-    where: { id: variantId },
-    data: { stock: { decrement: qty } },
-  });
+  // Reserve the stock the way checkout now does: a persistent ACTIVE hold keyed
+  // by the order id, which applyPaymentResult commits (succeeded) or releases
+  // (failed).
+  await prisma.$transaction((tx) =>
+    reserveInventory(tx, {
+      idempotencyKey: order.id,
+      orderId: order.id,
+      lines: [{ variantId, quantity: qty }],
+    }),
+  );
 
   const payTx = await prisma.paymentTransaction.create({
     data: {
