@@ -14,13 +14,21 @@ keyVault:
 serviceAccount:
   name: ayvana-workload-identity
 
-# Secrets to mount as env (name in Key Vault == env var name)
+# Secrets to mount as env (name in Key Vault == env var name). Each MUST exist as
+# a Key Vault secret before deploy or the CSI mount fails and pods won't start.
 secrets:
   - DATABASE_URL
   - ANTHROPIC_API_KEY
   - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
   - CLERK_SECRET_KEY
   - CLOUDINARY_URL
+  # Payments (Stripe = the live card/Apple Pay/Google Pay provider). Required for
+  # real card checkout + webhook signature verification.
+  - STRIPE_SECRET_KEY
+  - STRIPE_WEBHOOK_SECRET
+  # BNPL / regional gateways (Tabby, Tamara, Tap, Noqodi, NeoPay) are config-gated
+  # scaffolds that FAIL CLOSED until implemented (ADR / V2-003). Do NOT add their
+  # keys here until the real adapter is wired — a set key only disables that method.
 
 ingress:
   className: nginx
