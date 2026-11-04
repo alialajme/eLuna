@@ -6,6 +6,7 @@ export * from "./order-status";
 export * from "./errors";
 export * from "./money";
 export * from "./inventory";
+export * from "./reservations";
 export * from "./wallet";
 export * from "./order-state";
 export * from "./health";

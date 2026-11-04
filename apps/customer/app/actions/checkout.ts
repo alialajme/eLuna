@@ -7,7 +7,10 @@ import {
   getSetting,
   computeCartPricing,
   reserveStockTx,
-  releaseStockTx,
+  reserveInventory,
+  commitReservation,
+  releaseReservation,
+  expireStaleReservations,
   debitWalletTx,
   money,
   isDomainError,
@@ -146,6 +149,11 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     if (!cart.ok) return { success: false, error: cart.error };
     const { lines, pricing } = cart;
 
+    // Best-effort, non-blocking: reclaim any abandoned holds before we reserve.
+    // A dedicated periodic sweeper is the production-grade trigger (see the
+    // go-live checklist) — this just keeps stock self-healing under traffic.
+    void expireStaleReservations(prisma, { batchSize: 25 }).catch(() => {});
+
     const commonOrderData = {
       customerId: customerProfile.id,
       addressId: input.addressId,
@@ -205,8 +213,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     // ── EXTERNAL PROVIDERS (TABBY / TAMARA / NEOPAY) ── order-first: reserve stock + PENDING order,
     // then call the gateway. Release stock and cancel if the payment is not captured.
     const order = await prisma.$transaction(async (tx) => {
-      await reserveStockTx(tx, stockLines(lines));
-      return tx.order.create({
+      const created = await tx.order.create({
         data: {
           ...commonOrderData,
           status: "PENDING",
@@ -216,6 +223,14 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
           },
         },
       });
+      // Persistent hold keyed by the order id: if the buyer abandons the gateway
+      // redirect, the ACTIVE reservation is reclaimed by the expiry sweeper.
+      await reserveInventory(tx, {
+        idempotencyKey: created.id,
+        orderId: created.id,
+        lines: stockLines(lines),
+      });
+      return created;
     });
 
     const gateway = getGateway(input.paymentMethod);
@@ -228,20 +243,21 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     });
 
     if (paymentResult.status === "captured") {
-      await prisma.$transaction([
-        prisma.order.update({ where: { id: order.id }, data: { status: "CONFIRMED" } }),
-        prisma.paymentTransaction.updateMany({
+      await prisma.$transaction(async (tx) => {
+        await tx.order.update({ where: { id: order.id }, data: { status: "CONFIRMED" } });
+        await tx.paymentTransaction.updateMany({
           where: { orderId: order.id, status: "PENDING" },
           data: { status: "CAPTURED", externalRef: paymentResult.externalRef },
-        }),
-      ]);
+        });
+        await commitReservation(tx, order.id); // hold becomes a permanent sale
+      });
       await clearCartAndRevalidate();
       return { success: true, orderId: order.id };
     }
 
-    // Not captured — release the reservation and cancel the order.
+    // Not captured — release the reservation (returns stock once) and cancel.
     await prisma.$transaction(async (tx) => {
-      await releaseStockTx(tx, stockLines(lines));
+      await releaseReservation(tx, order.id);
       await tx.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } });
       await tx.paymentTransaction.updateMany({
         where: { orderId: order.id, status: "PENDING" },
@@ -291,10 +307,15 @@ export async function initiateCardPayment(input: {
     if (!cart.ok) return { success: false, error: cart.error };
     const { lines, pricing } = cart;
 
-    // 1) Reserve stock + create the PENDING order + PENDING transaction atomically (audit anchor).
+    // Best-effort, non-blocking: reclaim abandoned holds before reserving.
+    void expireStaleReservations(prisma, { batchSize: 25 }).catch(() => {});
+
+    // 1) Create the PENDING order + PENDING transaction + a persistent inventory
+    // hold atomically (audit anchor). The hold is keyed by the order id so the
+    // async settle path (applyPaymentResult via webhook/sync) can commit it, and
+    // the expiry sweeper reclaims it if the buyer abandons the card form.
     const order = await prisma.$transaction(async (tx) => {
-      await reserveStockTx(tx, stockLines(lines));
-      return tx.order.create({
+      const created = await tx.order.create({
         data: {
           customerId: customerProfile!.id,
           addressId: input.addressId,
@@ -312,6 +333,12 @@ export async function initiateCardPayment(input: {
         },
         include: { paymentTransactions: { select: { id: true }, take: 1 } },
       });
+      await reserveInventory(tx, {
+        idempotencyKey: created.id,
+        orderId: created.id,
+        lines: stockLines(lines),
+      });
+      return created;
     });
 
     // 2) Create the gateway payment.
@@ -328,7 +355,7 @@ export async function initiateCardPayment(input: {
     if (result.status === "failed") {
       // Release the reservation — the order never became payable.
       await prisma.$transaction(async (tx) => {
-        await releaseStockTx(tx, stockLines(lines));
+        await releaseReservation(tx, order.id);
         await tx.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } });
         await tx.paymentTransaction.updateMany({
           where: { orderId: order.id, status: "PENDING" },

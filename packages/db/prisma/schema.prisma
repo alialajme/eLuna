@@ -537,6 +537,35 @@ model ProductVariant {
   @@index([productId])
 }
 
+enum ReservationStatus {
+  ACTIVE // stock decremented, holding for an in-flight order
+  COMMITTED // order confirmed/paid — the hold is permanent (sold)
+  RELEASED // explicitly released (payment failed / cancelled) — stock returned
+  EXPIRED // TTL elapsed on an ACTIVE hold — stock returned by the sweeper
+}
+
+/// Persistent inventory hold. `reserveInventory` decrements variant stock and
+/// creates an ACTIVE row keyed by `idempotencyKey` (one per checkout attempt, so
+/// a retry never double-decrements); `commitReservation` makes the hold permanent
+/// (sold); `releaseReservation` and the `expireStaleReservations` sweeper each
+/// return stock via an atomic ACTIVE→{RELEASED,EXPIRED} status-guarded update, so
+/// an abandoned hold is reclaimed exactly once (idempotent recovery). `lines` is a
+/// Json snapshot `[{ variantId, quantity }]` — a since-deleted variant makes the
+/// stock-return a safe no-op.
+model InventoryReservation {
+  id             String            @id @default(cuid())
+  idempotencyKey String            @unique
+  orderId        String?
+  status         ReservationStatus @default(ACTIVE)
+  expiresAt      DateTime
+  lines          Json
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([status, expiresAt])
+  @@index([orderId])
+}
+
 // ─────────────────────────────────────────────
 // ORDERS
 // ─────────────────────────────────────────────

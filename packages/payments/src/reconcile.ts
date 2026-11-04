@@ -1,4 +1,4 @@
-import { prisma, releaseStockTx, appendOutboxEvent } from "@ayvana/db";
+import { prisma, commitReservation, releaseReservation, appendOutboxEvent } from "@ayvana/db";
 import type { WebhookResult } from "./gateway";
 
 /**
@@ -24,6 +24,10 @@ export async function applyPaymentResult(result: WebhookResult): Promise<void> {
           ...(result.walletType ? { metadata: { walletType: result.walletType } } : {}),
         },
       });
+      // The held inventory is now sold — make the reservation permanent. (If the
+      // hold had already expired via the sweeper on an unusually slow capture,
+      // this is a no-op; the generous TTL keeps that race rare.)
+      await commitReservation(tx, order.id);
       // Emit domain events transactionally (outbox) so downstream work
       // (notifications, invoicing, analytics) can't be lost if this commits.
       await appendOutboxEvent(tx, {
@@ -33,20 +37,16 @@ export async function applyPaymentResult(result: WebhookResult): Promise<void> {
       await appendOutboxEvent(tx, { type: "order.confirmed", payload: { orderId: order.id } });
     });
   } else if (result.kind === "payment_failed") {
-    // Release the inventory reserved when the PENDING order was created. The
-    // `order.status === "PENDING"` guard above makes this run at most once, so
-    // stock is never double-released on webhook re-delivery.
-    const items = await prisma.orderItem.findMany({
-      where: { orderId: order.id },
-      select: { variantId: true, quantity: true },
-    });
     await prisma.$transaction(async (tx) => {
       await tx.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } });
       await tx.paymentTransaction.updateMany({
         where: { orderId: order.id, status: "PENDING" },
         data: { status: "FAILED" },
       });
-      await releaseStockTx(tx, items);
+      // Return the held stock exactly once: the `order.status === "PENDING"` guard
+      // above AND the ACTIVE status guard inside releaseReservation both prevent a
+      // double-return on webhook re-delivery.
+      await releaseReservation(tx, order.id);
     });
   }
 }
