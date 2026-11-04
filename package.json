@@ -10,12 +10,14 @@
     "db:push": "turbo db:push",
     "db:generate": "turbo db:generate",
     "db:seed": "turbo run db:seed --filter=@ayvana/db",
+    "test:e2e": "playwright test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
     "turbo": "latest",
     "typescript": "^5.4.0",
-    "prettier": "^3.3.0"
+    "prettier": "^3.3.0",
+    "@playwright/test": "^1.49.0"
   },
   "engines": {
     "node": ">=20",

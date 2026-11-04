@@ -15,4 +15,7 @@ paths = [
 regexes = [
   '''pk_test_Y2xlcmsuZXhhbXBsZS5jb20k''',
   '''sk_test_ZHVtbXlfc2VjcmV0X2tleV9mb3JfYnVpbGQ''',
+  # E2E env-var NAMES referenced in e2e/ specs + docs (identifiers, not secrets) —
+  # the long UPPER_SNAKE name trips the generic-api-key entropy rule.
+  '''AYVANA_E2E_CLERK_(SECRET|PUBLISHABLE)_KEY''',
 ]
